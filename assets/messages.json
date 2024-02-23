@@ -1,0 +1,20 @@
+[
+  {
+    "icon": "rocket",
+    "library": "Ionicons",
+    "style": { "color": "#900" },
+    "text": "Faites chauffer la gomme !"
+  },
+  {
+    "icon": "rocket",
+    "library": "Ionicons",
+    "style": { "color": "#900" },
+    "text": "En route vers l'aventure !"
+  },
+  {
+    "icon": "rocket",
+    "library": "Ionicons",
+    "style": { "color": "#900" },
+    "text": "Attention aux virages serrés !"
+  }
+]
