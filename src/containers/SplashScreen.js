@@ -1,7 +1,13 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, Animated, Dimensions } from "react-native";
 import LottieView from "lottie-react-native";
 import IconComponent from "../components/Icons";
+import * as Location from "expo-location";
+import * as ExpoSplashScreen from "expo-splash-screen";
+
+import PermissionScreen from "./PermissionLocationScreen";
+ExpoSplashScreen.preventAutoHideAsync();
+
 const messages = require("../../assets/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 
@@ -13,7 +19,6 @@ const SplashScreen = ({ navigation }) => {
 
   const screenWidth = Dimensions.get("window").width;
   const translateX = useRef(new Animated.Value(-screenWidth)).current;
-  const bannerRef = useRef(null);
 
   // Choix aléatoire d'un message
   const randomIndex = Math.floor(Math.random() * messages.length);
@@ -49,6 +54,15 @@ const SplashScreen = ({ navigation }) => {
     }).start();
   };
 
+  const permissionsCheck = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    // if (status !== "granted") {
+
+    //   // Si la permission n'est pas accordée, on redirige vers l'écran de permission
+     //  navigation.replace("ChoiceAddress");
+    // }
+  };
+
   async function prepare() {
     try {
       Animated.timing(opacityAnimationLoading, {
@@ -56,16 +70,22 @@ const SplashScreen = ({ navigation }) => {
         duration: 200, // Durée de l'animation de fondu en millisecondes
         useNativeDriver: true,
       }).start();
-      await new Promise((resolve) => setTimeout(resolve, 4000)); // Delay
+
+      //Vérification permission
+      await permissionsCheck();
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay
     } catch (e) {
       console.warn(e);
     } finally {
       handleAnimationComplete();
     }
   }
+  const onLayoutRootView = useCallback(async () => {
+    await ExpoSplashScreen.hideAsync();
+  }, []);
 
   return (
-    <View className="flex-1 bg-[#70E575] justify-center items-center">
+    <View className="flex-1 bg-[#70E575] justify-center items-center" onLayout={onLayoutRootView}>
       <>
         <Animated.View
           style={[
@@ -96,10 +116,10 @@ const SplashScreen = ({ navigation }) => {
           style={[styles.animation, { opacity: opacityAnimationSplash2 }]}
           loop={false}
           onAnimationFinish={() => {
-            navigation.replace("Home");
+            navigation.replace("ChoiceAddress");
+            // onEnd();
           }}
         />
-        {/* bg-[rgba(0,0,0,0.10)] */}
         <View className=" w-full py-2 top-72">
           <Animated.Text
             style={[
@@ -108,14 +128,13 @@ const SplashScreen = ({ navigation }) => {
             ]}
             onLayout={startScrollAnimation}
           >
-            <Text style={styles.message}>{randomMessage.text}</Text>
-            <View>
-              <IconComponent
-                library={randomMessage.library}
-                icon={randomMessage.icon}
-                style={[styles.icon,randomMessage.style]}
-              />
-            </View>
+            <Text style={styles.message}>{randomMessage.text}{" "}</Text>
+
+            <IconComponent
+              library={randomMessage.library}
+              icon={randomMessage.icon}
+              style={[styles.icon, randomMessage.style]}
+            />
           </Animated.Text>
         </View>
       </>

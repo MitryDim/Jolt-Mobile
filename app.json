@@ -28,6 +28,13 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": []
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Jolt to use your location."
+        }
+      ]
+    ]
   }
 }
