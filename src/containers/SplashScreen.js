@@ -10,7 +10,8 @@ ExpoSplashScreen.preventAutoHideAsync();
 
 const messages = require("../../assets/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
-
+const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
+const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);
 const SplashScreen = ({ navigation }) => {
   const opacityAnimationLoading = new Animated.Value(0);
   const opacityAnimationSplash1 = new Animated.Value(1);
@@ -85,7 +86,10 @@ const SplashScreen = ({ navigation }) => {
   }, []);
 
   return (
-    <View className="flex-1 bg-[#70E575] justify-center items-center" onLayout={onLayoutRootView}>
+    <View
+      className="flex-1 bg-[#70E575] justify-center items-center"
+      onLayout={onLayoutRootView}
+    >
       <>
         <Animated.View
           style={[
@@ -100,7 +104,7 @@ const SplashScreen = ({ navigation }) => {
             autoPlay
             onAnimationFinish={prepare}
           />
-          <AnimatedLottieView
+          <AnimatedLottieViewSplash2
             source={require("../../assets/anims/Loading.json")}
             style={[
               styles.loadingAnimation,
@@ -110,13 +114,13 @@ const SplashScreen = ({ navigation }) => {
             autoPlay
           />
         </Animated.View>
-        <AnimatedLottieView
+        <AnimatedLottieViewText
           ref={splashScreen2}
           source={require("../../assets/anims/Jolt-SplashScreen-Part2.json")}
           style={[styles.animation, { opacity: opacityAnimationSplash2 }]}
           loop={false}
           onAnimationFinish={() => {
-            navigation.replace("ChoiceAddress");
+            navigation.replace("HomeScreen");
             // onEnd();
           }}
         />
@@ -128,7 +132,7 @@ const SplashScreen = ({ navigation }) => {
             ]}
             onLayout={startScrollAnimation}
           >
-            <Text style={styles.message}>{randomMessage.text}{" "}</Text>
+            <Text style={styles.message}>{randomMessage.text} </Text>
 
             <IconComponent
               library={randomMessage.library}

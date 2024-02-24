@@ -1,25 +1,19 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "../../../containers/HomeScreen";
-import SplashScreen from "../../../containers/SplashScreen";
+import ChoiceAddressScreen from "../../../containers/ChoiceAddressScreen";
 const Stack = createNativeStackNavigator();
 
 
 function NavigateNavigator() {
   return (
-    <Stack.Navigator initialRouteName="SplashScreen">
-      <Stack.Screen
-        name="SplashScreen"
-        component={SplashScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+    <Stack.Navigator initialRouteName="ChoiceAddress">
       <Stack.Screen
         name="ChoiceAddress"
-        component={HomeScreen}
+        component={ChoiceAddressScreen}
         options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
       />
     </Stack.Navigator>
+    // ChoiceItinerary 
+    // Navigation
   );
 }
 

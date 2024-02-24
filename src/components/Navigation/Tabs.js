@@ -2,14 +2,20 @@ import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
+import HomeNavigator from "./Stack/HomeNavigator";
+import SettingsProfileNavigator from "./Stack/SettingsProfileScreen";
+import MaintainsNavigator from "./Stack/MaintainsNavigator";
+import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React from "react";
 import IconComponent from "../Icons";
-const Tab = createBottomTabNavigator();
 import {
-  SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Avatar from "../Avatar";
+const Tab = createBottomTabNavigator();
+const username = "Val";
 
+//Bouton custom pour le navigation 
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity
     style={{
@@ -35,6 +41,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const insets = useSafeAreaInsets();
+  
   const tabBarStyle = [
     styles.tabBarStyle,
     {
@@ -55,12 +62,12 @@ const Tabs = () => {
             justifyContent: "center",
           },
           tabBarShowLabel: false,
-          navigationBarColor: "#FFFFFF"
+          navigationBarColor: "#FFFFFF",
         }}
       >
         <Tab.Screen
           name="Home"
-          component={NavigateNavigator}
+          component={HomeNavigator}
           options={({ route }) => ({
             navigationBarColor: "#FFFFFF",
             tabBarStyle: ((route) => {
@@ -85,7 +92,7 @@ const Tabs = () => {
         />
         <Tab.Screen
           name="Trajet Effectués"
-          component={NavigateNavigator}
+          component={RouteTraveledNavigator}
           options={{
             tabBarIcon: ({ focused }) => {
               return (
@@ -125,6 +132,60 @@ const Tabs = () => {
               return <CustomTabBarButton {...props} />;
             },
           })}
+        />
+
+        <Tab.Screen
+          name="maintains"
+          component={MaintainsNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              return (
+                <IconComponent
+                  library="MaterialCommunityIcons"
+                  name="wrench"
+                  style={{ color: focused ? "dodgerblue" : "lightblue" }}
+                  size={35}
+                />
+              );
+            },
+           // tabBarBadge: nbMaintainsDone,
+            tabBarBadgeStyle: {
+              backgroundColor: "red", // Couleur de fond du badge
+              color: "white", // Couleur du texte du badge
+              fontSize: 12, // Taille de la police
+              fontWeight: "bold", // Poids de la police
+            //  display: nbMaintainsDone > 0 ? "flex" : "none",
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Profil"
+          component={SettingsProfileNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              return (
+                <>
+                  {username ? (
+                    <Avatar
+                      username={username}
+                      style={{
+                        width: 35,
+                        height: 35,
+                        backgroundColor: focused ? "dodgerblue" : "lightblue",
+                      }}
+                    ></Avatar>
+                  ) : (
+                    <IconComponent
+                      library="MaterialCommunityIcons"
+                      name="account-circle-outline"
+                      style={{ color: focused ? "dodgerblue" : "lightblue" }}
+                      size={35}
+                    />
+                  )}
+                </>
+              );
+            },
+          }}
         />
       </Tab.Navigator>
     </View>
