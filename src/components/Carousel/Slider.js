@@ -31,7 +31,7 @@ const Slider = ({ datas }) => {
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 20,
+    itemVisiblePercentThreshold: 0,
   }).current;
 
   return (
