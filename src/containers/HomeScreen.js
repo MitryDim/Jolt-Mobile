@@ -1,21 +1,60 @@
 import { View, Text, StyleSheet } from "react-native";
 import React from 'react'
+import PagerView from "react-native-pager-view";
 import {
   SafeAreaView
 } from "react-native-safe-area-context";
+import Card from "../components/Cards";
 const HomeScreen = () => {
   return (
-    <SafeAreaView>
-      <View>
-        <Text>Afficher ici le nb de km effectués au total / action à realiser sur les entretiens et photo s'il y à de la trot</Text>
-        <Text>Afficher ici Dernier trajet Effectués (avec la map) avec les informations + lorsqu'on clique dessus affiché sur un screen la map du trajet, publier,petit coeur pour ajouter aux favoris etc </Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, marginBottom: 60 }}>
+      <Text
+        style={{
+          textAlign: "center",
+          fontSize: 16,
+          fontWeight: "bold",
+          marginTop: "8%",
+        }}
+      >
+        Ton equipement
+      </Text>
+      <PagerView style={styles.viewPager} initialPage={0}>
+        <View style={styles.page} key="1">
+          <Card
+            title={"Halo"}
+            description={"test"}
+            image={
+              "https://m.media-amazon.com/images/I/51o3dQgxytL.__AC_SX300_SY300_QL70_ML2_.jpg"
+            }
+          />
+        </View>
+        <View style={styles.page} key="2">
+          <Card
+            title={"Halo"}
+            description={"test"}
+            image={
+              "https://m.media-amazon.com/images/I/51o3dQgxytL.__AC_SX300_SY300_QL70_ML2_.jpg"
+            }
+          />
+        </View>
+      </PagerView>
     </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  viewPager: {
+    width: "100%",
+    height: "25%",
+    marginTop: '3%',
+  },
+  page: {
+    marginLeft: 30,
+    marginRight: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 30,
