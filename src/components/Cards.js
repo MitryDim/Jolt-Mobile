@@ -43,19 +43,20 @@ const Card = ({ title, compteur, image, cardWidth,cardHeight, add = false, }) =>
             resizeMode="contain"
             style={[styles.image]}
           />
-          <Text style={{ fontSize: 16, fontWeight:'700', top:3 }}>{title}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "700", top: 3 }}>
+            {title}
+          </Text>
           <View
             style={[
               styles.row,
               {
-                gap: "100%",
                 justifyContent: "center",
                 width: "100%",
                 top: "5%",
               },
             ]}
           >
-            <View style={[styles.column]}>
+            <View style={[styles.column, { marginRight: '30%' }]}>
               <Text style={styles.smallText}>{"Compteur"}</Text>
               <Text>{compteur}</Text>
             </View>
