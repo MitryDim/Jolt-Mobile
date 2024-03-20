@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "jolt-splashscreen",
-    "slug": "jolt-splashscreen",
+    "name": "jolt-mobile",
+    "slug": "jolt-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#70E575"
       },
-      "package": "com.anonymous.joltsplashscreen"
+      "package": "com.anonymous.joltmobile"
     },
     "web": {
       "favicon": "./assets/favicon.png",
