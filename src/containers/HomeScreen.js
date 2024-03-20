@@ -1,10 +1,16 @@
 import { View, Text, StyleSheet } from "react-native";
-import React from 'react'
-import PagerView from "react-native-pager-view";
+import React from 'react';
+import Slider from "../components/Carousel/Slider";
 import {
   SafeAreaView
 } from "react-native-safe-area-context";
-import Card from "../components/Cards";
+import datas from '../Data/index';
+
+datas.push({
+  id: new Date().getTime().toString(),
+  add: true,
+});
+
 const HomeScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, marginBottom: 60 }}>
@@ -18,26 +24,9 @@ const HomeScreen = () => {
       >
         Ton equipement
       </Text>
-      <PagerView style={styles.viewPager} initialPage={0}>
-        <View style={styles.page} key="1">
-          <Card
-            title={"Halo"}
-            description={"test"}
-            image={
-              "https://m.media-amazon.com/images/I/51o3dQgxytL.__AC_SX300_SY300_QL70_ML2_.jpg"
-            }
-          />
-        </View>
-        <View style={styles.page} key="2">
-          <Card
-            title={"Halo"}
-            description={"test"}
-            image={
-              "https://m.media-amazon.com/images/I/51o3dQgxytL.__AC_SX300_SY300_QL70_ML2_.jpg"
-            }
-          />
-        </View>
-      </PagerView>
+      <View style={styles.viewPager}>
+        <Slider datas={datas} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -46,8 +35,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   viewPager: {
-    width: "100%",
-    height: "25%",
+    height:'35%',
     marginTop: '3%',
   },
   page: {
