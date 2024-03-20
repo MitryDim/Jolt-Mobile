@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Button } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
@@ -8,32 +8,19 @@ import MaintainsNavigator from "./Stack/MaintainsNavigator";
 import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React from "react";
 import IconComponent from "../Icons";
-import {
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Avatar from "../Avatar";
 const Tab = createBottomTabNavigator();
 const username = "Val";
+let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
 
-//Bouton custom pour le navigation 
+//Bouton custom pour le navigation
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity
-    style={{
-      top: -20,
-      justifyContent: "center",
-      alignItems: "center",
-      ...styles.shadow,
-    }}
+    activeOpacity={1}
     onPress={onPress}
   >
-    <View
-      style={{
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: "#e32f45",
-      }}
-    >
+    <View className="flex w-20 h-20 top-[-40] rounded-full bg-white">
       {children}
     </View>
   </TouchableOpacity>
@@ -41,7 +28,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const insets = useSafeAreaInsets();
-  
+
   const tabBarStyle = [
     styles.tabBarStyle,
     {
@@ -83,7 +70,7 @@ const Tabs = () => {
                 <IconComponent
                   library="MaterialCommunityIcons"
                   name="home-analytics"
-                  style={{ color: focused ? "#70E575" : "gray" }}
+                  style={{ color: focused ? "#70E575" : "grey" }}
                   size={35}
                 />
               );
@@ -99,7 +86,7 @@ const Tabs = () => {
                 <IconComponent
                   library="MaterialCommunityIcons"
                   name="map-marker-path"
-                  style={{ color: focused ? "dodgerblue" : "gray" }}
+                  style={{ color: focused ? "#70E575" : "grey" }}
                   size={35}
                 />
               );
@@ -123,7 +110,8 @@ const Tabs = () => {
                 <IconComponent
                   library="MaterialCommunityIcons"
                   name="human-scooter"
-                  style={{ color: focused ? "orange" : "lightblue" }}
+                  className="mr-1"
+                  style={{ color: focused ? "#70E575" : "grey" }}
                   size={35}
                 />
               );
@@ -143,18 +131,22 @@ const Tabs = () => {
                 <IconComponent
                   library="MaterialCommunityIcons"
                   name="wrench"
-                  style={{ color: focused ? "dodgerblue" : "lightblue" }}
-                  size={35}
+                  style={{ color: focused ? "#70E575" : "grey" }}
+                  size={32}
                 />
               );
             },
-           // tabBarBadge: nbMaintainsDone,
+            tabBarBadge:
+              maintainsItemsNumber >= 100
+                ? "+99"
+                : maintainsItemsNumber.toString(),
             tabBarBadgeStyle: {
-              backgroundColor: "red", // Couleur de fond du badge
-              color: "white", // Couleur du texte du badge
-              fontSize: 12, // Taille de la police
-              fontWeight: "bold", // Poids de la police
-            //  display: nbMaintainsDone > 0 ? "flex" : "none",
+              backgroundColor: "red",
+              borderRadius: 10, // Adjust the border radius for smaller corners
+              color: "white",
+              fontSize: 10,
+              fontWeight: "bold",
+              display: maintainsItemsNumber > 0 ? "flex" : "none",
             },
           }}
         />
@@ -169,16 +161,14 @@ const Tabs = () => {
                     <Avatar
                       username={username}
                       style={{
-                        width: 35,
-                        height: 35,
-                        backgroundColor: focused ? "dodgerblue" : "lightblue",
+                        backgroundColor: focused ? "#70E575" : "lightblue",
                       }}
                     ></Avatar>
                   ) : (
                     <IconComponent
                       library="MaterialCommunityIcons"
                       name="account-circle-outline"
-                      style={{ color: focused ? "dodgerblue" : "lightblue" }}
+                      style={{ color: focused ? "#70E575" : "lightblue" }}
                       size={35}
                     />
                   )}

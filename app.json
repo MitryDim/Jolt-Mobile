@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "jolt-mobile",
-    "slug": "jolt-mobile",
+    "slug": "jolt",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,11 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#70E575"
       },
-      "package": "com.anonymous.joltmobile"
+      "package": "com.anonymous.joltmobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -34,7 +38,20 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Jolt to use your location."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff"
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d4110c35-bcf6-4568-87d9-650dc09c99bd"
+      }
+    },
+    "owner": "jolt"
   }
 }

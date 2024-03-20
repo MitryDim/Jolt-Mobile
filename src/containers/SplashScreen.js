@@ -1,5 +1,12 @@
-import React, { useRef, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, Animated, Dimensions } from "react-native";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  Platform,
+} from "react-native";
 import LottieView from "lottie-react-native";
 import IconComponent from "../components/Icons";
 import * as Location from "expo-location";
@@ -12,6 +19,9 @@ const messages = require("../../assets/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);
+
+
+
 const SplashScreen = ({ navigation }) => {
   const opacityAnimationLoading = new Animated.Value(0);
   const opacityAnimationSplash1 = new Animated.Value(1);
@@ -57,10 +67,11 @@ const SplashScreen = ({ navigation }) => {
 
   const permissionsCheck = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
+
     // if (status !== "granted") {
 
     //   // Si la permission n'est pas accordée, on redirige vers l'écran de permission
-     //  navigation.replace("ChoiceAddress");
+    //  navigation.replace("ChoiceAddress");
     // }
   };
 
@@ -76,7 +87,7 @@ const SplashScreen = ({ navigation }) => {
       await permissionsCheck();
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay
     } catch (e) {
-      console.warn(e);
+      console.warn("Error : " + e);
     } finally {
       handleAnimationComplete();
     }
@@ -147,12 +158,6 @@ const SplashScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#70E575",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   animationContainer: {
     width: "100%",
     height: "100%",

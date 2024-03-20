@@ -12,7 +12,7 @@ function NavigateNavigator() {
         options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
       />
     </Stack.Navigator>
-    // ChoiceItinerary 
+    // ChoiceItinerary
     // Navigation
   );
 }
