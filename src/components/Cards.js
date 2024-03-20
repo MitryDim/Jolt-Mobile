@@ -1,38 +1,80 @@
 import React from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
+import IconComponent from "./Icons";
 
-const Card = ({ title, description, image,add }) => {
+const Card = ({ title, compteur, image, cardWidth,cardHeight, add = false, }) => {
+  let customWidth = "100%";
+  let customHeight = "100%";
+
+  if (cardHeight) customHeight = cardHeight;
+  if (cardWidth) customWidth = cardWidth;
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.row}>
-        <View style={styles.imageContainer}>
+    <View style={[styles.card, { width: customWidth, height: customHeight }]}>
+      {add ? (
+        <>
+          <Text style={{ flex: 1, fontSize: 16 }}>{title}</Text>
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <IconComponent
+              library="MaterialCommunityIcons"
+              name="plus"
+              style={{ color: "#70E575" }}
+              size={60}
+            />
+          </View>
+        </>
+      ) : (
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Image
             source={{ uri: image }}
-            style={styles.image}
             resizeMode="contain"
+            style={[styles.image]}
           />
-        </View>
-        <View style={[styles.row, { gap: 6, justifyContent: "center" ,width:'60%'}]}>
-          <View style={styles.column}>
-            <Text style={styles.smallText}>{"Compteur"}</Text>
-            <Text>{description}</Text>
+          <Text style={{ fontSize: 16, fontWeight:'700', top:3 }}>{title}</Text>
+          <View
+            style={[
+              styles.row,
+              {
+                gap: "100%",
+                justifyContent: "center",
+                width: "100%",
+                top: "5%",
+              },
+            ]}
+          >
+            <View style={[styles.column]}>
+              <Text style={styles.smallText}>{"Compteur"}</Text>
+              <Text>{compteur}</Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={styles.smallText}>{"Entretient"}</Text>
+              <Text>7 à faire</Text>
+            </View>
           </View>
-          <View style={styles.column}>
-            <Text style={styles.smallText}>{"Entretient"}</Text>
-            <Text>{description}</Text>
-          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    width: '100%',
+
+    height: "95%",
     backgroundColor: "white",
-    flex: 1,
     borderRadius: 30,
     shadowColor: "#000",
     shadowOffset: {
@@ -53,14 +95,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  imageContainer: {
-    height: '90%',
-    width: '40%',
-  },
   image: {
+    flex: 0.6,
     width: "100%",
-    height: "100%",
-    borderRadius: 30,
+  },
+  content: {
+    flex: 0.4,
+    alignItems: "center",
   },
   column: {
     alignItems: "center",
