@@ -1,4 +1,4 @@
-import { Animated, FlatList, StyleSheet, Text, View } from "react-native";
+import { Animated, FlatList, StyleSheet, Text, View,Dimensions } from "react-native";
 import React, { useRef, useState } from "react";
 
 import SlideItem from "./SlideItem";
@@ -31,7 +31,8 @@ const Slider = ({ datas }) => {
   }).current;
 
   const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 0,
+    waitForInteraction: true,
+    itemVisiblePercentThreshold: 1,
   }).current;
 
   return (
@@ -49,14 +50,16 @@ const Slider = ({ datas }) => {
         <FlatList
           style={{ width: "100%", height: "100%" }}
           data={datas}
-          renderItem={({ item }) => <SlideItem item={item} />}
+          renderItem={({ item }) => <SlideItem item={item}/>}
           horizontal
-          pagingEnabled={true}
-          snapToAlignment="center"
+          pagingEnabled
+          snapToAlignment="start"
           showsHorizontalScrollIndicator={false}
           onScroll={handleOnScroll}
           onViewableItemsChanged={handleOnViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
+          decelerationRate={"fast"}
+          snapToInterval={Dimensions.get("window").width}
         />
         <Pagination data={datas} scrollX={scrollX} index={index} />
       </View>

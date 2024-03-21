@@ -2,12 +2,17 @@ import {
   StyleSheet,
   View,
   Dimensions,
+  Text,
+  Image
 } from "react-native";
 import React from "react";
 import Card from "../Cards";
+import { useNavigation } from "@react-navigation/native";
 const { width, height } = Dimensions.get("screen");
 const customWidth = width * 0.9;
 const SlideItem = ({ item }) => {
+
+  const navigation = useNavigation();
   return (
     <View
       style={{
@@ -18,13 +23,48 @@ const SlideItem = ({ item }) => {
       }}
     >
       <Card
-        title={item.title}
-        compteur="300 km"
-        image={item.img}
         cardWidth={customWidth}
         cardHeight={"95%"}
         add={item.add}
-      ></Card>
+        onClick={() => navigation.navigate("Maintains")}
+      >
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image
+            source={{ uri: item.img }}
+            resizeMode="contain"
+            style={[styles.image]}
+          />
+          <Text style={{ fontSize: 16, fontWeight: "700", top: 3 }}>
+            {item.title}
+          </Text>
+          <View
+            style={[
+              styles.row,
+              {
+                justifyContent: "center",
+                width: "100%",
+                top: "5%",
+              },
+            ]}
+          >
+            <View style={[styles.column, { marginRight: "30%" }]}>
+              <Text style={styles.smallText}>{"Compteur"}</Text>
+              <Text>{"compteur"}</Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={styles.smallText}>{"Entretient"}</Text>
+              <Text>7 à faire</Text>
+            </View>
+          </View>
+        </View>
+      </Card>
     </View>
   );
 };

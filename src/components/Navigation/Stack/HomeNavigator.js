@@ -1,9 +1,26 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createNativeStackNavigator} from "@react-navigation/native-stack";
+
+
 import HomeScreen from "../../../containers/HomeScreen";
 import SplashScreen from "../../../containers/SplashScreen";
+import MaintainsScreen from "../../../containers/MaintainsScreen";
+import { Button } from "react-native";
+import { Animated } from "react-native";
 const Stack = createNativeStackNavigator();
 
 function HomeNavigator() {
+  const config = {
+    animation: "spring",
+    config: {
+      stiffness: 1000,
+      damping: 500,
+      mass: 3,
+      overshootClamping: true,
+      restDisplacementThreshold: 0.01,
+      restSpeedThreshold: 0.01,
+    },
+  };
+
   return (
     <Stack.Navigator initialRouteName="SplashScreen">
       <Stack.Screen
@@ -17,6 +34,21 @@ function HomeNavigator() {
         name="HomeScreen"
         component={HomeScreen}
         options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
+      />
+      <Stack.Screen
+        name="Maintains"
+        component={MaintainsScreen}
+        options={({ navigation }) => ({
+          navigationBarColor: "#FFFFFF",
+          headerShown: true,
+          headerTitle: "Mes Entretients",
+          headerBackTitleVisible: false,
+          headerTransparent: false,
+          presentation: "fullScreenModal",
+          headerLeft: () => (
+            <Button title="Fermer" onPress={() => navigation.goBack()} />
+          ),
+        })}
       />
     </Stack.Navigator>
   );
