@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import React from 'react';
-import Slider from "../components/Carousel/Slider";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 import {
   SafeAreaView
 } from "react-native-safe-area-context";
@@ -25,15 +26,12 @@ const HomeScreen = () => {
         Ton equipement
       </Text>
       <View style={styles.viewPager}>
-        <Slider datas={datas} />
+        {/* <Slider datas={datas} /> */}
       </View>
     </SafeAreaView>
   );
 };
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   viewPager: {
     height:'35%',
     marginTop: '3%',

@@ -15,12 +15,7 @@ const SlideItem = ({ item }) => {
   const navigation = useNavigation();
   return (
     <View
-      style={{
-        width,
-        height: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
+    className=" h-full, justify-center items-center"
     >
       <Card
         cardWidth={customWidth}

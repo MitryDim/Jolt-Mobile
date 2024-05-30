@@ -5,15 +5,6 @@ import { useNavigation } from "@react-navigation/native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 const Maintains = () => {
-  function getDonutColor(percentage) {
-    if (percentage >= 70) {
-      return "green";
-    } else if (percentage >= 20) {
-      return "orange";
-    } else {
-      return "red";
-    }
-  }
   const navigation = useNavigation();
   return (
     <View>

@@ -1,72 +1,60 @@
-import { Animated, FlatList, StyleSheet, Text, View,Dimensions } from "react-native";
-import React, { useRef, useState } from "react";
+// import { Animated, FlatList, StyleSheet, Text, View,Dimensions } from "react-native";
+// import React, { useRef, useState } from "react";
 
-import SlideItem from "./SlideItem";
-import Pagination from "./Pagination";
+// import SlideItem from "./SlideItem";
+// import { Swiper, SwiperSlide } from "swiper/react";
+// import "swiper/css";
 
-const Slider = ({ datas }) => {
-  const [index, setIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
+// const Slider = ({ datas }) => {
+//   const [index, setIndex] = useState(0);
+//   const scrollX = useRef(new Animated.Value(0)).current;
 
-  const handleOnScroll = (event) => {
-    Animated.event(
-      [
-        {
-          nativeEvent: {
-            contentOffset: {
-              x: scrollX,
-            },
-          },
-        },
-      ],
-      {
-        useNativeDriver: false,
-      }
-    )(event);
-  };
+//   const handleOnScroll = (event) => {
+//     Animated.event(
+//       [
+//         {
+//           nativeEvent: {
+//             contentOffset: {
+//               x: scrollX,
+//             },
+//           },
+//         },
+//       ],
+//       {
+//         useNativeDriver: false,
+//       }
+//     )(event);
+//   };
 
-  const handleOnViewableItemsChanged = useRef(({ viewableItems }) => {
-    // console.log('viewableItems', viewableItems);
-    setIndex(viewableItems[0].index);
-  }).current;
+//   const handleOnViewableItemsChanged = useRef(({ viewableItems }) => {
+//     setIndex(viewableItems[0].index);
+//   }).current;
 
-  const viewabilityConfig = useRef({
-    waitForInteraction: true,
-    itemVisiblePercentThreshold: 1,
-  }).current;
+//   const viewabilityConfig = useRef({
+//     waitForInteraction: true,
+//     itemVisiblePercentThreshold: 1,
+//   }).current;
 
-  return (
-    datas &&
-    datas.length > 0 && (
-      <View
-        style={{
-          width: "100%",
-          height: "100%",
-          justifyContent: "center",
-          alignContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <FlatList
-          style={{ width: "100%", height: "100%" }}
-          data={datas}
-          renderItem={({ item }) => <SlideItem item={item}/>}
-          horizontal
-          pagingEnabled
-          snapToAlignment="start"
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleOnScroll}
-          onViewableItemsChanged={handleOnViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          decelerationRate={"fast"}
-          snapToInterval={Dimensions.get("window").width}
-        />
-        <Pagination data={datas} scrollX={scrollX} index={index} />
-      </View>
-    )
-  );
-};
+//   return (
+//     datas &&
+//     datas.length > 0 && (
+//       <Swiper
+//         slidesPerView={3}
+//         spaceBetween={20}
+//         pagination={{
+//           clickable: true,
+//         }}
+//       >
+//         {datas.map((card, index) => {
+//           <SwiperSlide key={index}>
+//             <SlideItem item={card} />
+//           </SwiperSlide>;
+//         })}
+//       </Swiper>
+//     )
+//   );
+// };
 
-export default Slider;
+// export default Slider;
 
-const styles = StyleSheet.create({});
+// const styles = StyleSheet.create({});

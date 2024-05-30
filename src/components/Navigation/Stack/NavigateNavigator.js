@@ -7,6 +7,7 @@ function NavigateNavigator() {
   return (
     <Stack.Navigator initialRouteName="ChoiceAddress">
       <Stack.Screen
+      
         name="ChoiceAddress"
         component={ChoiceAddressScreen}
         options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
