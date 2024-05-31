@@ -6,14 +6,14 @@ import Tabs from "./src/components/Navigation/Tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 
-export default function App() {
 
+export default function App() {
   return (
-      <SafeAreaProvider >
-        <NavigationContainer >
-          <StatusBar />
-          <Tabs/>
-        </NavigationContainer>
-      </SafeAreaProvider>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar />
+        <Tabs />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

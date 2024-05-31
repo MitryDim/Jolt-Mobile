@@ -1,4 +1,9 @@
-import { Ionicons, MaterialIcons,MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Ionicons,
+  MaterialIcons,
+  MaterialCommunityIcons,
+  AntDesign,
+} from "@expo/vector-icons";
 
 const IconComponent = ({ library, icon, ...props }) => {
   switch (library) {
@@ -8,10 +13,11 @@ const IconComponent = ({ library, icon, ...props }) => {
       return <MaterialIcons name={icon} {...props} />;
     case "MaterialCommunityIcons":
       return <MaterialCommunityIcons name={icon} {...props} />;
+    case "AntDesign":
+      return <AntDesign name={icon} {...props} />;
     default:
       return null;
   }
 };
-
 
 export default IconComponent;

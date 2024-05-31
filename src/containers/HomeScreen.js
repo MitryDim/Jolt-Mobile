@@ -1,11 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
-import React from 'react';
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import {
-  SafeAreaView
-} from "react-native-safe-area-context";
-import datas from '../Data/index';
+import React from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import datas from "../Data/index";
 
 datas.push({
   id: new Date().getTime().toString(),
@@ -14,27 +10,18 @@ datas.push({
 
 const HomeScreen = () => {
   return (
-    <SafeAreaView style={{ flex: 1, marginBottom: 60 }}>
-      <Text
-        style={{
-          textAlign: "center",
-          fontSize: 16,
-          fontWeight: "bold",
-          marginTop: "8%",
-        }}
-      >
+    <SafeAreaView className="flex mb-[60px]">
+      <Text className="mt-4 text-base text-center font-bold">
         Ton equipement
       </Text>
-      <View style={styles.viewPager}>
-        {/* <Slider datas={datas} /> */}
-      </View>
+      <View style={styles.viewPager}>{/* <Slider datas={datas} /> */}</View>
     </SafeAreaView>
   );
 };
 const styles = StyleSheet.create({
   viewPager: {
-    height:'35%',
-    marginTop: '3%',
+    height: "35%",
+    marginTop: "3%",
   },
   page: {
     marginLeft: 30,
@@ -48,6 +35,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#fff",
   },
-}); 
+});
 
-export default HomeScreen
+export default HomeScreen;

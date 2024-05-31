@@ -11,7 +11,7 @@ function RouteTraveledNavigator() {
         name="TravelScreen"
         component={RouteTraveledScreen}
         options={{
-          title: "Ride",
+          headerShown: false,
         }}
       />
       <Stack.Screen
