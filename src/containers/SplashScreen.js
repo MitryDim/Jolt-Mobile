@@ -56,12 +56,12 @@ const SplashScreen = ({ navigation }) => {
 
   const startScrollAnimation = (event) => {
     const { width } = event.nativeEvent.layout;
-
+    console.log("screenWidth", screenWidth, width, translateX);
     // Animation de déplacement
     Animated.timing(translateX, {
-      toValue: (screenWidth - width) / 2,
+      toValue: 1,
       duration: 3000,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   };
 
@@ -135,15 +135,14 @@ const SplashScreen = ({ navigation }) => {
             // onEnd();
           }}
         />
-        <View className=" w-full py-2 top-72">
+        <View onLayout={startScrollAnimation} className="w-fit py-2 top-72">
           <Animated.Text
             style={[
               styles.messageContainer,
               { transform: [{ translateX: translateX }] },
             ]}
-            onLayout={startScrollAnimation}
           >
-            <Text style={styles.message}>{randomMessage.text} </Text>
+            <Text style={styles.message}>{randomMessage.text}</Text>
 
             <IconComponent
               library={randomMessage.library}
@@ -192,7 +191,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    textAlign: "center",
   },
 });
 
