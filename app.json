@@ -6,13 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#70E575"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sup.joltmobile"
     },
     "androidNavigationBar": {
       "backgroundColor": "#70E575"
@@ -49,9 +52,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "d4110c35-bcf6-4568-87d9-650dc09c99bd"
+        "projectId": "f9784f40-1a48-4d33-9a7d-717679e2f016"
       }
     },
-    "owner": "jolt"
+    "owner": "mitrydim"
   }
 }
