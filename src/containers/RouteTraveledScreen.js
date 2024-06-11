@@ -10,11 +10,13 @@ const RouteTraveledScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex justify-center items-center mb-[60px]">
+    <SafeAreaView className="mb-[60px]">
       <Text className="mt-4 text-base text-center font-bold">
         Route Traveled Screen
       </Text>
-      <TraveledCards props={props} />
+      <View className="flex justify-center items-center">
+        <TraveledCards props={props} />
+      </View>
     </SafeAreaView>
   );
 };
