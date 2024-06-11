@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from "react-native";
 import React,{useRef,useState,useEffect} from "react";
 import MapView, { AnimatedRegion, Animated, Circle,Marker, MapMarker,MarkerAnimated } from "react-native-maps";
 import * as Location from 'expo-location';
-import Airplane from "../components/Arrow";
+import Arrow from "../components/Arrow";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -63,7 +63,7 @@ console.log(location)
       <MapView
         style={styles.map}
         ref={mapRef}
-        showsUserLocation={true}
+        showsUserLocation={false}
         followsUserLocation={true}
         zoomEnabled={true}
         zoomControlEnabled={true}
@@ -87,7 +87,6 @@ console.log(location)
             latitude: location.latitude,
             longitude: location.longitude,
           }}
-          
           anchor={{ x: 0.5, y: 0.5 }}
         >
           <View
@@ -95,7 +94,7 @@ console.log(location)
               transform: [{ rotate: `${location.heading - cameraHeading}deg` }],
             }}
           >
-            <Airplane fill="red" />
+            <Arrow />
           </View>
         </MarkerAnimated>
       </MapView>
