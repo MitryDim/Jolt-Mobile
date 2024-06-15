@@ -19,7 +19,6 @@ const CARD_WIDTH = Dimensions.get("window").width * 0.8;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.4;
 const SPACING_FOR_CARD_INSET = Dimensions.get("window").width * 0.1 - 10;
 const HomeScreen = () => {
-  const [data, setData] = React.useState(datas);
   useEffect(() => {
     datas.push({
       id: new Date().getTime().toString(),
@@ -38,18 +37,18 @@ const HomeScreen = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH + 10}
+        snapToInterval={
+          CARD_WIDTH +
+          (Platform.OS === "android" ? 10 : 10)
+        }
         decelerationRate={"fast"}
         snapToAlignment="center"
+        pagingEnabled={true}
         contentInset={{
           top: 0,
           left: SPACING_FOR_CARD_INSET,
           bottom: 0,
           right: SPACING_FOR_CARD_INSET,
-        }}
-        contentContainerStyle={{
-          paddingHorizontal:
-            Platform.OS === "android" ? SPACING_FOR_CARD_INSET : 0,
         }}
       >
         {datas.map((item, index) => (
@@ -73,7 +72,7 @@ const HomeScreen = () => {
               <Image
                 source={{ uri: item.img }}
                 resizeMode="contain"
-                style={[styles.image]}
+                style={[styles.image, { backgroundColor: "transparent" }]}
               />
               <Text style={{ fontSize: 16, fontWeight: "700", top: 3 }}>
                 {item.title}

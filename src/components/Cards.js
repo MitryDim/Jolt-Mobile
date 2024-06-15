@@ -45,9 +45,14 @@ const styles = StyleSheet.create({
   cardStyle: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "green",
+    backgroundColor: "white",
     margin: 5,
     borderRadius: 15,
+    elevation: 5, // ANDROID
+    shadowColor: "#000", // IOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
 
