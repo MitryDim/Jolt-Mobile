@@ -1,12 +1,21 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity,Dimensions } from "react-native";
 import IconComponent from "./Icons";
 
-const Card = ({cardWidth='100%',cardHeight='100%', add = false,onClick,children }) => {
- return (
+  const CARD_WIDTH = Dimensions.get("window").width * 0.8;
+  const CARD_HEIGHT = Dimensions.get("window").height * 0.4;
+
+const Card = ({
+  cardWidth = CARD_WIDTH,
+  cardHeight = CARD_HEIGHT,
+  add = false,
+  onClick,
+  children,
+}) => {
+  return (
     <TouchableOpacity
       onPress={onClick}
-      style={[styles.card, { width: cardWidth, height: cardHeight }]}
+      style={[styles.cardStyle, { width: cardWidth, height: cardHeight }]}
     >
       {add ? (
         <>
@@ -33,20 +42,13 @@ const Card = ({cardWidth='100%',cardHeight='100%', add = false,onClick,children 
 };
 
 const styles = StyleSheet.create({
-  card: {
-
-    height: "95%",
-    backgroundColor: "white",
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  }
+  cardStyle: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "green",
+    margin: 5,
+    borderRadius: 15,
+  },
 });
 
 export default Card;

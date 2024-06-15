@@ -5,6 +5,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  TextInput,
 } from "react-native";
 import React, {
   useRef,
@@ -12,6 +13,7 @@ import React, {
   useEffect,
   useLayoutEffect,
   useCallback,
+  useMemo,
 } from "react";
 import MapView, {
   AnimatedRegion,
@@ -19,6 +21,7 @@ import MapView, {
   Marker,
   MapMarker,
   MarkerAnimated,
+  Polyline,
 } from "react-native-maps";
 import * as Location from "expo-location";
 import Arrow from "../components/Arrow";
@@ -27,24 +30,118 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomSheet, {
+  BottomSheetFlatList,
+  TouchableOpacity,
+} from "@gorhom/bottom-sheet";
+import IconComponent from "../components/Icons";
 const COLOR = {
   paperBlue100: { color: "#D0E3FA" },
   paperBlue200: { color: "#AFCCF9" },
 };
 const ChoiceAddressScreen = () => {
+  //TODO: MOVE TO .ENV
+  const apiKey = "5b3ce3597851110001cf624862b0fa8bd3c04b8bbf8de461d61c4193";
+  const openRouteServiceURL = "https://api.openrouteservice.org";
+
   const mapRef = useRef(null);
+  const bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ["10%", "25%", "95%"]);
   const heading = new Animated.Value(0);
+  const [route, setRoute] = useState([]);
   const coordinates = new AnimatedRegion({
     latitude: 0,
     longitude: 0,
   });
-
+  const [endAdress, setEndAddress] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
   const { width, height } = Dimensions.get("window");
-
+  const [timeoutId, setTimeoutId] = useState(null);
   const insets = useSafeAreaInsets();
 
   const MERCATOR_OFFSET = Math.pow(2, 28);
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
+
+
+   const handleItemPress = async (selectedItem) => {
+     try {
+       updateState({ isLoading: true });
+       console.log(selectedItem?.geometry);
+       const Coords = [
+         selectedItem.geometry.coordinates[0],
+         selectedItem.geometry.coordinates[1],
+       ];
+
+       const routeOptions = await getAllRoutes(Coords);
+       const data = {
+         routeOptions: routeOptions,
+         title: `${selectedItem.properties.label}`,
+         localisation: { curLoc: curLoc, heading: heading },
+       };
+       setEndAddress("");
+       setSuggestions([]);
+       bottomSheetRef.current?.collapse();
+      // navigate("ChoiceItinerary", { data });
+
+       //setGeoEndAdress([longitude, latitude]);
+
+       //handleValidation()
+     } catch (error) {
+       updateState({ isLoading: false });
+     } finally {
+       updateState({ isLoading: false });
+     }
+   };
+
+  const renderItemAdresseSuggest = ({ item }) => (
+    <TouchableOpacity onPress={() => handleItemPress(item)} style={styles.item}>
+      <Text>{item.properties.label}</Text>
+    </TouchableOpacity>
+  );
+
+  const handleEndAddressChange = (text) => {
+    setEndAddress(text);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    // Définissez un nouveau délai
+    const newTimeoutId = setTimeout(() => {
+      // Effectuez ici l'action que vous souhaitez exécuter lorsque l'utilisateur a fini d'écrire.
+      fetchSuggestions(text);
+    }, 500); // Vous pouvez ajuster le délai en millisecondes selon vos besoins.
+
+    // Enregistrez le nouvel ID de délai
+    setTimeoutId(newTimeoutId);
+  };
+
+  const handleSheetChange = useCallback((index) => {
+    if (snapPoints[index] != "95%") {
+      Keyboard.dismiss();
+    }
+  }, []);
+
+  const fetchSuggestions = async (input) => {
+    //const apiUrl = `https://api.openrouteservice.org/geocode/autocomplete?text=${input}&api_key=${apiKey}`;
+
+     const apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+       input
+     )}&autocomplete=1&limit=5`;
+
+    try {
+      const response = await fetch(apiUrl,{ method: "GET"});
+
+      if (!response.ok) {
+        throw new Error("Erreur de recherche d'adresse");
+      }
+      const responseJson = await response.json();
+
+      setSuggestions(responseJson.features);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   function mercatorLatitudeToY(latitude) {
     return Math.round(
@@ -124,7 +221,7 @@ const ChoiceAddressScreen = () => {
     return { latitudeDelta, longitudeDelta };
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -148,18 +245,92 @@ const ChoiceAddressScreen = () => {
               longitude: coords.longitude,
             })
             .start();
-
           updateCamera(map, coords, heading);
         }
       );
+      fetchRoutes().then((routeData) => {
+        const { features } = routeData;
+        const route = features[0].geometry.coordinates.map((coords) => ({
+          latitude: coords[1],
+          longitude: coords[0],
+        }));
+
+        setRoute(route);
+      });
     })();
   }, []);
+
+  // useEffect(() => {
+  //   //TODO: Move to another useEffect
+
+  //   fetchRoutes().then((routeData) => {
+  //     const { features } = routeData;
+  //     const route = features[0].geometry.coordinates.map((coords) => ({
+  //       latitude: coords[1],
+  //       longitude: coords[0],
+  //     }));
+
+  //     setRoute(route);
+  //   });
+  // }, []);
+
+  //TODO : Move to another file
+  const fetchRoutes = async () => {
+    const startCoords = [-0.35245299, 49.18524484];
+    const endCoords = [-0.35354733, 49.1841649];
+
+    try {
+      const response = await fetch(
+        `${openRouteServiceURL}/v2/directions/cycling-regular/geojson`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            coordinates: [startCoords, endCoords],
+            extra_info: [
+              "green",
+              "traildifficulty",
+              "waytype",
+              "waycategory",
+              "surface",
+              "steepness",
+            ],
+            geometry_simplify: "false",
+            instructions: "true",
+            instructions_format: "html",
+            language: "fr-fr",
+            maneuvers: "true",
+            preference: "recommended",
+            alternative_routes: { target_count: 2 },
+            attributes: ["avgspeed", "percentage"],
+            roundabout_exits: "true",
+            elevation: "true",
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("data", data);
+
+      const routeData = data;
+
+      console.log("routeData", routeData);
+      return routeData;
+    } catch (error) {
+      console.error("Erreur de calcul d'itinéraire :", error);
+      throw error;
+    }
+  };
 
   const SCREEN_HEIGHT_RATIO = height / 1920; // 1920 est un exemple de hauteur d'écran de référence
   const BASE_OFFSET = -0.005 * SCREEN_HEIGHT_RATIO; // Ajuster 0.002 si nécessaire
 
   const getOffset = (zoom, heading) => {
-    const offset = BASE_OFFSET / Math.pow(2, zoom ); // Ajustement basé sur le zoom
+    const offset = BASE_OFFSET / Math.pow(2, zoom); // Ajustement basé sur le zoom
     const radHeading = heading * (Math.PI / 180); // Convertir le heading en radians
 
     // Calculer le décalage basé sur le heading
@@ -185,7 +356,7 @@ const ChoiceAddressScreen = () => {
       Platform.OS === "ios" ? 3 : 2,
       coordinates.heading
     );
-    console.log("Platform.OS", Platform.OS);
+
     map.animateCamera(
       {
         center: {
@@ -214,39 +385,78 @@ const ChoiceAddressScreen = () => {
 
   return (
     <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
-      <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
-      <AnimatedMapView
-        style={styles.map}
-        ref={mapRef}
-        showsUserLocation={false}
-        followsUserLocation={false}
-        zoomEnabled={true}
-        zoomControlEnabled={true}
-        zoomTapEnabled={false}
-        pitchEnabled={true}
-        showsBuildings={true}
-      >
-        <MarkerAnimated
-          coordinate={coordinates}
-          flat={false}
-          anchor={{ x: 0.5, y: 0.2 }}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
+        <AnimatedMapView
+          style={styles.map}
+          ref={mapRef}
+          showsUserLocation={false}
+          followsUserLocation={false}
+          zoomEnabled={true}
+          zoomControlEnabled={true}
+          zoomTapEnabled={false}
+          pitchEnabled={true}
+          showsBuildings={true}
         >
-          <Animated.View
-            style={{
-              transform: [
-                {
-                  rotate: heading.interpolate({
-                    inputRange: [0, 360],
-                    outputRange: ["0deg", "360deg"],
-                  }),
-                },
-              ],
-            }}
+          <MarkerAnimated
+            coordinate={coordinates}
+            flat={false}
+            anchor={{ x: 0.5, y: 0.2 }}
           >
-            <Arrow />
-          </Animated.View>
-        </MarkerAnimated>
-      </AnimatedMapView>
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    rotate: heading.interpolate({
+                      inputRange: [0, 360],
+                      outputRange: ["0deg", "360deg"],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <Arrow />
+            </Animated.View>
+          </MarkerAnimated>
+          <Polyline coordinates={route} strokeWidth={5} strokeColor="red" />
+        </AnimatedMapView>
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          position="bottom"
+          onChange={handleSheetChange}
+        >
+          <TouchableOpacity
+            className="flex-row items-center justify-center"
+            style={styles.arrowButton}
+            onPress={() => bottomSheetRef.current.expand()}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                borderWidth: 1,
+                borderRadius: 5,
+              }}
+            >
+              <IconComponent icon="search" library="MaterialIcons" size={20} />
+              <TextInput
+                onFocus={() => bottomSheetRef.current.expand()}
+                className="w-[90%] h-12 bg-white"
+                placeholder="Entrez une adresse"
+                value={endAdress}
+                onChangeText={handleEndAddressChange}
+              />
+            </View>
+          </TouchableOpacity>
+          <BottomSheetFlatList
+            data={suggestions}
+            renderItem={renderItemAdresseSuggest}
+            keyExtractor={(item) => item.properties.id}
+          />
+        </BottomSheet>
+      </GestureHandlerRootView>
     </View>
   );
 };
@@ -255,6 +465,20 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+  item: {
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
 });
 
