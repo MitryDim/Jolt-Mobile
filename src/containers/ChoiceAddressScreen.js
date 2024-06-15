@@ -6,6 +6,7 @@ import {
   Dimensions,
   Platform,
   TextInput,
+  Keyboard,
 } from "react-native";
 import React, {
   useRef,
@@ -36,6 +37,7 @@ import BottomSheet, {
   TouchableOpacity,
 } from "@gorhom/bottom-sheet";
 import IconComponent from "../components/Icons";
+import ActivityIndicator from "../components/ActivityIndicator";
 const COLOR = {
   paperBlue100: { color: "#D0E3FA" },
   paperBlue200: { color: "#AFCCF9" },
@@ -62,7 +64,7 @@ const ChoiceAddressScreen = () => {
 
   const MERCATOR_OFFSET = Math.pow(2, 28);
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
-
+  const [loading, setLoading] = useState(false);
 
    const handleItemPress = async (selectedItem) => {
      try {
@@ -124,7 +126,7 @@ const ChoiceAddressScreen = () => {
 
   const fetchSuggestions = async (input) => {
     //const apiUrl = `https://api.openrouteservice.org/geocode/autocomplete?text=${input}&api_key=${apiKey}`;
-
+setLoading(true);
      const apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
        input
      )}&autocomplete=1&limit=5`;
@@ -141,6 +143,7 @@ const ChoiceAddressScreen = () => {
     } catch (error) {
       console.error(error);
     }
+    setLoading(false);
   };
 
   function mercatorLatitudeToY(latitude) {
@@ -438,6 +441,8 @@ const ChoiceAddressScreen = () => {
                 alignItems: "center",
                 borderWidth: 1,
                 borderRadius: 5,
+                marginLeft: 10,
+                marginRight: 10,
               }}
             >
               <IconComponent icon="search" library="MaterialIcons" size={20} />
@@ -448,6 +453,12 @@ const ChoiceAddressScreen = () => {
                 value={endAdress}
                 onChangeText={handleEndAddressChange}
               />
+              {loading && (
+                <ActivityIndicator
+                  testID="activity-indicator"
+                  style={{ marginHorizontal: -16 }}
+                ></ActivityIndicator>
+              )}
             </View>
           </TouchableOpacity>
           <BottomSheetFlatList

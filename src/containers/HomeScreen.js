@@ -11,9 +11,6 @@ import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import datas from "../Data/index";
 import Card from "../components/Cards";
-import IconComponent from "../components/Icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
-
 
 const CARD_WIDTH = Dimensions.get("window").width * 0.8;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.4;
@@ -26,8 +23,6 @@ const HomeScreen = () => {
     });
   }, []);
 
-
-
   return (
     <SafeAreaView className="flex mb-[60px]">
       <Text className="mt-4 text-base text-center font-bold">
@@ -37,10 +32,7 @@ const HomeScreen = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={
-          CARD_WIDTH +
-          (Platform.OS === "android" ? 10 : 10)
-        }
+        snapToInterval={CARD_WIDTH + (Platform.OS === "android" ? 10 : 10)}
         decelerationRate={"fast"}
         snapToAlignment="center"
         pagingEnabled={true}
