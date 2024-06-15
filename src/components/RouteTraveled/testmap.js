@@ -112,18 +112,16 @@ const TrackingDetailsScreen = () => {
               strokeColor="#00F" // Couleur de la ligne du trajet
             />
           </MapView>
-          <Pressable
-            className="absolute top-16 left-4 border-2 border-gray-500 rounded-full w-10 h-10"
-            onPress={() => navigation.goBack()}
-          >
+          <View className="absolute top-16 left-4  border-2 border-gray-500 rounded-full bg-white ">
             <IconComponent
               library="AntDesign"
               name="arrowleft"
               color="grey"
-              className="bg-white rounded-full"
+              style={{ borderRadius: 20, overflow: "hidden" }}
               size={30}
+              onPress={() => navigation.goBack()}
             />
-          </Pressable>
+          </View>
         </>
       )}
     </View>

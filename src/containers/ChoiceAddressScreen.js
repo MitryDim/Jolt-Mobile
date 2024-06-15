@@ -7,6 +7,7 @@ import {
   Platform,
   TextInput,
   Keyboard,
+  Button,
 } from "react-native";
 import React, {
   useRef,
@@ -66,41 +67,51 @@ const ChoiceAddressScreen = () => {
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
   const [loading, setLoading] = useState(false);
 
-   const handleItemPress = async (selectedItem) => {
-     try {
-       updateState({ isLoading: true });
-       console.log(selectedItem?.geometry);
-       const Coords = [
-         selectedItem.geometry.coordinates[0],
-         selectedItem.geometry.coordinates[1],
-       ];
+  const handleItemPress = async (selectedItem) => {
+    try {
+      updateState({ isLoading: true });
+      console.log(selectedItem?.geometry);
+      const Coords = [
+        selectedItem.geometry.coordinates[0],
+        selectedItem.geometry.coordinates[1],
+      ];
 
-       const routeOptions = await getAllRoutes(Coords);
-       const data = {
-         routeOptions: routeOptions,
-         title: `${selectedItem.properties.label}`,
-         localisation: { curLoc: curLoc, heading: heading },
-       };
-       setEndAddress("");
-       setSuggestions([]);
-       bottomSheetRef.current?.collapse();
+      const routeOptions = await getAllRoutes(Coords);
+      const data = {
+        routeOptions: routeOptions,
+        title: `${selectedItem.properties.label}`,
+        localisation: { curLoc: curLoc, heading: heading },
+      };
+      setEndAddress("");
+      setSuggestions([]);
+      bottomSheetRef.current?.collapse();
       // navigate("ChoiceItinerary", { data });
 
-       //setGeoEndAdress([longitude, latitude]);
+      //setGeoEndAdress([longitude, latitude]);
 
-       //handleValidation()
-     } catch (error) {
-       updateState({ isLoading: false });
-     } finally {
-       updateState({ isLoading: false });
-     }
-   };
+      //handleValidation()
+    } catch (error) {
+      updateState({ isLoading: false });
+    } finally {
+      updateState({ isLoading: false });
+    }
+  };
 
-  const renderItemAdresseSuggest = ({ item }) => (
-    <TouchableOpacity onPress={() => handleItemPress(item)} style={styles.item}>
-      <Text>{item.properties.label}</Text>
-    </TouchableOpacity>
-  );
+  const renderItemAdresseSuggest = ({ item }) => {
+    return (
+      <TouchableOpacity
+        onPress={() => handleItemPress(item)}
+        style={styles.item}
+      >
+        <Text>{item.properties.label}</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const clearSearch = () => {
+    setEndAddress("");
+    setSuggestions(null);
+  };
 
   const handleEndAddressChange = (text) => {
     setEndAddress(text);
@@ -126,24 +137,30 @@ const ChoiceAddressScreen = () => {
 
   const fetchSuggestions = async (input) => {
     //const apiUrl = `https://api.openrouteservice.org/geocode/autocomplete?text=${input}&api_key=${apiKey}`;
-setLoading(true);
-     const apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
-       input
-     )}&autocomplete=1&limit=5`;
+    if (input) {
+      setLoading(true);
+      const apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+        input
+      )}&autocomplete=1&limit=5`;
 
-    try {
-      const response = await fetch(apiUrl,{ method: "GET"});
+      try {
+        const response = await fetch(apiUrl, { method: "GET" });
 
-      if (!response.ok) {
-        throw new Error("Erreur de recherche d'adresse");
+        if (!response.ok) {
+          setLoading(false);
+          return;
+        }
+        const responseJson = await response.json();
+
+        setSuggestions(responseJson.features);
+      } catch (error) {
+        console.error(error);
+        setSuggestions(null);
       }
-      const responseJson = await response.json();
-
-      setSuggestions(responseJson.features);
-    } catch (error) {
-      console.error(error);
+      setLoading(false);
+    } else {
+      setSuggestions(null);
     }
-    setLoading(false);
   };
 
   function mercatorLatitudeToY(latitude) {
@@ -325,7 +342,6 @@ setLoading(true);
       return routeData;
     } catch (error) {
       console.error("Erreur de calcul d'itinéraire :", error);
-      throw error;
     }
   };
 
@@ -360,30 +376,33 @@ setLoading(true);
       coordinates.heading
     );
 
-    map.animateCamera(
-      {
-        center: {
-          latitude: coordinates.latitude + offsetLatitude,
-          longitude: coordinates.longitude + offsetLongitude,
+    console.log("map ",map)
+    if (map !== null && map !== undefined) { 
+      map?.animateCamera(
+        {
+          center: {
+            latitude: coordinates.latitude + offsetLatitude,
+            longitude: coordinates.longitude + offsetLongitude,
+          },
+          heading: coordinates.heading,
+          pitch: Platform.OS === "ios" ? 60 : 75,
+          altitude: Platform.OS === "ios" ? 90 : 70,
+          zoom: Platform.OS === "ios" ? 0 : 19,
+          latitudeDelta: latitudeDelta,
+          longitudeDelta: longitudeDelta,
         },
-        heading: coordinates.heading,
-        pitch: Platform.OS === "ios" ? 60 : 75,
-        altitude: Platform.OS === "ios" ? 90 : 70,
-        zoom: Platform.OS === "ios" ? 0 : 19,
-        latitudeDelta: latitudeDelta,
-        longitudeDelta: longitudeDelta,
-      },
-      { duration: 500 }
-    );
+        { duration: 500 }
+      );
 
-    setTimeout(async () => {
-      const cam = await map.getCamera();
-      Animated.timing(heading, {
-        toValue: coordinates.heading - cam?.center ? cam?.center?.heading : 0,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    }, 2000);
+      setTimeout(async () => {
+        const cam = await map?.getCamera();
+        Animated.timing(heading, {
+          toValue: coordinates.heading - cam?.center ? cam?.center?.heading : 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      }, 2000);
+    }
   }, []);
 
   return (
@@ -430,41 +449,51 @@ setLoading(true);
           position="bottom"
           onChange={handleSheetChange}
         >
-          <TouchableOpacity
-            className="flex-row items-center justify-center"
-            style={styles.arrowButton}
-            onPress={() => bottomSheetRef.current.expand()}
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                borderWidth: 1,
-                borderRadius: 5,
-                marginLeft: 10,
-                marginRight: 10,
-              }}
-            >
+            <View className="flex-row items-center justify-between border border-gray-300 rounded-full px-2.5 w-96 ">
               <IconComponent icon="search" library="MaterialIcons" size={20} />
               <TextInput
                 onFocus={() => bottomSheetRef.current.expand()}
-                className="w-[90%] h-12 bg-white"
+                className="w-full h-12 flex-1"
                 placeholder="Entrez une adresse"
                 value={endAdress}
                 onChangeText={handleEndAddressChange}
+                onPress={() => bottomSheetRef.current.expand()}
               />
               {loading && (
                 <ActivityIndicator
+                  size={20}
                   testID="activity-indicator"
-                  style={{ marginHorizontal: -16 }}
                 ></ActivityIndicator>
               )}
+              {!loading && endAdress.length > 0 && (
+                <IconComponent
+                  icon="close"
+                  library="MaterialIcons"
+                  size={20}
+                  onPress={clearSearch}
+                  className="cursor-pointer hover:bg-white"
+                />
+              )}
             </View>
-          </TouchableOpacity>
+          </View>
           <BottomSheetFlatList
             data={suggestions}
             renderItem={renderItemAdresseSuggest}
             keyExtractor={(item) => item.properties.id}
+            ListEmptyComponent={() => {
+              return (
+                !loading &&
+                endAdress.length > 1 && (
+                  <Text className="text-center mt-2">Aucun resultat</Text>
+                )
+              );
+            }}
           />
         </BottomSheet>
       </GestureHandlerRootView>
