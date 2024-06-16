@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView } from "react-native";
 import { formatDistance, formatElapsedTime } from "./utils";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import IconComponent from "../Icons";
-import { useNavigation } from "@react-navigation/native";
 
-const TrackingDetailsScreen = () => {
+const TrackingDetailsScreen = ({ route }) => {
+ // const { data } = route?.params;
+  //const trackingData = data;
+
+
+
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
 
   // Simuler des données si trackingData est null
   const trackingData = {
@@ -31,10 +34,24 @@ const TrackingDetailsScreen = () => {
   };
 
   console.log("trackingData1 ", JSON.stringify(trackingData));
+//TODO REPLACE THIS WITH REAL DATA
 
+
+//TODO REPLACE : By arrow back button on the top left corner of the screen with header
+//      <View className="absolute top-16 left-4  border-2 border-gray-500 rounded-full bg-white ">
+        //   <IconComponent
+        //     library="AntDesign"
+        //     name="arrowleft"
+        //     color="grey"
+        //     style={{ borderRadius: 20, overflow: "hidden" }}
+        //     size={30}
+        //     onPress={() => navigation.goBack()}
+        //   />
+        // </View>
   return (
-    <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
-      {/* <View style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flexDirection: "column", flex: 1, marginBottom: 60 }}>
+        <View className="p-6">
           {trackingData ? (
             <>
               <View style={styles.row}>
@@ -65,78 +82,76 @@ const TrackingDetailsScreen = () => {
           ) : (
             <Text>Loading...</Text>
           )}
-        </View> */}
-      {trackingData && trackingData.positions && (
-        <>
-          <MapView
-            style={styles.map} // Ajustez le style selon vos besoins
-            initialRegion={{
-              // Définissez la région initiale de la carte
-              latitude: trackingData.positions[0].latitude,
-              longitude: trackingData.positions[0].longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            {/* Ajouter un marqueur de départ */}
-            <Marker
-              coordinate={{
+        </View>
+        <View style={{ flex: 1 }}>
+          {trackingData && trackingData.positions && (
+            <MapView // Ajustez le style selon vos besoins
+              style={{ flex: 1 }}
+              initialRegion={{
+                // Définissez la région initiale de la carte
                 latitude: trackingData.positions[0].latitude,
                 longitude: trackingData.positions[0].longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
-              title="Départ"
-              description="Point de départ du trajet"
-              pinColor="green" // Couleur du marqueur
-            />
+            >
+              {/* Ajouter un marqueur de départ */}
+              <Marker
+                coordinate={{
+                  latitude: trackingData.positions[0].latitude,
+                  longitude: trackingData.positions[0].longitude,
+                }}
+                title="Départ"
+                description="Point de départ du trajet"
+                pinColor="green" // Couleur du marqueur
+              />
 
-            {/* Ajouter un marqueur d'arrivée */}
-            <Marker
-              coordinate={{
-                latitude:
-                  trackingData.positions[trackingData.positions.length - 1]
-                    .latitude,
-                longitude:
-                  trackingData.positions[trackingData.positions.length - 1]
-                    .longitude,
-              }}
-              title="Arrivée"
-              description="Point d'arrivée du trajet"
-              pinColor="red" // Couleur du marqueur
-            />
-            <Polyline
-              coordinates={trackingData.positions.map((pos) => ({
-                latitude: pos.latitude,
-                longitude: pos.longitude,
-              }))}
-              strokeWidth={3}
-              strokeColor="#00F" // Couleur de la ligne du trajet
-            />
-          </MapView>
-          <View className="absolute top-16 left-4  border-2 border-gray-500 rounded-full bg-white ">
-            <IconComponent
-              library="AntDesign"
-              name="arrowleft"
-              color="grey"
-              style={{ borderRadius: 20, overflow: "hidden" }}
-              size={30}
-              onPress={() => navigation.goBack()}
-            />
-          </View>
-        </>
-      )}
-    </View>
+              {/* Ajouter un marqueur d'arrivée */}
+              <Marker
+                coordinate={{
+                  latitude:
+                    trackingData.positions[trackingData.positions.length - 1]
+                      .latitude,
+                  longitude:
+                    trackingData.positions[trackingData.positions.length - 1]
+                      .longitude,
+                }}
+                title="Arrivée"
+                description="Point d'arrivée du trajet"
+                pinColor="red" // Couleur du marqueur
+              />
+              <Polyline
+                coordinates={trackingData.positions.map((pos) => ({
+                  latitude: pos.latitude,
+                  longitude: pos.longitude,
+                }))}
+                strokeWidth={3}
+                strokeColor="#00F" // Couleur de la ligne du trajet
+              />
+            </MapView>
+          )}
+        </View>
+       
+        {/* <View className="absolute top-16 left-4  border-2 border-gray-500 rounded-full bg-white ">
+          <IconComponent
+            library="AntDesign"
+            name="arrowleft"
+            color="grey"
+            style={{ borderRadius: 20, overflow: "hidden" }}
+            size={30}
+            onPress={() => navigation.goBack()}
+          />
+        </View> */}
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default TrackingDetailsScreen;
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1, // Utilisé pour permettre le défilement
-    marginBottom: 130,
-  },
+
   container: {
-    flex: 1,
     padding: 16,
   },
   row: {
@@ -148,8 +163,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginRight: 10,
   },
+  value: {},
   map: {
-    flex: 1,
-    height: "100%", // Ajustez la hauteur de la carte selon vos besoins
+    height: '100%', // Ajustez la hauteur de la carte selon vos besoins
   },
 });
+

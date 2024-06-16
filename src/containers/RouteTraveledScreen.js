@@ -1,22 +1,24 @@
-import { View, Text } from "react-native";
+import { View, Text, FlatList } from "react-native";
 import React from "react";
 import TraveledCards from "../components/RouteTraveled/TraveledCards";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import items from "../Data/traveled";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 const RouteTraveledScreen = () => {
-  const props = {
-    start: "Start",
-    end: "End",
-  };
-
+  console.log(items);
   return (
-    <SafeAreaView className="mb-[60px]">
+    <SafeAreaView style={{ flex: 1, marginBottom: "60px" }}>
       <Text className="mt-4 text-base text-center font-bold">
         Route Traveled Screen
       </Text>
-      <View className="flex justify-center items-center">
-        <TraveledCards props={props} />
-      </View>
+      <GestureHandlerRootView className="flex">
+        <FlatList
+          className="flex"
+          data={items}
+          renderItem={({ item }) => <TraveledCards data={item} />}
+          keyExtractor={(item) => item.id}
+        ></FlatList>
+      </GestureHandlerRootView>
     </SafeAreaView>
   );
 };

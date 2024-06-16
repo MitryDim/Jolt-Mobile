@@ -16,10 +16,7 @@ let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
 
 //Bouton custom pour le navigation
 const CustomTabBarButton = ({ children, onPress }) => (
-  <TouchableOpacity
-    activeOpacity={1}
-    onPress={onPress}
-  >
+  <TouchableOpacity activeOpacity={1} onPress={onPress}>
     <View className="flex w-20 h-20 top-[-40] rounded-full bg-white">
       {children}
     </View>
@@ -80,7 +77,19 @@ const Tabs = () => {
         <Tab.Screen
           name="Trajet Effectués"
           component={RouteTraveledNavigator}
-          options={{
+          options={({ route }) => ({
+            tabBarStyle: ((route) => {
+
+              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+              console.log(routeName);
+              if (
+                routeName === "TrackingDetailsScreen" ||
+                routeName === "Travel"
+              ) {
+                return { display: "none" };
+              }
+              return styles.tabBarStyle;
+            })(route),
             tabBarIcon: ({ focused }) => {
               return (
                 <IconComponent
@@ -91,7 +100,7 @@ const Tabs = () => {
                 />
               );
             },
-          }}
+          })}
         />
         <Tab.Screen
           name="Navigate"
