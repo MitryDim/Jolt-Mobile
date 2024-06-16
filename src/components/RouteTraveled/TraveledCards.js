@@ -97,8 +97,6 @@ useEffect(() => {
                     latitude: data.positions[0]?.latitude,
                     longitude: data.positions[0]?.longitude,
                   }}
-                  title="Départ"
-                  description="Point de départ du trajet"
                   pinColor="green" // Couleur du marqueur
                 />
               )}
@@ -112,8 +110,6 @@ useEffect(() => {
                     longitude:
                       data.positions[data.positions.length - 1]?.longitude,
                   }}
-                  title="Arrivée"
-                  description="Point d'arrivée du trajet"
                   pinColor="red" // Couleur du marqueur
                 />
               )}

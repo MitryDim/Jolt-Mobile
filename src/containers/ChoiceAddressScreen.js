@@ -70,7 +70,6 @@ const ChoiceAddressScreen = () => {
   const handleItemPress = async (selectedItem) => {
     try {
       updateState({ isLoading: true });
-      console.log(selectedItem?.geometry);
       const Coords = [
         selectedItem.geometry.coordinates[0],
         selectedItem.geometry.coordinates[1],
@@ -252,8 +251,8 @@ const ChoiceAddressScreen = () => {
       Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 200,
-          distanceInterval: 0.1,
+          timeInterval: 1000,
+          distanceInterval: 2,
         },
         (newLocation) => {
           let { coords } = newLocation;
@@ -268,15 +267,15 @@ const ChoiceAddressScreen = () => {
           updateCamera(map, coords, heading);
         }
       );
-      fetchRoutes().then((routeData) => {
-        const { features } = routeData;
-        const route = features[0].geometry.coordinates.map((coords) => ({
-          latitude: coords[1],
-          longitude: coords[0],
-        }));
+      // fetchRoutes().then((routeData) => {
+      //   const { features } = routeData;
+      //   const route = features[0].geometry.coordinates.map((coords) => ({
+      //     latitude: coords[1],
+      //     longitude: coords[0],
+      //   }));
 
-        setRoute(route);
-      });
+      //   setRoute(route);
+      // });
     })();
   }, []);
 
@@ -334,11 +333,8 @@ const ChoiceAddressScreen = () => {
 
       const data = await response.json();
 
-      console.log("data", data);
-
       const routeData = data;
 
-      console.log("routeData", routeData);
       return routeData;
     } catch (error) {
       console.error("Erreur de calcul d'itinéraire :", error);
@@ -376,8 +372,7 @@ const ChoiceAddressScreen = () => {
       coordinates.heading
     );
 
-    console.log("map ",map)
-    if (map !== null && map !== undefined) { 
+    if (map !== null && map !== undefined) {
       map?.animateCamera(
         {
           center: {
@@ -398,10 +393,10 @@ const ChoiceAddressScreen = () => {
         const cam = await map?.getCamera();
         Animated.timing(heading, {
           toValue: coordinates.heading - cam?.center ? cam?.center?.heading : 0,
-          duration: 400,
+          duration: 500,
           useNativeDriver: true,
         }).start();
-      }, 2000);
+      }, 500);
     }
   }, []);
 
