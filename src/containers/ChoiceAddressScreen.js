@@ -43,7 +43,12 @@ const COLOR = {
   paperBlue100: { color: "#D0E3FA" },
   paperBlue200: { color: "#AFCCF9" },
 };
+
+import {calculateMultipleRoutes} from "../helpers/Api";
+import { useNavigation } from "@react-navigation/native";
+import LoadingOverlay from "../components/LoadingOverlay";
 const ChoiceAddressScreen = () => {
+  const { navigate } = useNavigation();
   //TODO: MOVE TO .ENV
   const apiKey = "5b3ce3597851110001cf624862b0fa8bd3c04b8bbf8de461d61c4193";
   const openRouteServiceURL = "https://api.openrouteservice.org";
@@ -66,10 +71,47 @@ const ChoiceAddressScreen = () => {
   const MERCATOR_OFFSET = Math.pow(2, 28);
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
   const [loading, setLoading] = useState(false);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+
+
+const getAllRoutes = async (endCoords) => {
+  let { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== "granted") {
+    // Gérez ici le cas où la permission n'est pas accordée
+    return;
+  }
+
+  // Obtient les coordonnées de l'utilisateur
+  let location = await Location.getCurrentPositionAsync({});
+
+  const startCoords = [location.coords.longitude, location.coords.latitude];
+  const numRoutes = 3;
+  const routes = await calculateMultipleRoutes(
+    startCoords,
+    endCoords,
+    numRoutes,
+    [[location.coords.heading, 20]]
+  );
+
+  const routeOptions = routes.map((route, index) => ({
+    id: index,
+    coordinates: route.coordinates,
+    instructions: route.instructions,
+    routeDistance: route.routeDistance,
+    duration: route.duration,
+  }));
+  return routeOptions;
+};
+
+
+
+
+
+
 
   const handleItemPress = async (selectedItem) => {
     try {
-      updateState({ isLoading: true });
+      setItineraryLoading(true);
       const Coords = [
         selectedItem.geometry.coordinates[0],
         selectedItem.geometry.coordinates[1],
@@ -79,20 +121,18 @@ const ChoiceAddressScreen = () => {
       const data = {
         routeOptions: routeOptions,
         title: `${selectedItem.properties.label}`,
-        localisation: { curLoc: curLoc, heading: heading },
+        localisation: { curLoc: coordinates, heading: heading },
       };
-      setEndAddress("");
-      setSuggestions([]);
+      //TODO : A VOIR ?
+      // setEndAddress("");
+      // setSuggestions(null);
+
       bottomSheetRef.current?.collapse();
-      // navigate("ChoiceItinerary", { data });
-
-      //setGeoEndAdress([longitude, latitude]);
-
-      //handleValidation()
+      navigate("ChoiceItinerary", { data });
     } catch (error) {
-      updateState({ isLoading: false });
+      console.error("Erreur lors de la récupération des itinéraires :", error);
     } finally {
-      updateState({ isLoading: false });
+   setItineraryLoading(false);
     }
   };
 
@@ -161,6 +201,10 @@ const ChoiceAddressScreen = () => {
       setSuggestions(null);
     }
   };
+
+
+//TODO: MOVE TO ANOTHER FILE v
+
 
   function mercatorLatitudeToY(latitude) {
     return Math.round(
@@ -240,6 +284,9 @@ const ChoiceAddressScreen = () => {
     return { latitudeDelta, longitudeDelta };
   }
 
+  //TODO: MOVE TO ANOTHER FILE ^ 
+
+  
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -492,6 +539,13 @@ const ChoiceAddressScreen = () => {
           />
         </BottomSheet>
       </GestureHandlerRootView>
+      {itineraryLoading && (
+        <LoadingOverlay>
+          <Text style={{ color: "white" }}>
+            Nous recherchons le(s) meilleur(s) itinéraire(s)
+          </Text>
+        </LoadingOverlay>
+      )}
     </View>
   );
 };
