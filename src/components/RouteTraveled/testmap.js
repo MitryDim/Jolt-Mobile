@@ -15,45 +15,12 @@ import { CenterRegion } from "./functions";
 
 
 const TrackingDetailsScreen = ({ route }) => {
-  // const { data } = route?.params;
-  //const trackingData = data;
-
+const { data } = route.params; // Récupérer l'élément passé en paramètre
+const trackingData = data;
   const insets = useSafeAreaInsets();
 
-  // Simuler des données si trackingData est null
-  const trackingData = {
-    distance: Math.random() * 100, // Distance aléatoire entre 0 et 100
-    elapsedTime: Math.floor(Math.random() * 3600), // Temps écoulé aléatoire entre 0 et 3600 secondes
-    maxSpeed: Math.floor(Math.random() * 50), // Vitesse maximale aléatoire entre 0 et 50 km/h
-    startTime: new Date().toLocaleString(), // Date et heure actuelles
-    stopTime: new Date().toLocaleString(), // Date et heure actuelles
-    positions: [
-      {
-        latitude: 37.7749 + Math.random() * 0.1, // Latitude aléatoire autour de San Francisco
-        longitude: -122.4194 + Math.random() * 0.1, // Longitude aléatoire autour de San Francisco
-      },
-      {
-        latitude: 37.7749 + Math.random() * 0.1,
-        longitude: -122.4194 + Math.random() * 0.1,
-      },
-      // Ajoutez plus de positions si nécessaire
-    ],
-  };
-
-  console.log("trackingData1 ", JSON.stringify(trackingData));
   //TODO REPLACE THIS WITH REAL DATA
 
-  //TODO REPLACE : By arrow back button on the top left corner of the screen with header
-  //      <View className="absolute top-16 left-4  border-2 border-gray-500 rounded-full bg-white ">
-  //   <IconComponent
-  //     library="AntDesign"
-  //     name="arrowleft"
-  //     color="grey"
-  //     style={{ borderRadius: 20, overflow: "hidden" }}
-  //     size={30}
-  //     onPress={() => navigation.goBack()}
-  //   />
-  // </View>
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flexDirection: "column", flex: 1, marginBottom: 60 }}>

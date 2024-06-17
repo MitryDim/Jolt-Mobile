@@ -57,7 +57,7 @@ const TraveledCards = ({ data }) => {
       <TouchableOpacity
         onPress={() => {
           if (!swiped) {
-            navigation.navigate("TrackingDetailsScreen");
+            navigation.navigate("TrackingDetailsScreen",{data});
           }
         }} // Naviguer vers les détails avec l'élément en paramètre
         className="bg-white m-2 rounded-b-xl"
