@@ -8,8 +8,6 @@ const Stack = createNativeStackNavigator();
 
 function RouteTraveledNavigator() {
 
-
-
   return (
     <Stack.Navigator initialRouteName="TravelScreen">
       <Stack.Screen

@@ -11,57 +11,43 @@ import MapView, { Marker, Overlay, Polyline } from "react-native-maps";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 
+import { CenterRegion } from "./functions";
+
 const TraveledCards = ({ data }) => {
   const navigation = useNavigation();
   const [swiped, setSwiped] = useState(false);
 
-
-  
   const handleDeleteItem = async (item) => {
     //TODO FONCTION DE SUPPRESSION
+    console.log("Delete item", item);
   };
 
   const renderLeftActions = (item) => {
-
     return (
       <TouchableOpacity
-        className="justify-center p-5 bg-red-500 rounded-xl m-2"
+        className="justify-center p-5 bg-white border-2 border-red-600 rounded-xl m-2"
         onPress={() => handleDeleteItem(item)} // Appeler la fonction de suppression
       >
-        <Text className="text-white font-bold">Supprimer</Text>
+        <IconComponent
+          className="text-red-600"
+          icon="delete"
+          library="MaterialIcons"
+          color="rgb(220 38 38)"
+          size={30}
+        />
       </TouchableOpacity>
     );
   };
 
-  const CenterRegion = (coordinates) => {
-    if (coordinates.length === 0) {
-      return {
-        latitude: 0,
-        longitude: 0,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-    }
-    const minLat = Math.min(...coordinates.map((pos) => pos.latitude));
-    const maxLat = Math.max(...coordinates.map((pos) => pos.latitude));
-    const minLon = Math.min(...coordinates.map((pos) => pos.longitude));
-    const maxLon = Math.max(...coordinates.map((pos) => pos.longitude));
-    return {
-      latitude: (minLat + maxLat) / 2,
-      longitude: (minLon + maxLon) / 2,
-      latitudeDelta: (maxLat - minLat + 0.01) * 1.5,
-      longitudeDelta: (maxLon - minLon + 0.01) * 1.5,
-    };
-  };
-useEffect(() => {
-  setSwiped(false);
-}, [data]); 
+  useEffect(() => {
+    setSwiped(false);
+  }, [data]);
 
   return (
     <Swipeable
       onSwipeableWillOpen={() => {
         console.log("Open");
-         setSwiped(true);
+        setSwiped(true);
       }}
       onSwipeableWillClose={() => {
         console.log("Close");

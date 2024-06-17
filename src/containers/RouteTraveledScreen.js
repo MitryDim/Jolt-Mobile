@@ -17,7 +17,7 @@ const RouteTraveledScreen = () => {
           data={items}
           renderItem={({ item }) => <TraveledCards data={item} />}
           keyExtractor={(item) => item.id}
-        ></FlatList>
+        />
       </GestureHandlerRootView>
     </SafeAreaView>
   );
