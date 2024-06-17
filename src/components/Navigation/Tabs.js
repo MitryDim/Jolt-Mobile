@@ -78,17 +78,14 @@ const Tabs = () => {
           name="Trajet Effectués"
           component={RouteTraveledNavigator}
           options={({ route }) => ({
+            navigationBarColor: "#FFFFFF",
             tabBarStyle: ((route) => {
-
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
               console.log(routeName);
-              if (
-                routeName === "TrackingDetailsScreen" ||
-                routeName === "Travel"
-              ) {
+              if (routeName === "TrackingDetailsScreen") {
                 return { display: "none" };
               }
-              return styles.tabBarStyle;
+              return tabBarStyle;
             })(route),
             tabBarIcon: ({ focused }) => {
               return (
@@ -109,7 +106,7 @@ const Tabs = () => {
             tabBarStyle: ((route) => {
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
 
-              if (routeName === "ChoiceItinerary" || routeName === "Travel") {
+              if (routeName === "ChoiceItinerary") {
                 return { display: "none" };
               }
               return tabBarStyle;

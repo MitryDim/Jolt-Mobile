@@ -59,20 +59,17 @@ useEffect(() => {
 
   return (
     <Swipeable
-      onSwipeableWillOpen={() => {
-        console.log("Open");
-         setSwiped(true);
+
+      onSwipeableOpenStartDrag={() => {
+        setSwiped(true);
       }}
       onSwipeableWillClose={() => {
-        console.log("Close");
         setSwiped(false);
       }}
       renderRightActions={() => renderLeftActions(data)}
     >
       <TouchableOpacity
         onPress={() => {
-          console.log("swiped:", swiped);
-          console.log("navigation:", navigation);
           if (!swiped) {
             navigation.navigate("TrackingDetailsScreen");
           }

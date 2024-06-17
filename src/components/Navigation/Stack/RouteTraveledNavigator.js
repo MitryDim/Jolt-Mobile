@@ -16,7 +16,7 @@ function RouteTraveledNavigator() {
         name="TravelScreen"
         component={RouteTraveledScreen}
         options={{
-          headerShown: false,
+          headerShown: false, 
         }}
       />
       <Stack.Screen
@@ -29,7 +29,6 @@ function RouteTraveledNavigator() {
             </View>
           ),
           headerTitleAlign: "center",
-          headerBackButtonMenuEnabled: true,
           headerShown: true,
           animation: "slide_from_bottom",
           presentation: "fullScreenModal",
