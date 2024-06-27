@@ -45,7 +45,6 @@ const TraveledCards = ({ data }) => {
 
   return (
     <Swipeable
-
       onSwipeableOpenStartDrag={() => {
         setSwiped(true);
       }}
@@ -57,15 +56,15 @@ const TraveledCards = ({ data }) => {
       <TouchableOpacity
         onPress={() => {
           if (!swiped) {
-            navigation.navigate("TrackingDetailsScreen",{data});
+            navigation.navigate("TrackingDetailsScreen", { data });
           }
         }} // Naviguer vers les détails avec l'élément en paramètre
-        className="bg-white m-2 rounded-b-xl"
+        className="bg-white m-2 rounded-xl"
       >
         <View style={{ flex: 1 }}>
           {data && data.positions && (
             <MapView // Ajustez le style selon vos besoins
-              style={{ flex: 1, height: 200 }}
+              style={{ height: 200 }}
               initialRegion={CenterRegion(data.positions)}
               moveOnMarkerPress={false}
               zoomTapEnabled={false}
@@ -150,49 +149,4 @@ const TraveledCards = ({ data }) => {
     </Swipeable>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1, // Utilisez flex pour occuper tout l'espace vertical disponible
-    marginBottom: 130,
-  },
-  item: {
-    backgroundColor: "#B8DFDD",
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 10,
-    borderRadius: 15,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: "bold",
-    marginRight: 10,
-  },
-  value: {},
-  valueContainer: {
-    flexDirection: "row", // Aligner l'icône et le texte horizontalement
-    alignItems: "center",
-  },
-  chevron: {
-    fontWeight: "bold",
-    marginLeft: 5,
-  },
-  deleteButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 100,
-    backgroundColor: "red",
-    borderRadius: 15,
-    marginRight: 10,
-  },
-  deleteButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-});
 export default TraveledCards;

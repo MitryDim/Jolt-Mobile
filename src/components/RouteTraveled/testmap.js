@@ -13,27 +13,37 @@ import MapView, { Polyline, Marker } from "react-native-maps";
 import IconComponent from "../Icons";
 import { CenterRegion } from "./functions";
 
-
 const TrackingDetailsScreen = ({ route }) => {
-const { data } = route.params; // Récupérer l'élément passé en paramètre
-const trackingData = data;
+  const { data } = route.params; // Récupérer l'élément passé en paramètre
+  const trackingData = data;
   const insets = useSafeAreaInsets();
 
   //TODO REPLACE THIS WITH REAL DATA
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ flexDirection: "column", flex: 1, marginBottom: 60 }}>
+      <View style={{ flexDirection: "column", flex: 1 }}>
         <View className="p-6">
           {trackingData ? (
             <>
               <View style={styles.row}>
+                <IconComponent
+                  icon="timer-sand"
+                  library="MaterialCommunityIcons"
+                  size={20}
+                />
+
                 <Text style={styles.label}>Distance parcouru :</Text>
                 <Text style={styles.value}>
                   {formatDistance(trackingData?.distance)}
                 </Text>
               </View>
               <View style={styles.row}>
+                <IconComponent
+                  icon="map-marker-distance"
+                  library="MaterialCommunityIcons"
+                  size={20}
+                />
                 <Text style={styles.label}>Temps du ride :</Text>
                 <Text style={styles.value}>
                   {formatElapsedTime(trackingData?.elapsedTime)}
