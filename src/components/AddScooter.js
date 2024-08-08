@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import "nativewind";
 
 export default function AddScooterForm() {
   const [model, setModel] = useState("");
