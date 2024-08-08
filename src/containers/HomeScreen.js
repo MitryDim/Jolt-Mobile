@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import datas from "../Data/index";
+import scooters from "../Data/myScooters";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";
 
@@ -19,7 +19,7 @@ const SPACING_FOR_CARD_INSET = Dimensions.get("window").width * 0.5 - 10;
 
 const HomeScreen = () => {
   useEffect(() => {
-    datas.push({
+    scooters.push({
       id: new Date().getTime().toString(),
       add: true,
     });
@@ -43,7 +43,7 @@ const HomeScreen = () => {
           right: SPACING_FOR_CARD_INSET,
         }}
       >
-        {datas.map((item, index) => (
+        {scooters.map((item, index) => (
           <Card
             key={index}
             cardWidth={CARD_WIDTH}
@@ -80,12 +80,12 @@ const HomeScreen = () => {
                 ]}
               >
                 <View style={[styles.column, { marginRight: "30%" }]}>
-                  <Text style={styles.smallText}>{"Compteur"}</Text>
-                  <Text>{"compteur"}</Text>
+                  <Text style={styles.smallText} className="font-semibold">Compteur</Text>
+                  <Text>{item.counter}</Text>
                 </View>
                 <View style={styles.column}>
-                  <Text style={styles.smallText}>{"Entretient"}</Text>
-                  <Text>7 à faire</Text>
+                  <Text style={styles.smallText} className="font-semibold">Entretient</Text>
+                  <Text>{item.maintains}</Text>
                 </View>
               </View>
             </View>
