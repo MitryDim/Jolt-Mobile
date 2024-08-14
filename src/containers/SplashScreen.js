@@ -15,7 +15,7 @@ import * as ExpoSplashScreen from "expo-splash-screen";
 import PermissionScreen from "./PermissionLocationScreen";
 ExpoSplashScreen.preventAutoHideAsync();
 
-const messages = require("../../assets/messages.json");
+const messages = require("../../assets/SplashScreen/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);

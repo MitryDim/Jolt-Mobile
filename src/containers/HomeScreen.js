@@ -9,15 +9,17 @@ import {
 } from "react-native";
 import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import datas from "../Data/index";
+import scooters from "../Data/myScooters";
 import Card from "../components/Cards";
+import Separator from "../components/Separator";
 
-const CARD_WIDTH = Dimensions.get("window").width * 0.8;
-const CARD_HEIGHT = Dimensions.get("window").height * 0.4;
-const SPACING_FOR_CARD_INSET = Dimensions.get("window").width * 0.1 - 10;
+const CARD_WIDTH = Dimensions.get("window").width * 0.7;
+const CARD_HEIGHT = Dimensions.get("window").height * 0.35;
+const SPACING_FOR_CARD_INSET = Dimensions.get("window").width * 0.5 - 10;
+
 const HomeScreen = () => {
   useEffect(() => {
-    datas.push({
+    scooters.push({
       id: new Date().getTime().toString(),
       add: true,
     });
@@ -25,10 +27,8 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView className="flex mb-[60px]">
-      <Text className="mt-4 text-base text-center font-bold">
-        Ton equipement
-      </Text>
-
+      <Text className="mt-4 text-xl text-center font-bold">Ton equipement</Text>
+      <Separator />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -43,7 +43,7 @@ const HomeScreen = () => {
           right: SPACING_FOR_CARD_INSET,
         }}
       >
-        {datas.map((item, index) => (
+        {scooters.map((item, index) => (
           <Card
             key={index}
             cardWidth={CARD_WIDTH}
@@ -80,12 +80,12 @@ const HomeScreen = () => {
                 ]}
               >
                 <View style={[styles.column, { marginRight: "30%" }]}>
-                  <Text style={styles.smallText}>{"Compteur"}</Text>
-                  <Text>{"compteur"}</Text>
+                  <Text style={styles.smallText} className="font-semibold">Compteur</Text>
+                  <Text>{item.counter}</Text>
                 </View>
                 <View style={styles.column}>
-                  <Text style={styles.smallText}>{"Entretient"}</Text>
-                  <Text>7 à faire</Text>
+                  <Text style={styles.smallText} className="font-semibold">Entretient</Text>
+                  <Text>{item.maintains}</Text>
                 </View>
               </View>
             </View>
@@ -96,20 +96,9 @@ const HomeScreen = () => {
   );
 };
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#fff",
-  },
   image: {
     flex: 0.6,
     width: "100%",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
   },
   column: {
     alignItems: "center",

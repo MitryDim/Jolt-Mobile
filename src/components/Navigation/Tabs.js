@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
 import HomeNavigator from "./Stack/HomeNavigator";
-import SettingsProfileNavigator from "./Stack/SettingsProfileScreen";
+import ProfileNavigator from "./Stack/ProfileScreen";
 import MaintainsNavigator from "./Stack/MaintainsNavigator";
 import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React from "react";
@@ -157,8 +157,8 @@ const Tabs = () => {
           }}
         />
         <Tab.Screen
-          name="Profil"
-          component={SettingsProfileNavigator}
+          name="Profile"
+          component={ProfileNavigator}
           options={{
             tabBarIcon: ({ focused }) => {
               return (
