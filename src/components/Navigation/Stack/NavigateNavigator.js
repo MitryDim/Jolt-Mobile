@@ -47,11 +47,17 @@ function NavigateNavigator() {
           headerShown: true,
           headerBackButtonMenuEnabled: false,
           headerBackTitleVisible: false,
-          headerTitleAlign:'left'
+          headerTitleAlign: "left",
         })}
       />
+      <Stack.Screen
+        name="Travel"
+        component={ChoiceItineraryScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
-    // ChoiceItinerary
     // Navigation
   );
 }

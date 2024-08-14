@@ -44,7 +44,7 @@ const COLOR = {
   paperBlue200: { color: "#AFCCF9" },
 };
 
-import {calculateMultipleRoutes} from "../helpers/Api";
+import { calculateMultipleRoutes } from "../helpers/Api";
 import { useNavigation } from "@react-navigation/native";
 import LoadingOverlay from "../components/LoadingOverlay";
 const ChoiceAddressScreen = () => {
@@ -65,6 +65,8 @@ const ChoiceAddressScreen = () => {
   const [endAdress, setEndAddress] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const { width, height } = Dimensions.get("window");
+  const [SCREEN_HEIGHT_RATIO, setScreenHeightRation] = useState(height / 1920); // 1920 est un exemple de hauteur d'écran de référence
+
   const [timeoutId, setTimeoutId] = useState(null);
   const insets = useSafeAreaInsets();
 
@@ -72,42 +74,35 @@ const ChoiceAddressScreen = () => {
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
   const [loading, setLoading] = useState(false);
   const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [curLoc, setCurLoc] = useState(null);
 
+  const getAllRoutes = async (endCoords) => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      // Gérez ici le cas où la permission n'est pas accordée
+      return;
+    }
 
-const getAllRoutes = async (endCoords) => {
-  let { status } = await Location.requestForegroundPermissionsAsync();
-  if (status !== "granted") {
-    // Gérez ici le cas où la permission n'est pas accordée
-    return;
-  }
+    // Obtient les coordonnées de l'utilisateur
+    let location = await Location.getCurrentPositionAsync({});
+    const startCoords = [location.coords.longitude, location.coords.latitude];
+    const numRoutes = 3;
+    const routes = await calculateMultipleRoutes(
+      startCoords,
+      endCoords,
+      numRoutes,
+      [[location.coords.heading, 20]]
+    );
 
-  // Obtient les coordonnées de l'utilisateur
-  let location = await Location.getCurrentPositionAsync({});
-
-  const startCoords = [location.coords.longitude, location.coords.latitude];
-  const numRoutes = 3;
-  const routes = await calculateMultipleRoutes(
-    startCoords,
-    endCoords,
-    numRoutes,
-    [[location.coords.heading, 20]]
-  );
-
-  const routeOptions = routes.map((route, index) => ({
-    id: index,
-    coordinates: route.coordinates,
-    instructions: route.instructions,
-    routeDistance: route.routeDistance,
-    duration: route.duration,
-  }));
-  return routeOptions;
-};
-
-
-
-
-
-
+    const routeOptions = routes.map((route, index) => ({
+      id: index,
+      coordinates: route.coordinates,
+      instructions: route.instructions,
+      routeDistance: route.routeDistance,
+      duration: route.duration,
+    }));
+    return routeOptions;
+  };
 
   const handleItemPress = async (selectedItem) => {
     try {
@@ -121,7 +116,7 @@ const getAllRoutes = async (endCoords) => {
       const data = {
         routeOptions: routeOptions,
         title: `${selectedItem.properties.label}`,
-        localisation: { curLoc: coordinates, heading: heading },
+        localisation: { curLoc: curLoc, heading: heading },
       };
       //TODO : A VOIR ?
       // setEndAddress("");
@@ -132,7 +127,7 @@ const getAllRoutes = async (endCoords) => {
     } catch (error) {
       console.error("Erreur lors de la récupération des itinéraires :", error);
     } finally {
-   setItineraryLoading(false);
+      setItineraryLoading(false);
     }
   };
 
@@ -172,6 +167,25 @@ const getAllRoutes = async (endCoords) => {
     if (snapPoints[index] != "95%") {
       Keyboard.dismiss();
     }
+    const percentage = parseFloat(snapPoints[index]);
+    switch (index) {
+      case 0:
+        setScreenHeightRation(height / 1920);
+        break;
+      case 1:
+        const screenHeightRatio = -(percentage / 100);
+        console.log(height, screenHeightRatio);
+        setScreenHeightRation(screenHeightRatio);
+        break;
+        case 2: 
+       
+        break;
+      default:
+        setScreenHeightRation(height / 1920);
+        break;
+    }
+
+
   }, []);
 
   const fetchSuggestions = async (input) => {
@@ -202,9 +216,7 @@ const getAllRoutes = async (endCoords) => {
     }
   };
 
-
-//TODO: MOVE TO ANOTHER FILE v
-
+  //TODO: MOVE TO ANOTHER FILE v
 
   function mercatorLatitudeToY(latitude) {
     return Math.round(
@@ -284,9 +296,8 @@ const getAllRoutes = async (endCoords) => {
     return { latitudeDelta, longitudeDelta };
   }
 
-  //TODO: MOVE TO ANOTHER FILE ^ 
+  //TODO: MOVE TO ANOTHER FILE ^
 
-  
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -299,32 +310,43 @@ const getAllRoutes = async (endCoords) => {
         {
           accuracy: Location.Accuracy.High,
           timeInterval: 1000,
-          distanceInterval: 2,
+          distanceInterval: 5,
         },
         (newLocation) => {
           let { coords } = newLocation;
-
           const map = mapRef.current;
-          coordinates
-            .timing({
-              latitude: coords.latitude,
-              longitude: coords.longitude,
-            })
-            .start();
-          updateCamera(map, coords, heading);
+          if (
+            coordinates.latitude !== coords.latitude &&
+            coordinates.longitude !== coords.longitude
+          ) {
+            coordinates
+              .timing({
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+              })
+              .start();
+          }
+          updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
         }
       );
-      // fetchRoutes().then((routeData) => {
-      //   const { features } = routeData;
-      //   const route = features[0].geometry.coordinates.map((coords) => ({
-      //     latitude: coords[1],
-      //     longitude: coords[0],
-      //   }));
-
-      //   setRoute(route);
-      // });
     })();
-  }, []);
+  }, [SCREEN_HEIGHT_RATIO]);
+
+  // useEffect(() => {
+  //   (async () => {
+  //     console.log("test55", SCREEN_HEIGHT_RATIO);
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== "granted") {
+  //       console.error("Permission to access location was denied");
+  //       return;
+  //     }
+
+  //     let location = await Location.getCurrentPositionAsync({});
+  //     const map = mapRef.current;
+
+  //     updateCamera(map, location.coords, heading, SCREEN_HEIGHT_RATIO);
+  //   })();
+  // }, [SCREEN_HEIGHT_RATIO]);
 
   // useEffect(() => {
   //   //TODO: Move to another useEffect
@@ -341,57 +363,57 @@ const getAllRoutes = async (endCoords) => {
   // }, []);
 
   //TODO : Move to another file
-  const fetchRoutes = async () => {
-    const startCoords = [-0.35245299, 49.18524484];
-    const endCoords = [-0.35354733, 49.1841649];
+  // const fetchRoutes = async () => {
+  //   const startCoords = [-0.35245299, 49.18524484];
+  //   const endCoords = [-0.35354733, 49.1841649];
 
-    try {
-      const response = await fetch(
-        `${openRouteServiceURL}/v2/directions/cycling-regular/geojson`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            coordinates: [startCoords, endCoords],
-            extra_info: [
-              "green",
-              "traildifficulty",
-              "waytype",
-              "waycategory",
-              "surface",
-              "steepness",
-            ],
-            geometry_simplify: "false",
-            instructions: "true",
-            instructions_format: "html",
-            language: "fr-fr",
-            maneuvers: "true",
-            preference: "recommended",
-            alternative_routes: { target_count: 2 },
-            attributes: ["avgspeed", "percentage"],
-            roundabout_exits: "true",
-            elevation: "true",
-          }),
-        }
-      );
+  //   try {
+  //     const response = await fetch(
+  //       `${openRouteServiceURL}/v2/directions/cycling-regular/geojson`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${apiKey}`,
+  //         },
+  //         body: JSON.stringify({
+  //           coordinates: [startCoords, endCoords],
+  //           extra_info: [
+  //             "green",
+  //             "traildifficulty",
+  //             "waytype",
+  //             "waycategory",
+  //             "surface",
+  //             "steepness",
+  //           ],
+  //           geometry_simplify: "false",
+  //           instructions: "true",
+  //           instructions_format: "html",
+  //           language: "fr-fr",
+  //           maneuvers: "true",
+  //           preference: "recommended",
+  //           alternative_routes: { target_count: 2 },
+  //           attributes: ["avgspeed", "percentage"],
+  //           roundabout_exits: "true",
+  //           elevation: "true",
+  //         }),
+  //       }
+  //     );
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      const routeData = data;
+  //     const routeData = data;
 
-      return routeData;
-    } catch (error) {
-      console.error("Erreur de calcul d'itinéraire :", error);
-    }
-  };
+  //     return routeData;
+  //   } catch (error) {
+  //     console.error("Erreur de calcul d'itinéraire :", error);
+  //   }
+  // };
 
-  const SCREEN_HEIGHT_RATIO = height / 1920; // 1920 est un exemple de hauteur d'écran de référence
-  const BASE_OFFSET = -0.005 * SCREEN_HEIGHT_RATIO; // Ajuster 0.002 si nécessaire
+  const getOffset = (zoom, heading, screenRatio) => {
+    console.log("test1", screenRatio);
+    const BASE_OFFSET = -0.005 * screenRatio; // Ajuster   si nécessaire
 
-  const getOffset = (zoom, heading) => {
     const offset = BASE_OFFSET / Math.pow(2, zoom); // Ajustement basé sur le zoom
     const radHeading = heading * (Math.PI / 180); // Convertir le heading en radians
 
@@ -406,7 +428,7 @@ const getAllRoutes = async (endCoords) => {
     };
   };
 
-  const updateCamera = useCallback((map, coordinates, heading) => {
+  const updateCamera = useCallback((map, coordinates, heading, screenRatio) => {
     const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
       coordinates.latitude,
       coordinates.longitude,
@@ -416,10 +438,11 @@ const getAllRoutes = async (endCoords) => {
     );
     const { offsetLatitude, offsetLongitude } = getOffset(
       Platform.OS === "ios" ? 3 : 2,
-      coordinates.heading
+      coordinates.heading,
+      screenRatio
     );
-
     if (map !== null && map !== undefined) {
+      console.log("map", screenRatio);
       map?.animateCamera(
         {
           center: {
@@ -454,6 +477,7 @@ const getAllRoutes = async (endCoords) => {
         <AnimatedMapView
           style={styles.map}
           ref={mapRef}
+          showsMyLocationButton={true}
           showsUserLocation={false}
           followsUserLocation={false}
           zoomEnabled={true}

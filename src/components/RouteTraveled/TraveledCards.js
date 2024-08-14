@@ -53,7 +53,7 @@ const TraveledCards = ({ data }) => {
         setSwiped(false);
       }}
       renderRightActions={() => renderLeftActions(data)}
-    >
+    > 
       <TouchableOpacity
         onPress={() => {
           if (!swiped) {
