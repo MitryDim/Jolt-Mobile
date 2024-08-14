@@ -121,7 +121,7 @@ const TrackingDetailsScreen = ({ route }) => {
                 strokeColor="#00F" // Couleur de la ligne du trajet
               />
             </MapView>
-          )}n   
+          )} 
         </View>
       </View>
     </SafeAreaView>
