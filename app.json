@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sup.joltmobile"
+      "bundleIdentifier": "com.sup.joltmobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
+      }
     },
     "androidNavigationBar": {
       "backgroundColor": "#70E575"
@@ -39,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Jolt to use your location."
+          "NSLocationWhenInUseUsageDescription": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
         }
       ],
       [

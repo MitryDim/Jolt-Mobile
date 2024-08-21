@@ -47,6 +47,9 @@ const COLOR = {
 import { calculateMultipleRoutes } from "../helpers/Api";
 import { useNavigation } from "@react-navigation/native";
 import LoadingOverlay from "../components/LoadingOverlay";
+
+import LocationPermissionWrapper from "../components/LocationPermissionWrapper";
+
 const ChoiceAddressScreen = () => {
   const { navigate } = useNavigation();
   //TODO: MOVE TO .ENV
@@ -76,13 +79,9 @@ const ChoiceAddressScreen = () => {
   const [itineraryLoading, setItineraryLoading] = useState(false);
   const [curLoc, setCurLoc] = useState(null);
 
-  const getAllRoutes = async (endCoords) => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      // Gérez ici le cas où la permission n'est pas accordée
-      return;
-    }
+  const [hasLocationPermission, setHasLocationPermission] = useState(null);
 
+  const getAllRoutes = async (endCoords) => {
     // Obtient les coordonnées de l'utilisateur
     let location = await Location.getCurrentPositionAsync({});
     const startCoords = [location.coords.longitude, location.coords.latitude];
@@ -177,15 +176,12 @@ const ChoiceAddressScreen = () => {
         console.log(height, screenHeightRatio);
         setScreenHeightRation(screenHeightRatio);
         break;
-        case 2: 
-       
+      case 2:
         break;
       default:
         setScreenHeightRation(height / 1920);
         break;
     }
-
-
   }, []);
 
   const fetchSuggestions = async (input) => {
@@ -302,13 +298,13 @@ const ChoiceAddressScreen = () => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        console.error("Permission to access location was denied");
         return;
       }
+ 
 
       Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.High,
+          accuracy: Location.Accuracy.BestForNavigation,
           timeInterval: 1000,
           distanceInterval: 5,
         },
@@ -471,106 +467,112 @@ const ChoiceAddressScreen = () => {
   }, []);
 
   return (
-    <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
-        <AnimatedMapView
-          style={styles.map}
-          ref={mapRef}
-          showsMyLocationButton={true}
-          showsUserLocation={false}
-          followsUserLocation={false}
-          zoomEnabled={true}
-          zoomControlEnabled={true}
-          zoomTapEnabled={false}
-          pitchEnabled={true}
-          showsBuildings={true}
-        >
-          <MarkerAnimated
-            coordinate={coordinates}
-            flat={false}
-            anchor={{ x: 0.5, y: 0.2 }}
+    <LocationPermissionWrapper>
+      <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
+          <AnimatedMapView
+            style={styles.map}
+            ref={mapRef}
+            showsMyLocationButton={true}
+            showsUserLocation={false}
+            followsUserLocation={false}
+            zoomEnabled={true}
+            zoomControlEnabled={true}
+            zoomTapEnabled={false}
+            pitchEnabled={true}
+            showsBuildings={true}
           >
-            <Animated.View
+            <MarkerAnimated
+              coordinate={coordinates}
+              flat={false}
+              anchor={{ x: 0.5, y: 0.2 }}
+            >
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      rotate: heading.interpolate({
+                        inputRange: [0, 360],
+                        outputRange: ["0deg", "360deg"],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <Arrow />
+              </Animated.View>
+            </MarkerAnimated>
+            <Polyline coordinates={route} strokeWidth={5} strokeColor="red" />
+          </AnimatedMapView>
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={0}
+            snapPoints={snapPoints}
+            position="bottom"
+            onChange={handleSheetChange}
+          >
+            <View
               style={{
-                transform: [
-                  {
-                    rotate: heading.interpolate({
-                      inputRange: [0, 360],
-                      outputRange: ["0deg", "360deg"],
-                    }),
-                  },
-                ],
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Arrow />
-            </Animated.View>
-          </MarkerAnimated>
-          <Polyline coordinates={route} strokeWidth={5} strokeColor="red" />
-        </AnimatedMapView>
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={0}
-          snapPoints={snapPoints}
-          position="bottom"
-          onChange={handleSheetChange}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <View className="flex-row items-center justify-between border border-gray-300 rounded-full px-2.5 w-96 ">
-              <IconComponent icon="search" library="MaterialIcons" size={20} />
-              <TextInput
-                onFocus={() => bottomSheetRef.current.expand()}
-                className="w-full h-12 flex-1"
-                placeholder="Entrez une adresse"
-                value={endAdress}
-                onChangeText={handleEndAddressChange}
-                onPress={() => bottomSheetRef.current.expand()}
-              />
-              {loading && (
-                <ActivityIndicator
-                  size={20}
-                  testID="activity-indicator"
-                ></ActivityIndicator>
-              )}
-              {!loading && endAdress.length > 0 && (
+              <View className="flex-row items-center justify-between border border-gray-300 rounded-full px-2.5 w-96 ">
                 <IconComponent
-                  icon="close"
+                  icon="search"
                   library="MaterialIcons"
                   size={20}
-                  onPress={clearSearch}
-                  className="cursor-pointer hover:bg-white"
                 />
-              )}
+                <TextInput
+                  onFocus={() => bottomSheetRef.current.expand()}
+                  className="w-full h-12 flex-1"
+                  placeholder="Entrez une adresse"
+                  value={endAdress}
+                  onChangeText={handleEndAddressChange}
+                  onPress={() => bottomSheetRef.current.expand()}
+                />
+                {loading && (
+                  <ActivityIndicator
+                    size={20}
+                    testID="activity-indicator"
+                  ></ActivityIndicator>
+                )}
+                {!loading && endAdress.length > 0 && (
+                  <IconComponent
+                    icon="close"
+                    library="MaterialIcons"
+                    size={20}
+                    onPress={clearSearch}
+                    className="cursor-pointer hover:bg-white"
+                  />
+                )}
+              </View>
             </View>
-          </View>
-          <BottomSheetFlatList
-            data={suggestions}
-            renderItem={renderItemAdresseSuggest}
-            keyExtractor={(item) => item.properties.id}
-            ListEmptyComponent={() => {
-              return (
-                !loading &&
-                endAdress.length > 1 && (
-                  <Text className="text-center mt-2">Aucun resultat</Text>
-                )
-              );
-            }}
-          />
-        </BottomSheet>
-      </GestureHandlerRootView>
-      {itineraryLoading && (
-        <LoadingOverlay>
-          <Text style={{ color: "white" }}>
-            Nous recherchons le(s) meilleur(s) itinéraire(s)
-          </Text>
-        </LoadingOverlay>
-      )}
-    </View>
+            <BottomSheetFlatList
+              data={suggestions}
+              renderItem={renderItemAdresseSuggest}
+              keyExtractor={(item) => item.properties.id}
+              ListEmptyComponent={() => {
+                return (
+                  !loading &&
+                  endAdress.length > 1 && (
+                    <Text className="text-center mt-2">Aucun resultat</Text>
+                  )
+                );
+              }}
+            />
+          </BottomSheet>
+        </GestureHandlerRootView>
+        {itineraryLoading && (
+          <LoadingOverlay>
+            <Text style={{ color: "white" }}>
+              Nous recherchons le(s) meilleur(s) itinéraire(s)
+            </Text>
+          </LoadingOverlay>
+        )}
+      </View>
+    </LocationPermissionWrapper>
   );
 };
 
@@ -592,6 +594,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
+  },
+  fullScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
 });
 
