@@ -14,6 +14,9 @@ const Maps = ({
   EndPathCoordinates,
   isNavigating,
 }) => {
+
+
+  
   const mapRef = useRef(null);
   const routesToDisplay = isNavigating
     ? [routeOptions[selectedRouteIndex]]
@@ -22,6 +25,10 @@ const Maps = ({
     let zoomFactor = 0;
 
     let initialRegion = currentRegion
+
+
+
+
 if (routeOptions.length > 0) {
   // Calculate the center point between start and end coordinates
   const startCoords = routesToDisplay[0].coordinates[0];

@@ -2,12 +2,9 @@ import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity,Dimensions } from "react-native";
 import IconComponent from "./Icons";
 
-  const CARD_WIDTH = Dimensions.get("window").width * 0.8;
-  const CARD_HEIGHT = Dimensions.get("window").height * 0.4;
-
+ 
 const Card = ({
-  cardWidth = CARD_WIDTH,
-  cardHeight = CARD_HEIGHT,
+  cardWidth , 
   add = false,
   onClick,
   children,
@@ -15,7 +12,7 @@ const Card = ({
   return (
     <TouchableOpacity
       onPress={onClick}
-      style={[styles.cardStyle, { width: cardWidth, height: cardHeight }]}
+      style={[styles.cardStyle, { width: cardWidth }]}
     >
       {add ? (
         <>

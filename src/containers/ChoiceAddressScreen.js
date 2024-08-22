@@ -39,6 +39,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import IconComponent from "../components/Icons";
 import ActivityIndicator from "../components/ActivityIndicator";
+
 const COLOR = {
   paperBlue100: { color: "#D0E3FA" },
   paperBlue200: { color: "#AFCCF9" },
@@ -59,7 +60,7 @@ const ChoiceAddressScreen = () => {
   const mapRef = useRef(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "25%", "95%"]);
-  const heading = new Animated.Value(0);
+  const heading = useRef(new Animated.Value(0)).current;
   const [route, setRoute] = useState([]);
   const coordinates = new AnimatedRegion({
     latitude: 0,
@@ -424,6 +425,9 @@ const ChoiceAddressScreen = () => {
     };
   };
 
+
+
+
   const updateCamera = useCallback((map, coordinates, heading, screenRatio) => {
     const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
       coordinates.latitude,
@@ -463,8 +467,9 @@ const ChoiceAddressScreen = () => {
           useNativeDriver: true,
         }).start();
       }, 500);
-    }
-  }, []);
+    } 
+    },[coordinates, heading]
+  );
 
   return (
     <LocationPermissionWrapper>
@@ -483,27 +488,27 @@ const ChoiceAddressScreen = () => {
             pitchEnabled={true}
             showsBuildings={true}
           >
-            <MarkerAnimated
-              coordinate={coordinates}
-              flat={false}
-              anchor={{ x: 0.5, y: 0.2 }}
-            >
-              <Animated.View
-                style={{
-                  transform: [
-                    {
-                      rotate: heading.interpolate({
-                        inputRange: [0, 360],
-                        outputRange: ["0deg", "360deg"],
-                      }),
-                    },
-                  ],
-                }}
+
+              <MarkerAnimated
+                coordinate={coordinates}
+                flat={false}
+                anchor={{ x: 0.5, y: 0.2 }}
               >
-                <Arrow />
-              </Animated.View>
-            </MarkerAnimated>
-            <Polyline coordinates={route} strokeWidth={5} strokeColor="red" />
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        rotate: heading.interpolate({
+                          inputRange: [0, 360],
+                          outputRange: ["0deg", "360deg"],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <Arrow />
+                </Animated.View>
+              </MarkerAnimated>
           </AnimatedMapView>
           <BottomSheet
             ref={bottomSheetRef}
