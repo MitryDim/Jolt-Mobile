@@ -9,27 +9,25 @@ export const formatDistance = (distanceInMeters) => {
 
 export const formattedDate = (date) => {
   if (date) {
-  // Create a Date object from the current timestamp (in milliseconds)
-  const currentDate = new Date(date);
+    // Create a Date object from the current timestamp (in milliseconds)
+    const currentDate = new Date(date);
     console.log("DATE : ", date);
-  // Options for formatting the date and time
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false, // Use 24-hour format
-  };
+    // Options for formatting the date and time
+    const options = {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false, // Use 24-hour format
+    };
 
-  // Format the date and time using the options
-  const formattedDateTime = currentDate.toLocaleString(undefined, options);
+    // Format the date and time using the options
+    const formattedDateTime = currentDate.toLocaleString(undefined, options);
 
-  return formattedDateTime;
-}
-else 
-return  "Date non disponible";
+    return formattedDateTime;
+  } else return "Date non disponible";
 };
 
 export const formatElapsedTime = (seconds) => {

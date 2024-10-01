@@ -1,13 +1,13 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import ProfileScreen from "../../../containers/ProfileScreen";
 const Stack = createNativeStackNavigator();
+import AuthScreen from "../../../containers/AuthScreen";
 
-function ProfileNavigator() {
+function AuthNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Profile">
+    <Stack.Navigator initialRouteName="Auth">
       <Stack.Screen
-        name="ProfileScreen"
-        component={ProfileScreen}
+        name="AuthScreen"
+        component={AuthScreen}
         options={{
           headerShown: false,
         }}
@@ -16,4 +16,4 @@ function ProfileNavigator() {
   );
 }
 
-export default ProfileNavigator;
+export default AuthNavigator;

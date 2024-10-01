@@ -39,7 +39,7 @@ function NavigateNavigator() {
                   numberOfLines={1}
                   style={{ maxWidth: "60%" }}
                 >
-                  {route.params.data.title} dddddddddddddddddddddddddddd
+                  {route.params.data.title}
                 </Text>
               </View>
             );

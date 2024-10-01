@@ -5,7 +5,6 @@ import HomeScreen from "../../../containers/HomeScreen";
 import SplashScreen from "../../../containers/SplashScreen";
 import MaintainsScreen from "../../../containers/MaintainsScreen";
 import { Button } from "react-native";
-import { Animated } from "react-native";
 const Stack = createNativeStackNavigator();
 
 function HomeNavigator() {
