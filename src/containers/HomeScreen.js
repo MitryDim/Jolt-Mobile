@@ -76,34 +76,39 @@ const HomeScreen = () => {
                 {item.title}
               </Text>
               <View
-                style={[
-                  styles.row,
-                  {
-                    justifyContent: "center",
-                    width: "100%",
-                    top: "5%",
-                  },
-                ]}
+                style={[styles.row]}
+                className="top-4 w-[90%] flex justify-between space-x-4"
               >
-                <View style={[styles.column, { marginRight: "30%" }]}>
-                  <Text style={styles.smallText} className="font-semibold">
+                <View>
+                  <Text
+                    className="font-semibold text-start"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     Compteur
                   </Text>
-                  <Text>{item.counter}</Text>
+                  <Text className='text-center'>{item.counter} km</Text>
                 </View>
-                <View style={styles.column}>
-                  <Text style={styles.smallText} className="font-semibold">
-                    Entretient
+                <View >
+                  <Text
+                    className="font-semibold text-end"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Entretient à faire  
                   </Text>
-                  <Text>{item.maintains}</Text>
+                  <Text className="text-center">{item.maintains}</Text>
                 </View>
               </View>
             </View>
           </Card>
         ))}
       </ScrollView>
-      <Text className="mt-4 text-xl text-center font-bold">T'es trajets récent</Text>
+      <Text className="mt-4 text-xl text-center font-bold">
+        T'es dernier trajets
+      </Text>
       <Separator />
+      
     </SafeAreaView>
   );
 };
