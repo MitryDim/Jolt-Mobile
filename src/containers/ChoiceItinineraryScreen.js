@@ -283,38 +283,33 @@ const ChoiceItinerary = (geoadress) => {
     <View style={styles.container} onTouchStart={handleCancelAnimation}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
-          {currentRegion.longitude != 0 && currentRegion.latitude != 0 ? (
-            <>
-              <Animated.View style={[styles.map, mapAnimatedStyle]}>
-                <Maps
-                  styleMaps={styles.map}
-                  routeOptions={routeOptions}
-                  selectedRouteIndex={selectedRouteIndex}
-                  onPolylineSelect={handleRouteSelect}
-                  currentRegion={currentRegion}
-                  userSpeed={null}
-                  isNavigating={false}
-                />
-              </Animated.View>
+          <Animated.View style={[styles.map, mapAnimatedStyle]}>
+            <Maps
+              styleMaps={styles.map}
+              initialRouteOptions={routeOptions}
+              selectedRouteIndex={selectedRouteIndex}
+              onPolylineSelect={handleRouteSelect}
+              currentRegion={currentRegion}
+              userSpeed={null}
+              isNavigating={false}
+              screenHeightRatio={mapAnimatedStyle.height}
+            />
+          </Animated.View>
 
-              <BottomSheet
-                ref={bottomSheetRef}
-                index={0}
-                snapPoints={snapPoints}
-                position="bottom"
-                contentContainerStyle={styles.bottomSheet}
-                animatedPosition={sheetOffset}
-              >
-                <RouteOptions
-                  routeOptions={routeOptions}
-                  onRouteSelect={handleRouteSelect}
-                  selectedRouteIndex={selectedRouteIndex}
-                />
-              </BottomSheet>
-            </>
-          ) : (
-            <></>
-          )}
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={0}
+            snapPoints={snapPoints}
+            position="bottom"
+            contentContainerStyle={styles.bottomSheet}
+            animatedPosition={sheetOffset}
+          >
+            <RouteOptions
+              routeOptions={routeOptions}
+              onRouteSelect={handleRouteSelect}
+              selectedRouteIndex={selectedRouteIndex}
+            />
+          </BottomSheet>
         </View>
 
         <View

@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ChoiceAddressScreen from "../../../containers/ChoiceAddressScreen";
 import ChoiceItineraryScreen from "../../../containers/ChoiceItinineraryScreen";
+import TravelScreen from "../../../containers/TravelScreen";
 import { Text, View } from "react-native";
 import IconComponent from "../../Icons";
 const Stack = createNativeStackNavigator();
@@ -52,10 +53,10 @@ function NavigateNavigator() {
       />
       <Stack.Screen
         name="Travel"
-        component={ChoiceItineraryScreen}
-        options={{
+        component={TravelScreen}
+        options={({ route }) => ({
           headerShown: false,
-        }}
+        })}
       />
     </Stack.Navigator>
     // Navigation

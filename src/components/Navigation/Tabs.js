@@ -64,10 +64,10 @@ const Tabs = () => {
             navigationBarColor: "#FFFFFF",
             tabBarStyle: ((route) => {
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-
-              if (routeName === "") {
-                return { display: "none" };
-              }
+              console.log("routeName", routeName);
+            if (routeName === "" ) {
+              return { display: "none" };
+            }
               return tabBarStyle;
             })(route),
             tabBarIcon: ({ focused }) => {
@@ -114,7 +114,7 @@ const Tabs = () => {
             tabBarStyle: ((route) => {
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
 
-              if (routeName === "ChoiceItinerary") {
+              if (routeName === "ChoiceItinerary" || routeName === "Travel") {
                 return { display: "none" };
               }
               return tabBarStyle;
