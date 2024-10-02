@@ -18,12 +18,14 @@ const AuthScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center">
-      <View className="w-full items-center">
-        <LogoGreen/>
-        <Text className="text-[#70E575] text-4xl text-center mb-8">
-          Bienvenue
-        </Text>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <View className="flex-1 justify-center items-center w-full">
+        <View className="items-center mb-8">
+          <LogoGreen />
+          <Text className="text-[#70E575] text-4xl text-center mt-4">
+            Bienvenue
+          </Text>
+        </View>
 
         <View className="w-80">
           <Text className="mb-2">Email</Text>
@@ -64,7 +66,7 @@ const AuthScreen = () => {
         </View>
 
         <Pressable
-          className="bg-[#70E575] w-80 p-4 rounded-full"
+          className="bg-[#70E575] w-80 p-4 rounded-full mt-4"
           onPress={handleLogin}
         >
           <Text className="text-white text-center">Login</Text>
@@ -76,11 +78,13 @@ const AuthScreen = () => {
           </Text>
         </Pressable>
 
-        <Pressable className="flex-1 mt-10">
-          <Text className="text-slate-500 text-center">
-            Vous ne possedez pas de compte ?
+        <Pressable className="mt-4 flex-row justify-center items-center">
+          <Text className="text-slate-500 text-sm">
+            Vous ne possédez pas de compte ?
           </Text>
-          <Text className="text-[#70E575] text-center">Créer un Compte</Text>
+          <Text className="text-[#70E575] ml-1 font-semibold text-sm">
+            Créer un Compte
+          </Text>
         </Pressable>
       </View>
     </SafeAreaView>
