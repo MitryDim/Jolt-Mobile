@@ -36,6 +36,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const insets = useSafeAreaInsets();
+  console.log("insets", insets);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -71,8 +72,7 @@ const Tabs = () => {
     <View style={styles.container}>
         <Tab.Navigator
           initialRouteName="Home"
-          screenOptions={{
-            tabBarHideOnKeyboard: true,
+          screenOptions={{ 
             headerShown: false,
             tabBarStyle: tabBarStyle,
             tabBarItemStyle: {
