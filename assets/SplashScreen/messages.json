@@ -3,18 +3,18 @@
     "icon": "rocket",
     "library": "Ionicons",
     "style": { "color": "#900" },
-    "text": "Faites chauffer la gomme !"
+    "text": "Faites chauffer la gomme ! "
   },
   {
     "icon": "rocket",
     "library": "Ionicons",
     "style": { "color": "#900" },
-    "text": "En route vers l'aventure !"
+    "text": "En route vers l'aventure ! "
   },
   {
     "icon": "rocket",
     "library": "Ionicons",
     "style": { "color": "#900" },
-    "text": "Attention aux virages serrés !"
+    "text": "Attention aux virages serrés ! "
   }
 ]
