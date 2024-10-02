@@ -69,8 +69,8 @@ const LATITUDE_DELTA = 0.001;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const screenHeight = Dimensions.get("window").height;
 
-const TravelScreen = (route) => {
-  console.log("route", route);  
+const TravelScreen = ({route}) => {
+  console.log("route", route.params);  
   const frame = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
   const [mapWidth, setMapWidth] = useState(0);
@@ -703,7 +703,7 @@ const TravelScreen = (route) => {
           </MapView> */}
           <Maps
             styleMaps={styles.map}
-            initialRouteOptions={route}
+            initialRouteOptions={route.params}
             selectedRouteIndex={null}
             onPolylineSelect={() => {}}
             currentRegion={null}
@@ -716,7 +716,6 @@ const TravelScreen = (route) => {
             fontFamily={"Akkurat-Light"}
             fontFamilyBold={"Akkurat-Bold"}
           ></ManeuverView> */}
-          <View style={{ flex: 1 }}>
             {/* Conteneur principal */}
             <View style={{ flex: 1 }}>
               <BottomSheet
@@ -856,7 +855,6 @@ const TravelScreen = (route) => {
                 </Pressable>
               </Animated.View> */}
             </View>
-          </View>
         </View>
       </GestureHandlerRootView>
       {isLoading && (

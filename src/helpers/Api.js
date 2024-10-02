@@ -104,6 +104,7 @@ export const directions = async (
           roundabout_exits: "true",
           elevation: "true",
           bearings: bearing,
+          geometry: "true",
         }),
       }
     );

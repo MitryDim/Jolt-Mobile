@@ -36,6 +36,7 @@ import {
   getCompassDirection,
   isPointInPolygon,
 } from "geolib";
+import LoadingOverlay from "./LoadingOverlay";
 
 const Maps = ({
   styleMaps,
@@ -108,7 +109,6 @@ const Maps = ({
       ? [routeOptions[selectedRouteIndex]]
       : routeOptions;
 
-  console.log("routesToDisplay", routesToDisplay);
   const route = routeOptions;
 
   let zoomFactor = 0;
@@ -177,7 +177,6 @@ const Maps = ({
   }
   //const screenCoordinates = mapRef.current?.getMapPosition(tooltipCoordinates);
   const getOffset = (zoom, heading, screenRatio) => {
-    console.log("test2", screenRatio);
     const BASE_OFFSET = -0.005 * screenRatio; // Ajuster   si nécessaire
 
     const offset = BASE_OFFSET / Math.pow(2, zoom); // Ajustement basé sur le zoom
@@ -261,8 +260,8 @@ const Maps = ({
   const getInstruction = async (curLoc, heading, speed) => {
     let instruction = null;
     let newRouteOptions = null;
-    if (!route?.route?.params?.instructions) return;
-    if (route.route?.params?.instructions) {
+    if (!route?.instructions) return;
+    if (route?.instructions) {
       if (countIncorrectPath > 4) {
         updateState({
           isLoading: true,
@@ -270,8 +269,8 @@ const Maps = ({
         countIncorrectPath = 0;
 
         const endsCoords =
-          route.route?.params?.coordinates[
-            route.route?.params?.coordinates?.length - 1
+          route?.coordinates[
+            route?.coordinates?.length - 1
           ];
 
         endsCoordsLatitude = endsCoords.latitude;
@@ -293,7 +292,7 @@ const Maps = ({
           duration: routes[0].duration,
         };
 
-        route.route.params = routeOptions;
+        route = routeOptions;
 
         updateState({
           routeOptions: routeOptions,
@@ -302,15 +301,13 @@ const Maps = ({
       }
       instruction = getCurrentInstruction(
         curLoc,
-        route.route?.params?.instructions,
-        route.route?.params?.coordinates,
+        route?.instructions,
+        route?.coordinates,
         heading
       );
       //updateState({ currentInstruction: instruction });
     }
     let allDistanceCalculate = 0;
-
-    console.log("maxSpeed.current", maxSpeed.current);
 
     if (lastLocation.current) {
       if (speed > 0) {
@@ -416,7 +413,6 @@ const Maps = ({
           routeCoordinates,
           lastIndexCoordinates
         );
-        console.log("allDistanceRes", allDistanceRes);
         allDistanceRes += distanceRest;
         // updateState({ distance: allDistanceRes });
 
@@ -428,10 +424,9 @@ const Maps = ({
 
         const bearingBefore = instructionByCoordinates.maneuver.bearing_before;
         if (sameDirection(heading, bearingBefore) && inFront) {
-          console.log("HEADING OKKKKK");
+
           countIncorrectPath = 0;
         } else {
-          console.log("HEADING NOKKKKK");
           if (
             instructionByCoordinates.maneuver.bearing_before == 0 &&
             instructionByCoordinates.maneuver.bearing_after == 0
@@ -624,14 +619,9 @@ const Maps = ({
           locationSubscription = await Location.watchPositionAsync(
             {
               accuracy: Location.Accuracy.BestForNavigation,
-              timeInterval: 1000,
-              distanceInterval: 5,
             },
             (newLocation) => {
               let { coords } = newLocation;
-
-              console.log("newLocation", newLocation, "Coord : ", coords);
-
               const map = mapRef.current;
 
               if (
@@ -645,17 +635,18 @@ const Maps = ({
                   })
                   .start();
               }
+              
+              updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
               if (isNavigating && showManeuver) {
                 getInstruction(
                   {
                     latitude: coords.latitude,
                     longitude: coords.longitude,
                   },
-                  heading,
+                  coords.heading,
                   coords.speed
                 );
               }
-              updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
             }
           );
         }
@@ -763,10 +754,10 @@ const Maps = ({
           </>
         ) : (
           <>
-            {showManeuver && routesToDisplay?.coordinates && coordinates && (
+            {showManeuver && routesToDisplay?.coordinates && (
               <Polyline
                 zIndex={3}
-                coordinates={routesToDisplay?.coordinates}
+                coordinates={routesToDisplay.coordinates}
                 strokeColor={"purple"} // Highlight the first route with a different color
                 strokeWidth={10}
                 lineCap={"round"}
@@ -855,6 +846,13 @@ const Maps = ({
             </Pressable>
           </Animated.View>
         </>
+      )}
+      {isLoading && (
+        <LoadingOverlay>
+          <Text style={{ color: "white" }}>
+            Recherche d'un nouvel itinéraire...
+          </Text>
+        </LoadingOverlay>
       )}
     </>
   );
