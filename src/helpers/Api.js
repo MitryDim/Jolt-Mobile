@@ -146,7 +146,6 @@ export const calculateMultipleRoutes = async (
   }
 };
 
-
 export const calculateRoute = async (
   startCoords,
   endCoords,
@@ -170,9 +169,6 @@ export const calculateRoute = async (
         maxNBRoute,
         bearing
       );
-
-
-
 
       const routeCoordinates = routeData.features[0].geometry.coordinates;
       const instructions = routeData.features[0].properties.segments[0].steps;

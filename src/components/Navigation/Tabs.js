@@ -1,4 +1,10 @@
-import { View, StyleSheet, TouchableOpacity, Button } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Button,
+  Image,
+} from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
@@ -9,7 +15,9 @@ import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React from "react";
 import IconComponent from "../Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import avatar from "../../../assets/avatar.jpg";
 import Avatar from "../Avatar";
+import AuthNavigator from "./Stack/AuthNavigator";
 const Tab = createBottomTabNavigator();
 const username = "Val";
 let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
@@ -163,7 +171,20 @@ const Tabs = () => {
             tabBarIcon: ({ focused }) => {
               return (
                 <>
-                  {username ? (
+                  {avatar ? (
+                    <View
+                      className="bg-white w-12 h-12 rounded-full overflow-hidden"
+                      style={{
+                        borderColor: focused ? "#70E575" : "white",
+                        borderWidth: 2,
+                      }}
+                    >
+                      <Image
+                        source={avatar}
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    </View>
+                  ) : username ? (
                     <Avatar
                       username={username}
                       style={{
@@ -183,10 +204,30 @@ const Tabs = () => {
             },
           }}
         />
+
+        <Tab.Screen
+          name="Auth"
+          component={AuthNavigator}
+          options={{
+            tabBarIcon: ({ focused }) => {
+              return (
+                <>
+                  <IconComponent
+                    library="MaterialIcons"
+                    name="logo-dev"
+                    style={{ color: focused ? "#70E575" : "grey" }}
+                    size={35}
+                  />
+                </>
+              );
+            },
+          }}
+        />
       </Tab.Navigator>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1, // Utilisez flex pour occuper tout l'espace vertical disponible

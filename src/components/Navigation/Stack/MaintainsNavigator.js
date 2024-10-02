@@ -9,7 +9,7 @@ function StackNavigator() {
         name="MaintainsList"
         component={MaintainsScreen}
         options={{
-          title: "Entretient",
+          title: "Entretien",
         }}
       />
     </Stack.Navigator>
