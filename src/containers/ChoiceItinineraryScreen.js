@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#8fcbbc",
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFillObject, 
   },
   card: {
     backgroundColor: "#fff",

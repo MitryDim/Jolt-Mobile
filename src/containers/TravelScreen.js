@@ -29,7 +29,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 // import * as api from "../../helpers/Api";
 import LoadingOverlay from "../components/LoadingOverlay";
 
-
 // import {
 //   locationPermission,
 //   getCurrentLocation,
@@ -43,7 +42,7 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
-import ManeuverView from "../components/ManeuverView"; 
+import ManeuverView from "../components/ManeuverView";
 
 import {
   getDistance,
@@ -69,8 +68,8 @@ const LATITUDE_DELTA = 0.001;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const screenHeight = Dimensions.get("window").height;
 
-const TravelScreen = ({route}) => {
-  console.log("route", route.params);  
+const TravelScreen = ({ route }) => {
+  console.log("route", route.params);
   const frame = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
   const [mapWidth, setMapWidth] = useState(0);
@@ -135,7 +134,7 @@ const TravelScreen = ({route}) => {
 
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
- // let countIncorrectPath = 0;
+  // let countIncorrectPath = 0;
 
   // const getCurrentInstruction = (
   //   currentPosition,
@@ -458,28 +457,28 @@ const TravelScreen = ({route}) => {
   //   }, [])
   // );
 
-//   const saveTrackingData = async () => {
-//     try {
-//       // Create an object with the data to save
-//       const currentTime = Date.now();
-//       const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
-//       const data = [
-//         {
-//           name: "suivi " + utils.formattedDate(startTime),
-//           startTime: utils.formattedDate(startTime),
-//           distance: distanceTraveled.current,
-//           maxSpeed: Math.floor(maxSpeed.current * 3.6),
-//           elapsedTime: elapsedSeconds,
-//           stopTime: utils.formattedDate(Date.now()),
-//           positions: JSON.stringify(positions.current),
-//         },
-//       ];
-//       await DataTraveled.insert(data);
-//       console.log("Data saved successfully!");
-//     } catch (error) {
-//       console.log("Error saving data:", error);
-//     }
-//   };
+  //   const saveTrackingData = async () => {
+  //     try {
+  //       // Create an object with the data to save
+  //       const currentTime = Date.now();
+  //       const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+  //       const data = [
+  //         {
+  //           name: "suivi " + utils.formattedDate(startTime),
+  //           startTime: utils.formattedDate(startTime),
+  //           distance: distanceTraveled.current,
+  //           maxSpeed: Math.floor(maxSpeed.current * 3.6),
+  //           elapsedTime: elapsedSeconds,
+  //           stopTime: utils.formattedDate(Date.now()),
+  //           positions: JSON.stringify(positions.current),
+  //         },
+  //       ];
+  //       await DataTraveled.insert(data);
+  //       console.log("Data saved successfully!");
+  //     } catch (error) {
+  //       console.log("Error saving data:", error);
+  //     }
+  //   };
 
   // const animate = async (latitude, longitude, headingParam) => {
   //   const newCoordinate = {
@@ -600,28 +599,28 @@ const TravelScreen = ({route}) => {
   //   .toString()
   //   .padStart(2, "0")}:${arrivalMinute.toString().padStart(2, "0")}`;
 
-  // const infoTravelAnimatedStyle = useAnimatedStyle(() => {
-  //   let bottomValue = 0;
-  //   let heightValue = 80;
-  //   console.log("sheetOffset.value :", sheetOffset.value);
-  //   bottomValue = frame.height - sheetOffset.value - 175;
-  //   if (bottomValue < 0) {
-  //     bottomValue = 0;
-  //     heightValue = 100;
-  //   }
+  const infoTravelAnimatedStyle = useAnimatedStyle(() => {
+    let bottomValue = 0;
+    let heightValue = 80;
+    console.log("sheetOffset.value :", sheetOffset.value);
+    bottomValue = frame.height - sheetOffset.value - 175;
+    if (bottomValue < 0) {
+      bottomValue = 0;
+      heightValue = 100;
+    }
 
-  //   return {
-  //     bottom: bottomValue,
-  //     height: heightValue,
-  //   };
-  // });
+    return {
+      bottom: bottomValue,
+      height: heightValue,
+    };
+  });
 
   const cancelModal = () => {
     updateState({ exitConfirmation: false });
   };
 
   const saveTravelAndQuit = () => {
-   /// saveTrackingData();
+    /// saveTrackingData();
     navigate("ChoiceAddress");
   };
 
@@ -710,97 +709,100 @@ const TravelScreen = ({route}) => {
             userSpeed={null}
             isNavigating={true}
             showManeuver={true}
+            handleSheetClose={handleSheetClose}
+            sheetOffsetValue={sheetOffset?.value}
+            infoTravelAnimatedStyle={infoTravelAnimatedStyle}
           ></Maps>
           {/* <ManeuverView
             step={currentInstruction}
             fontFamily={"Akkurat-Light"}
             fontFamilyBold={"Akkurat-Bold"}
           ></ManeuverView> */}
-            {/* Conteneur principal */}
-            <View style={{ flex: 1 }}>
-              <BottomSheet
-                ref={bottomSheetRef}
-                index={-1}
-                snapPoints={snapPoints}
-                position={"bottom"}
-                animateOnMount={true}
-                enablePanDownToClose={true}
-                onChange={handleSheetChanges}
-                animatedPosition={sheetOffset}
-              >
-                <View
-                  style={{
-                    height: 80,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingHorizontal: 10,
-                    backgroundColor: "white",
-                    borderColor: "#C1C1C1",
-                    borderTopWidth: 1,
-                    bottom: 0,
-                  }}
-                >
-                  <Pressable
-                    style={{
-                      height: 50,
-                      width: 100,
-                      borderColor: "#C1C1C1",
-                      backgroundColor: "#d61e02",
-                      borderWidth: 1,
-                      borderRadius: 40,
-                      marginRight: 0,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onPress={() => {
-                      if (positions.current.length > 0)
-                        updateState({ exitConfirmation: true });
-                    }}
-                  >
-                    <Text style={{ color: "black" }}>Arrêter</Text>
-                  </Pressable>
-                  <Pressable
-                    style={{
-                      height: 50,
-                      width: 125,
-                      borderColor: "#C1C1C1",
-                      backgroundColor: "#3498db",
-                      borderWidth: 1,
-                      borderRadius: 40,
-                      marginRight: 0,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <MaterialCommunityIcons
-                      name="export-variant"
-                      style={{ color: "black", marginLeft: 0 }}
-                      size={15}
-                    >
-                      <Text style={{ color: "black" }}>Partager</Text>
-                    </MaterialCommunityIcons>
-                  </Pressable>
+          {/* Conteneur principal */}
 
-                  <Pressable
-                    style={{
-                      height: 50,
-                      width: 125,
-                      borderColor: "#C1C1C1",
-                      backgroundColor: "#3498db",
-                      borderWidth: 1,
-                      borderRadius: 40,
-                      marginRight: 0,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    onPress={() => handleSheetClose()}
-                  >
-                    <Text style={{ color: "black" }}>Reprendre</Text>
-                  </Pressable>
-                </View>
-              </BottomSheet>
-              {/* <Animated.View
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={0}
+            snapPoints={snapPoints}
+            position={"bottom"}
+            animateOnMount={true}
+            enablePanDownToClose={true}
+            onChange={handleSheetChanges}
+            animatedPosition={sheetOffset}
+          >
+            <View
+              style={{
+                height: 80,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 10,
+                backgroundColor: "white",
+                borderColor: "#C1C1C1",
+                borderTopWidth: 1,
+                bottom: 0,
+              }}
+            >
+              <Pressable
+                style={{
+                  height: 50,
+                  width: 100,
+                  borderColor: "#C1C1C1",
+                  backgroundColor: "#d61e02",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  marginRight: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  if (positions.current.length > 0)
+                    updateState({ exitConfirmation: true });
+                }}
+              >
+                <Text style={{ color: "black" }}>Arrêter</Text>
+              </Pressable>
+              <Pressable
+                style={{
+                  height: 50,
+                  width: 125,
+                  borderColor: "#C1C1C1",
+                  backgroundColor: "#3498db",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  marginRight: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="export-variant"
+                  style={{ color: "black", marginLeft: 0 }}
+                  size={15}
+                >
+                  <Text style={{ color: "black" }}>Partager</Text>
+                </MaterialCommunityIcons>
+              </Pressable>
+
+              <Pressable
+                style={{
+                  height: 50,
+                  width: 125,
+                  borderColor: "#C1C1C1",
+                  backgroundColor: "#3498db",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  marginRight: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => handleSheetClose()}
+              >
+                <Text style={{ color: "black" }}>Reprendre</Text>
+              </Pressable>
+            </View>
+          </BottomSheet>
+          {/* <Animated.View
                 style={[
                   {
                     position: "absolute",
@@ -854,7 +856,6 @@ const TravelScreen = ({route}) => {
                   ></MaterialCommunityIcons>
                 </Pressable>
               </Animated.View> */}
-            </View>
         </View>
       </GestureHandlerRootView>
       {isLoading && (
@@ -889,7 +890,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
   },
   speedContainer: {
     position: "absolute",
