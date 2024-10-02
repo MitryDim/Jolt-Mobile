@@ -1,12 +1,12 @@
 import {
-  View,
+  View, 
   Text,
   Image,
   StyleSheet,
-  Animated,
   Dimensions,
   Platform,
   Pressable,
+  Animated as animated2
 } from "react-native";
 import React, {
   useRef,
@@ -36,7 +36,15 @@ import {
   getCompassDirection,
   isPointInPolygon,
 } from "geolib";
-import LoadingOverlay from "./LoadingOverlay";
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import  Animated ,{
+  useSharedValue,
+  useDerivedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
 
 const Maps = ({
   styleMaps,
@@ -48,12 +56,36 @@ const Maps = ({
   isNavigating,
   screenHeightRatio,
   showManeuver,
+  handleSheetClose,
+  sheetOffsetValue,
+  infoTravelAnimatedStyle,
 }) => {
+  const frame = useSafeAreaFrame();
+  const sheetOffset = useSharedValue(
+    sheetOffsetValue > 0 ? sheetOffsetValue : 0
+  );
   const mapRef = useRef(null);
   // const heading = useRef(new Animated.Value(0)).current;
   // const coordinates = new AnimatedRegion({
   //   latitude: 0,
   //   longitude: 0,
+  // });
+
+  // const infoTravelAnimatedStyle = useAnimatedStyle(() => {
+  //   if (!sheetOffset) return { bottom: 0, height: 0 };
+  //   let bottomValue = 0;
+  //   let heightValue = 80;
+  //   console.log("sheetOffset.value :", sheetOffset.value, frame.height);
+  //   bottomValue = frame.height - sheetOffset.value - 175;
+  //   if (bottomValue < 0) {
+  //     bottomValue = 0;
+  //     heightValue = 100;
+  //   }
+
+  //   return {
+  //     bottom: bottomValue,
+  //     height: heightValue,
+  //   };
   // });
 
   const lastLocation = useRef(null);
@@ -74,11 +106,11 @@ const Maps = ({
     routeOptions: initialRouteOptions ? initialRouteOptions : [],
     bottomSheetClose: true,
     exitConfirmation: false,
-       heading : useRef(new Animated.Value(0)).current,
-   coordinates : new AnimatedRegion({
-    latitude: 0,
-    longitude: 0,
-  })
+    heading: useRef(new animated2.Value(0)).current,
+    coordinates: new AnimatedRegion({
+      latitude: 0,
+      longitude: 0,
+    }),
   });
 
   const {
@@ -91,7 +123,7 @@ const Maps = ({
     bottomSheetClose,
     exitConfirmation,
     heading,
-    coordinates
+    coordinates,
   } = state;
 
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
@@ -268,10 +300,7 @@ const Maps = ({
         });
         countIncorrectPath = 0;
 
-        const endsCoords =
-          route?.coordinates[
-            route?.coordinates?.length - 1
-          ];
+        const endsCoords = route?.coordinates[route?.coordinates?.length - 1];
 
         endsCoordsLatitude = endsCoords.latitude;
         endsCoordsLongitude = endsCoords.longitude;
@@ -424,7 +453,6 @@ const Maps = ({
 
         const bearingBefore = instructionByCoordinates.maneuver.bearing_before;
         if (sameDirection(heading, bearingBefore) && inFront) {
-
           countIncorrectPath = 0;
         } else {
           if (
@@ -514,12 +542,14 @@ const Maps = ({
 
         setTimeout(async () => {
           const cam = await map?.getCamera();
-          Animated.timing(heading, {
-            toValue:
-              coordinates?.heading - cam?.center ? cam?.center?.heading : 0,
-            duration: 500,
-            useNativeDriver: true,
-          }).start();
+          animated2
+            .timing(heading, {
+              toValue:
+                coordinates?.heading - cam?.center ? cam?.center?.heading : 0,
+              duration: 500,
+              useNativeDriver: true,
+            })
+            .start();
         }, 500);
       }
     },
@@ -635,7 +665,7 @@ const Maps = ({
                   })
                   .start();
               }
-              
+
               updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
               if (isNavigating && showManeuver) {
                 getInstruction(
@@ -756,7 +786,6 @@ const Maps = ({
           <>
             {showManeuver && routesToDisplay?.coordinates && (
               <Polyline
-                zIndex={3}
                 coordinates={routesToDisplay.coordinates}
                 strokeColor={"purple"} // Highlight the first route with a different color
                 strokeWidth={10}
@@ -769,7 +798,7 @@ const Maps = ({
               flat={false}
               anchor={{ x: 0.5, y: 0.2 }}
             >
-              <Animated.View
+              <animated2.View
                 style={{
                   transform: [
                     {
@@ -782,69 +811,86 @@ const Maps = ({
                 }}
               >
                 <Arrow />
-              </Animated.View>
+              </animated2.View>
             </MarkerAnimated>
           </>
         )}
       </AnimatedMapView>
+
       {isNavigating && showManeuver && currentInstruction && (
         <>
-          <ManeuverView
-            step={currentInstruction}
-            fontFamily={"Akkurat-Light"}
-            fontFamilyBold={"Akkurat-Bold"}
-          ></ManeuverView>
-          <Animated.View
-            style={[
-              {
-                position: "absolute",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingHorizontal: 10,
-                backgroundColor: "white",
-                borderColor: "#C1C1C1",
-                borderTopWidth: 1,
-                left: 0,
-                right: 0,
-                borderTopLeftRadius: 10, // Rayon du coin supérieur gauche
-                borderTopRightRadius: 10, // Rayon du coin supérieur droit
-                shadowColor: "#000",
-                shadowOffset: {
-                  width: 0,
-                  height: 2,
-                },
-                shadowOpacity: 0.5,
-                shadowRadius: 4,
-                elevation: 4,
-              },
-            ]}
+          <View
+            className="absolute top-0 left-0 right-0 z-10 h-full"
+            pointerEvents="box-none"
           >
-            <Text style={{ color: "black" }}></Text>
-            <Text style={{ color: "black" }}>
-              {utils.formatDistance(distance)}
-            </Text>
-            <Text style={{ color: "black", fontWeight: "bold", fontSize: 25 }}>
-              {arrivalTimeStr}
-            </Text>
-            <Text style={{ color: "black" }}>
-              {utils.formatElapsedTime(remainingTimeInSeconds)}
-            </Text>
-            <Pressable
-              style={{ borderRadius: 40, backgroundColor: "lightgray" }}
-              onPress={() => <></>} // TODO handleSheetClose()}
+            <ManeuverView
+              step={currentInstruction}
+              fontFamily={"Akkurat-Light"}
+              fontFamilyBold={"Akkurat-Bold"}
+            ></ManeuverView>
+
+            <Animated.View
+              pointerEvents="box-none"
+              style={[
+                {
+                  display: "flex",
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: "white",
+                  padding: 20,
+                  borderTopLeftRadius: 10,
+                  borderTopRightRadius: 10,
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.5,
+                  shadowRadius: 4,
+                  elevation: 4,
+                  zIndex: 10, // Ensure it is above the map
+                },
+                infoTravelAnimatedStyle,
+              ]}
             >
-              <MaterialCommunityIcons
-                name={bottomSheetClose ? "chevron-up" : "chevron-down"}
+              <View
                 style={{
-                  color: "white", // Couleur de l'icône
-                  marginLeft: 0,
-                  padding: 2, // Marge autour de l'icône
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
-                size={20} // Taille de l'icône
-              ></MaterialCommunityIcons>
-            </Pressable>
-          </Animated.View>
+              >
+                <Text style={{ color: "black" }}></Text>
+                <Text style={{ color: "black" }}>
+                  {utils.formatDistance(distance)}
+                </Text>
+                <Text
+                  style={{ color: "black", fontWeight: "bold", fontSize: 25 }}
+                >
+                  {arrivalTimeStr}
+                </Text>
+                <Text style={{ color: "black" }}>
+                  {utils.formatElapsedTime(remainingTimeInSeconds)}
+                </Text>
+                <Pressable
+                  style={{ borderRadius: 40, backgroundColor: "lightgray" }}
+                  onPress={handleSheetClose} // TODO handleSheetClose()}
+                >
+                  <MaterialCommunityIcons
+                    name={bottomSheetClose ? "chevron-up" : "chevron-down"}
+                    style={{
+                      color: "white", // Couleur de l'icône
+                      marginLeft: 0,
+                      padding: 2, // Marge autour de l'icône
+                    }}
+                    size={20} // Taille de l'icône
+                  ></MaterialCommunityIcons>
+                </Pressable>
+              </View>
+            </Animated.View>
+          </View>
         </>
       )}
       {isLoading && (

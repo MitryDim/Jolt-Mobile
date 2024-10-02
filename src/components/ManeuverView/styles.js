@@ -16,8 +16,9 @@ export default (props) =>
       padding: 10,
       backgroundColor: props.backgroundColor,
       flexDirection: "row",
-      height: 150,
-      alignItems: "center",
+      height: 120,
+      width: "100%",
+      alignItems: "center", 
     },
 
     maneuverViewArrow: {
