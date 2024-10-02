@@ -50,6 +50,7 @@ import { useNavigation } from "@react-navigation/native";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 import LocationPermissionWrapper from "../components/LocationPermissionWrapper";
+import Maps from "../components/Maps";
 
 const ChoiceAddressScreen = () => {
   const { navigate } = useNavigation();
@@ -215,119 +216,119 @@ const ChoiceAddressScreen = () => {
 
   //TODO: MOVE TO ANOTHER FILE v
 
-  function mercatorLatitudeToY(latitude) {
-    return Math.round(
-      MERCATOR_OFFSET -
-        (MERCATOR_RADIUS *
-          Math.log(
-            (1 + Math.sin(latitude * (Math.PI / 180))) /
-              (1 - Math.sin(latitude * (Math.PI / 180)))
-          )) /
-          2
-    );
-  }
+  // function mercatorLatitudeToY(latitude) {
+  //   return Math.round(
+  //     MERCATOR_OFFSET -
+  //       (MERCATOR_RADIUS *
+  //         Math.log(
+  //           (1 + Math.sin(latitude * (Math.PI / 180))) /
+  //             (1 - Math.sin(latitude * (Math.PI / 180)))
+  //         )) /
+  //         2
+  //   );
+  // }
 
-  function mercatorLongitudeToX(longitude) {
-    return Math.round(
-      MERCATOR_OFFSET + (MERCATOR_RADIUS * longitude * Math.PI) / 180
-    );
-  }
+  // function mercatorLongitudeToX(longitude) {
+  //   return Math.round(
+  //     MERCATOR_OFFSET + (MERCATOR_RADIUS * longitude * Math.PI) / 180
+  //   );
+  // }
 
-  function mercatorXToLongitude(x) {
-    return (((x - MERCATOR_OFFSET) / MERCATOR_RADIUS) * 180) / Math.PI;
-  }
+  // function mercatorXToLongitude(x) {
+  //   return (((x - MERCATOR_OFFSET) / MERCATOR_RADIUS) * 180) / Math.PI;
+  // }
 
-  function mercatorYToLatitude(y) {
-    return (
-      ((Math.PI / 2 -
-        2 * Math.atan(Math.exp((y - MERCATOR_OFFSET) / MERCATOR_RADIUS))) *
-        180) /
-      Math.PI
-    );
-  }
+  // function mercatorYToLatitude(y) {
+  //   return (
+  //     ((Math.PI / 2 -
+  //       2 * Math.atan(Math.exp((y - MERCATOR_OFFSET) / MERCATOR_RADIUS))) *
+  //       180) /
+  //     Math.PI
+  //   );
+  // }
 
-  function mercatorAdjustLatitudeByOffsetAndZoom(latitude, offset, zoom) {
-    return mercatorYToLatitude(
-      mercatorLatitudeToY(latitude) + (offset << (21 - zoom))
-    );
-  }
+  // function mercatorAdjustLatitudeByOffsetAndZoom(latitude, offset, zoom) {
+  //   return mercatorYToLatitude(
+  //     mercatorLatitudeToY(latitude) + (offset << (21 - zoom))
+  //   );
+  // }
 
-  function mercatorAdjustLongitudeByOffsetAndZoom(longitude, offset, zoom) {
-    return mercatorXToLongitude(
-      mercatorLongitudeToX(longitude) + (offset << (21 - zoom))
-    );
-  }
+  // function mercatorAdjustLongitudeByOffsetAndZoom(longitude, offset, zoom) {
+  //   return mercatorXToLongitude(
+  //     mercatorLongitudeToX(longitude) + (offset << (21 - zoom))
+  //   );
+  // }
 
-  function mercatorDegreeDeltas(latitude, longitude, width, height, zoom) {
-    if (!zoom) {
-      zoom = 20;
-    }
+  // function mercatorDegreeDeltas(latitude, longitude, width, height, zoom) {
+  //   if (!zoom) {
+  //     zoom = 20;
+  //   }
 
-    const deltaX = width / 2;
-    const deltaY = height / 4;
+  //   const deltaX = width / 2;
+  //   const deltaY = height / 4;
 
-    const northLatitude = mercatorAdjustLatitudeByOffsetAndZoom(
-      latitude,
-      deltaY * -1,
-      zoom
-    );
-    const westLongitude = mercatorAdjustLongitudeByOffsetAndZoom(
-      longitude,
-      deltaX * -1,
-      zoom
-    );
-    const southLatitude = mercatorAdjustLatitudeByOffsetAndZoom(
-      latitude,
-      deltaY,
-      zoom
-    );
-    const eastLongitude = mercatorAdjustLongitudeByOffsetAndZoom(
-      longitude,
-      deltaY,
-      zoom
-    );
+  //   const northLatitude = mercatorAdjustLatitudeByOffsetAndZoom(
+  //     latitude,
+  //     deltaY * -1,
+  //     zoom
+  //   );
+  //   const westLongitude = mercatorAdjustLongitudeByOffsetAndZoom(
+  //     longitude,
+  //     deltaX * -1,
+  //     zoom
+  //   );
+  //   const southLatitude = mercatorAdjustLatitudeByOffsetAndZoom(
+  //     latitude,
+  //     deltaY,
+  //     zoom
+  //   );
+  //   const eastLongitude = mercatorAdjustLongitudeByOffsetAndZoom(
+  //     longitude,
+  //     deltaY,
+  //     zoom
+  //   );
 
-    const latitudeDelta = Math.abs(northLatitude - southLatitude);
-    const longitudeDelta = Math.abs(eastLongitude - westLongitude);
+  //   const latitudeDelta = Math.abs(northLatitude - southLatitude);
+  //   const longitudeDelta = Math.abs(eastLongitude - westLongitude);
 
-    return { latitudeDelta, longitudeDelta };
-  }
+  //   return { latitudeDelta, longitudeDelta };
+  // }
 
-  //TODO: MOVE TO ANOTHER FILE ^
+  // //TODO: MOVE TO ANOTHER FILE ^
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        return;
-      }
+  // useEffect(() => {
+  //   (async () => {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== "granted") {
+  //       return;
+  //     }
  
 
-      Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-          timeInterval: 1000,
-          distanceInterval: 5,
-        },
-        (newLocation) => {
-          let { coords } = newLocation;
-          const map = mapRef.current;
-          if (
-            coordinates.latitude !== coords.latitude &&
-            coordinates.longitude !== coords.longitude
-          ) {
-            coordinates
-              .timing({
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-              })
-              .start();
-          }
-          updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
-        }
-      );
-    })();
-  }, [SCREEN_HEIGHT_RATIO]);
+  //     Location.watchPositionAsync(
+  //       {
+  //         accuracy: Location.Accuracy.BestForNavigation,
+  //         timeInterval: 1000,
+  //         distanceInterval: 5,
+  //       },
+  //       (newLocation) => {
+  //         let { coords } = newLocation;
+  //         const map = mapRef.current;
+  //         if (
+  //           coordinates.latitude !== coords.latitude &&
+  //           coordinates.longitude !== coords.longitude
+  //         ) {
+  //           coordinates
+  //             .timing({
+  //               latitude: coords.latitude,
+  //               longitude: coords.longitude,
+  //             })
+  //             .start();
+  //         }
+  //         updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
+  //       }
+  //     );
+  //   })();
+  // }, [SCREEN_HEIGHT_RATIO]);
 
   // useEffect(() => {
   //   (async () => {
@@ -407,76 +408,88 @@ const ChoiceAddressScreen = () => {
   //   }
   // };
 
-  const getOffset = (zoom, heading, screenRatio) => {
-    console.log("test1", screenRatio);
-    const BASE_OFFSET = -0.005 * screenRatio; // Ajuster   si nécessaire
+  // const getOffset = (zoom, heading, screenRatio) => {
+  //   console.log("test1", screenRatio);
+  //   const BASE_OFFSET = -0.005 * screenRatio; // Ajuster   si nécessaire
 
-    const offset = BASE_OFFSET / Math.pow(2, zoom); // Ajustement basé sur le zoom
-    const radHeading = heading * (Math.PI / 180); // Convertir le heading en radians
+  //   const offset = BASE_OFFSET / Math.pow(2, zoom); // Ajustement basé sur le zoom
+  //   const radHeading = heading * (Math.PI / 180); // Convertir le heading en radians
 
-    // Calculer le décalage basé sur le heading
-    const offsetLatitude = offset * Math.cos(radHeading);
-    const offsetLongitude = offset * Math.sin(radHeading);
+  //   // Calculer le décalage basé sur le heading
+  //   const offsetLatitude = offset * Math.cos(radHeading);
+  //   const offsetLongitude = offset * Math.sin(radHeading);
 
-    // Inverser le décalage pour le garder en bas de l'écran
-    return {
-      offsetLatitude: -offsetLatitude,
-      offsetLongitude: -offsetLongitude,
-    };
-  };
-
-
+  //   // Inverser le décalage pour le garder en bas de l'écran
+  //   return {
+  //     offsetLatitude: -offsetLatitude,
+  //     offsetLongitude: -offsetLongitude,
+  //   };
+  // };
 
 
-  const updateCamera = useCallback((map, coordinates, heading, screenRatio) => {
-    const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
-      coordinates.latitude,
-      coordinates.longitude,
-      width,
-      height,
-      Platform.OS === "ios" ? 20 : 19
-    );
-    const { offsetLatitude, offsetLongitude } = getOffset(
-      Platform.OS === "ios" ? 3 : 2,
-      coordinates.heading,
-      screenRatio
-    );
-    if (map !== null && map !== undefined) {
-      console.log("map", screenRatio);
-      map?.animateCamera(
-        {
-          center: {
-            latitude: coordinates.latitude + offsetLatitude,
-            longitude: coordinates.longitude + offsetLongitude,
-          },
-          heading: coordinates.heading,
-          pitch: Platform.OS === "ios" ? 60 : 75,
-          altitude: Platform.OS === "ios" ? 90 : 70,
-          zoom: Platform.OS === "ios" ? 0 : 19,
-          latitudeDelta: latitudeDelta,
-          longitudeDelta: longitudeDelta,
-        },
-        { duration: 500 }
-      );
 
-      setTimeout(async () => {
-        const cam = await map?.getCamera();
-        Animated.timing(heading, {
-          toValue: coordinates.heading - cam?.center ? cam?.center?.heading : 0,
-          duration: 500,
-          useNativeDriver: true,
-        }).start();
-      }, 500);
-    } 
-    },[coordinates, heading]
-  );
+
+  // const updateCamera = useCallback((map, coordinates, heading, screenRatio) => {
+  //   const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
+  //     coordinates.latitude,
+  //     coordinates.longitude,
+  //     width,
+  //     height,
+  //     Platform.OS === "ios" ? 20 : 19
+  //   );
+  //   const { offsetLatitude, offsetLongitude } = getOffset(
+  //     Platform.OS === "ios" ? 3 : 2,
+  //     coordinates.heading,
+  //     screenRatio
+  //   );
+  //   if (map !== null && map !== undefined) {
+  //     console.log("map", screenRatio);
+  //     map?.animateCamera(
+  //       {
+  //         center: {
+  //           latitude: coordinates.latitude + offsetLatitude,
+  //           longitude: coordinates.longitude + offsetLongitude,
+  //         },
+  //         heading: coordinates.heading,
+  //         pitch: Platform.OS === "ios" ? 60 : 75,
+  //         altitude: Platform.OS === "ios" ? 90 : 70,
+  //         zoom: Platform.OS === "ios" ? 0 : 19,
+  //         latitudeDelta: latitudeDelta,
+  //         longitudeDelta: longitudeDelta,
+  //       },
+  //       { duration: 500 }
+  //     );
+
+  //     setTimeout(async () => {
+  //       const cam = await map?.getCamera();
+  //       Animated.timing(heading, {
+  //         toValue: coordinates.heading - cam?.center ? cam?.center?.heading : 0,
+  //         duration: 500,
+  //         useNativeDriver: true,
+  //       }).start();
+  //     }, 500);
+  //   } 
+  //   },[coordinates, heading]
+  // );
 
   return (
     <LocationPermissionWrapper>
       <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
-          <AnimatedMapView
+
+          <Maps
+            styleMaps={styles.map}
+            initialRouteOptions={null}
+            selectedRouteIndex={null}
+            onPolylineSelect={null}
+            currentRegion={null}
+            userSpeed={null}
+            isNavigating={true}
+            screenHeightRatio={SCREEN_HEIGHT_RATIO}
+          ></Maps>
+
+          {/* <AnimatedMapView
             style={styles.map}
             ref={mapRef}
             showsMyLocationButton={true}
@@ -509,7 +522,7 @@ const ChoiceAddressScreen = () => {
                   <Arrow />
                 </Animated.View>
               </MarkerAnimated>
-          </AnimatedMapView>
+          </AnimatedMapView> */}
           <BottomSheet
             ref={bottomSheetRef}
             index={0}
