@@ -65,7 +65,7 @@ const Tabs = () => {
             tabBarStyle: ((route) => {
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
               console.log("routeName", routeName);
-            if (routeName === "ChoiceItinerary" || routeName === "Travel") {
+            if (routeName === "" ) {
               return { display: "none" };
             }
               return tabBarStyle;
