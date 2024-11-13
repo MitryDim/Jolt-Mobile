@@ -68,8 +68,7 @@ const LATITUDE_DELTA = 0.001;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const screenHeight = Dimensions.get("window").height;
 
-const TravelScreen = ({ route }) => {
-  console.log("route", route.params);
+const TravelScreen = ({ route }) => { 
   const frame = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
   const [mapWidth, setMapWidth] = useState(0);
@@ -83,7 +82,7 @@ const TravelScreen = ({ route }) => {
   const bottomSheetRef = useRef(null);
 
   const sheetOffset = useSharedValue(0);
-  const snapPoints = useMemo(() => [150]);
+  const snapPoints = useMemo(() => [200]);
   const positions = useRef([]);
   const lastLocation = useRef(null);
   const distanceTraveled = useRef(0);
@@ -555,14 +554,12 @@ const TravelScreen = ({ route }) => {
   //   updateState({ center: false });
   // };
 
-  const handleSheetClose = () => {
-    console.log(bottomSheetClose);
+  const handleSheetClose = () => { 
     if (bottomSheetClose == true) bottomSheetRef.current?.expand();
     else bottomSheetRef.current?.close();
   };
 
-  const handleSheetChanges = useCallback((index) => {
-    console.log("Index : ", index);
+  const handleSheetChanges = useCallback((index) => { 
     if (index >= 0) updateState({ bottomSheetClose: false });
     else updateState({ bottomSheetClose: true });
   }, []);
@@ -602,7 +599,6 @@ const TravelScreen = ({ route }) => {
   const infoTravelAnimatedStyle = useAnimatedStyle(() => {
     let bottomValue = 0;
     let heightValue = 80;
-    console.log("sheetOffset.value :", sheetOffset.value);
     bottomValue = frame.height - sheetOffset.value - 175;
     if (bottomValue < 0) {
       bottomValue = 0;
@@ -758,6 +754,7 @@ const TravelScreen = ({ route }) => {
                 onPress={() => {
                   if (positions.current.length > 0)
                     updateState({ exitConfirmation: true });
+                  else navigate("ChoiceAddress");
                 }}
               >
                 <Text style={{ color: "black" }}>Arrêter</Text>

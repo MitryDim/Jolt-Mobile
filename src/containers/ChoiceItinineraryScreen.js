@@ -224,8 +224,7 @@ const ChoiceItinerary = (geoadress) => {
   };
 
   const getAllRoutes = async () => {
-    const curlocation = await Location.getCurrentPositionAsync({});
-    console.log("curlocation", curlocation);
+    const curlocation = await Location.getCurrentPositionAsync({}); 
     const location = curlocation.coords;
     const heading = curlocation.heading;
     setCurrentRegion({

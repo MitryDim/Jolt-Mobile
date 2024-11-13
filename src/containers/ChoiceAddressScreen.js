@@ -174,8 +174,7 @@ const ChoiceAddressScreen = () => {
         setScreenHeightRation(height / 1920);
         break;
       case 1:
-        const screenHeightRatio = -(percentage / 100);
-        console.log(height, screenHeightRatio);
+        const screenHeightRatio = -(percentage / 100); 
         setScreenHeightRation(screenHeightRatio);
         break;
       case 2:

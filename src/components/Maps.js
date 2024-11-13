@@ -1,12 +1,13 @@
 import {
-  View, 
+  View,
   Text,
   Image,
   StyleSheet,
   Dimensions,
   Platform,
   Pressable,
-  Animated as animated2
+  Animated as animated2,
+  Alert,
 } from "react-native";
 import React, {
   useRef,
@@ -40,11 +41,12 @@ import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import  Animated ,{
+import Animated, {
   useSharedValue,
   useDerivedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
+import LoadingOverlay from "./LoadingOverlay";
 
 const Maps = ({
   styleMaps,
@@ -65,35 +67,13 @@ const Maps = ({
     sheetOffsetValue > 0 ? sheetOffsetValue : 0
   );
   const mapRef = useRef(null);
-  // const heading = useRef(new Animated.Value(0)).current;
-  // const coordinates = new AnimatedRegion({
-  //   latitude: 0,
-  //   longitude: 0,
-  // });
-
-  // const infoTravelAnimatedStyle = useAnimatedStyle(() => {
-  //   if (!sheetOffset) return { bottom: 0, height: 0 };
-  //   let bottomValue = 0;
-  //   let heightValue = 80;
-  //   console.log("sheetOffset.value :", sheetOffset.value, frame.height);
-  //   bottomValue = frame.height - sheetOffset.value - 175;
-  //   if (bottomValue < 0) {
-  //     bottomValue = 0;
-  //     heightValue = 100;
-  //   }
-
-  //   return {
-  //     bottom: bottomValue,
-  //     height: heightValue,
-  //   };
-  // });
-
   const lastLocation = useRef(null);
   const distanceTraveled = useRef(0);
   const maxSpeed = useRef(0);
   const speed = useRef(0);
-
+  const [currentStep, setCurrentStep] = useState(0);
   const [state, setState] = useState({
+    currentStep: 0,
     destinationCords: {},
     isLoading: false,
     startTime: null,
@@ -101,7 +81,7 @@ const Maps = ({
     distance: 0,
     urlTemplate: "http://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
     center: true,
-    currentInstruction: { closestInstruction: null, distaneRest: 0 },
+    currentInstruction: { closestInstruction: null, distanceRest: 0 },
     instructions: [],
     routeOptions: initialRouteOptions ? initialRouteOptions : [],
     bottomSheetClose: true,
@@ -125,8 +105,10 @@ const Maps = ({
     heading,
     coordinates,
   } = state;
+  const deviationThreshold = 20; // Seuil de déviation en mètres
 
-  const updateState = (data) => setState((state) => ({ ...state, ...data }));
+  const updateState = (data) =>
+    setState((prevState) => ({ ...prevState, ...data }));
   let countIncorrectPath = 0;
 
   const MERCATOR_OFFSET = Math.pow(2, 28);
@@ -289,6 +271,82 @@ const Maps = ({
     return null;
   };
 
+  //TTEST
+
+  const initializeStartingPoint = (position) => {
+    if (!route?.coordinates || !position) return;
+
+    const coordinates = route?.coordinates;
+    const closestPointIndex = coordinates.reduce(
+      (closestIndex, point, index) => {
+        const distance = getDistance(position, {
+          latitude: point.latitude,
+          longitude: point.longitude,
+        });
+        return distance <
+          getDistance(position, {
+            latitude: coordinates[closestIndex].latitude,
+            longitude: coordinates[closestIndex].longitude,
+          })
+          ? index
+          : closestIndex;
+      },
+      0
+    );
+    console.log("====================================");
+    console.log("closestPointIndex", closestPointIndex);
+    console.log("====================================");
+    setCurrentStep(closestPointIndex);
+    return closestPointIndex;
+  };
+
+  const checkIfOffRoute = (position) => {
+    if (!route?.coordinates || !position) return;
+
+    const steps = route?.coordinates;
+    const closestPoint = steps.reduce(
+      (closest, point) => {
+        const distance = getDistance(position, {
+          latitude: point.latitude,
+          longitude: point.longitude,
+        });
+        return distance < closest.distance ? { point, distance } : closest;
+      },
+      { point: null, distance: Infinity }
+    );
+
+    if (closestPoint.distance > deviationThreshold) {
+      console.log("Attention", "Vous vous écartez du trajet prévu !");
+    }
+  };
+
+  const handleNavigationUpdate = (position) => {
+    if (!route?.coordinates || !position) return;
+    console.log("====================================");
+    console.log("currentStep", currentStep);
+    const steps = route?.instructions;
+    const nextStep = steps[currentStep];
+    const nextPoint = route?.coordinates[nextStep.way_points[1]];
+
+    const distanceToNextPoint = getDistance(
+      { latitude: position.latitude, longitude: position.longitude },
+      { latitude: nextPoint.latitude, longitude: nextPoint.longitude }
+    );
+    console.log("====================================");
+    console.log("distanceToNextPoint", distanceToNextPoint);
+    console.log("====================================");
+    if (distanceToNextPoint <= 10) {
+      console.log("====================================");
+      console.log("nextStep", nextStep);
+      console.log(nextStep.instruction);
+      setCurrentStep(currentStep + 1);
+      return currentStep + 1;
+      //setCurrentStep(currentStep + 1); // Passer à l'étape suivante
+    }
+  };
+
+  //TEST
+
   const getInstruction = async (curLoc, heading, speed) => {
     let instruction = null;
     let newRouteOptions = null;
@@ -358,6 +416,11 @@ const Maps = ({
     routeCoordinates,
     heading
   ) => {
+    if (!currentPosition || !instructions || !routeCoordinates) {
+      console.error("Invalid input parameters");
+      return null;
+    }
+
     const nearestPoint = findNearest(currentPosition, routeCoordinates);
     const indexCoordinates = getIndexCoordinates(
       routeCoordinates,
@@ -383,7 +446,6 @@ const Maps = ({
         instructions[0].way_points[1]
       );
       allDistanceRes += distanceRest;
-      // updateState({ distance: allDistanceRes });
 
       if (distanceRest > instructions[1].distance - 6) {
         return {
@@ -443,7 +505,6 @@ const Maps = ({
           lastIndexCoordinates
         );
         allDistanceRes += distanceRest;
-        // updateState({ distance: allDistanceRes });
 
         const instructionByCoordinates = getInstructionByCoordinates(
           routeCoordinates,
@@ -537,7 +598,7 @@ const Maps = ({
             latitudeDelta: latitudeDelta,
             longitudeDelta: longitudeDelta,
           },
-          { duration: 500 }
+          { duration: 300 }
         );
 
         setTimeout(async () => {
@@ -546,11 +607,11 @@ const Maps = ({
             .timing(heading, {
               toValue:
                 coordinates?.heading - cam?.center ? cam?.center?.heading : 0,
-              duration: 500,
+              duration: 300,
               useNativeDriver: true,
             })
             .start();
-        }, 500);
+        }, 300);
       }
     },
     [coordinates, heading]
@@ -635,12 +696,25 @@ const Maps = ({
   }
 
   //TODO: MOVE TO ANOTHER FILE ^
+  const findClosestPointOnPolyline = async (
+    currentPosition,
+    polylineCoordinates
+  ) => {
+    return findNearest(
+      {
+        longitude: currentPosition?.longitude,
+        latitude: currentPosition?.latitude,
+      },
+      polylineCoordinates
+    );
+  };
 
   useEffect(() => {
     let locationSubscription;
     if (isNavigating) {
       (async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
+        console.log("status", status, Platform.OS === "ios");
         if (status !== "granted") {
           return;
         }
@@ -649,10 +723,25 @@ const Maps = ({
           locationSubscription = await Location.watchPositionAsync(
             {
               accuracy: Location.Accuracy.BestForNavigation,
+              timeInterval: 1000,
+              distanceInterval: 5,
             },
             (newLocation) => {
               let { coords } = newLocation;
               const map = mapRef.current;
+
+              let closestPoint = coords;
+
+              if (routesToDisplay && routesToDisplay?.coordinates) {
+                // Trouver le point le plus proche sur la polyline
+                const findClosetPoint = findClosestPointOnPolyline(
+                  coords,
+                  routesToDisplay.coordinates
+                );
+                if (findClosetPoint) {
+                  closestPoint = findClosetPoint;
+                }
+              }
 
               if (
                 coordinates.latitude !== coords.latitude &&
@@ -668,14 +757,28 @@ const Maps = ({
 
               updateCamera(map, coords, heading, SCREEN_HEIGHT_RATIO);
               if (isNavigating && showManeuver) {
-                getInstruction(
-                  {
-                    latitude: coords.latitude,
-                    longitude: coords.longitude,
-                  },
-                  coords.heading,
-                  coords.speed
-                );
+                const newPosition = {
+                  latitude: coords.latitude,
+                  longitude: coords.longitude,
+                };
+                console.log("====================================");
+                console.log("currentStep", currentStep);
+                console.log("====================================");
+                if (currentStep === 0) {
+                  initializeStartingPoint(newPosition);
+                } else {
+                  handleNavigationUpdate(newPosition);
+                  checkIfOffRoute(newPosition);
+                }
+
+                // getInstruction(
+                //   {
+                //     latitude: coords.latitude,
+                //     longitude: coords.longitude,
+                //   },
+                //   coords.heading,
+                //   coords.speed
+                // );
               }
             }
           );

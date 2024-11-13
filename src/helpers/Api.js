@@ -68,8 +68,7 @@ export const directions = async (
   preference,
   maxNBRoute = 3,
   bearing = [[]]
-) => {
-  console.log("directions", startCoords, endCoords, preference, maxNBRoute);
+) => { 
   let alternative_routes = { target_count: 3 };
 
   if (maxNBRoute < 2) alternative_routes = {};
@@ -139,8 +138,7 @@ export const calculateMultipleRoutes = async (
       maxNBRoute,
       bearing
     );
-
-    console.log("routeOptions: ", routeOptions);
+ 
     return routeOptions;
   } catch (error) {
     console.error("Erreur lors de la récupération des itinéraires :", error);

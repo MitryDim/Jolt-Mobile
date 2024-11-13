@@ -35,8 +35,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 );
 
 const Tabs = () => {
-  const insets = useSafeAreaInsets();
-  console.log("insets", insets);
+  const insets = useSafeAreaInsets(); 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -90,8 +89,7 @@ const Tabs = () => {
             options={({ route }) => ({
               navigationBarColor: "#FFFFFF",
               tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-                console.log("routeName", routeName);
+                const routeName = getFocusedRouteNameFromRoute(route) ?? ""; 
                 if (routeName === "") {
                   return { display: "none" };
                 }
@@ -115,8 +113,7 @@ const Tabs = () => {
             options={({ route }) => ({
               navigationBarColor: "#FFFFFF",
               tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-                console.log(routeName);
+                const routeName = getFocusedRouteNameFromRoute(route) ?? ""; 
                 if (routeName === "TrackingDetailsScreen") {
                   return { display: "none" };
                 }

@@ -18,8 +18,7 @@ function NavigateNavigator() {
         name="ChoiceItinerary"
         component={ChoiceItineraryScreen}
         options={({ route }) => ({
-          headerTitle: () => {
-            console.log(route.params.data);
+          headerTitle: () => { 
             return (
               <View
                 style={{
