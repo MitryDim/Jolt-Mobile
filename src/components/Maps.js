@@ -22,6 +22,8 @@ import MapView, {
   Marker,
   AnimatedRegion,
   MarkerAnimated,
+  UrlTile,
+  MAP_TYPES,
 } from "react-native-maps";
 import * as utils from "../utils/Utils";
 import { AnimatedMapView } from "react-native-maps/lib/MapView";
@@ -806,6 +808,7 @@ const Maps = ({
     <>
       <AnimatedMapView
         ref={mapRef}
+        mapType={"none"}
         showsMyLocationButton={false}
         showsUserLocation={false}
         followsUserLocation={false}
@@ -816,6 +819,12 @@ const Maps = ({
         showsBuildings={true}
         style={styleMaps}
       >
+        <UrlTile
+          urlTemplate="http://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+          zIndex={10}
+        />
         {routesToDisplay?.length > 0 &&
           routesToDisplay?.map(
             (routeCoordinates, index) =>
@@ -828,14 +837,22 @@ const Maps = ({
                     routeCoordinates?.coordinates
                   )}
                   <Polyline
+                    lineCap={"round"}
                     onPress={() => onPolylineSelect(index)}
                     coordinates={routeCoordinates?.coordinates}
-                    strokeColor={
-                      selectedRouteIndex === index
-                        ? "blue"
-                        : "rgba(242, 135, 138, 0.5)" // Permet de mettre en bleu la route choisi sinon en rouge transparent
-                    }
-                    strokeWidth={5}
+                    
+                    strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
+                    strokeColors={[
+                      "#7F0000",
+                      "#00000000", // no color, creates a "long" gradient between the previous and next coordinate
+                      "#B24112",
+                      "#E5845C",
+                      "#238C23",
+                      "#7F0000",
+                    ]}
+                    strokeWidth={6}
+                    zIndex={88}
+                    tappable={true}
                   />
                   <Marker
                     coordinate={

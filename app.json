@@ -1,6 +1,7 @@
 {
   "expo": {
     "newArchEnabled": true,
+
     "name": "jolt-mobile",
     "slug": "jolt",
     "version": "1.0.0",
@@ -17,13 +18,13 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sup.joltmobile",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
+        "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
       }
     },
     "androidNavigationBar": {
       "backgroundColor": "#70E575"
     },
-    "android": {
+    "android": { 
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#70E575"
@@ -42,7 +43,7 @@
       [
         "expo-location",
         {
-          "NSLocationWhenInUseUsageDescription": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
+          "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
         }
       ],
       [
