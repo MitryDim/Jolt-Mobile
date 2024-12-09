@@ -174,7 +174,7 @@ const ChoiceAddressScreen = () => {
         setScreenHeightRation(height / 1920);
         break;
       case 1:
-        const screenHeightRatio = -(percentage / 100); 
+        const screenHeightRatio = -(percentage / 100);
         setScreenHeightRation(screenHeightRatio);
         break;
       case 2:
@@ -301,7 +301,6 @@ const ChoiceAddressScreen = () => {
   //     if (status !== "granted") {
   //       return;
   //     }
- 
 
   //     Location.watchPositionAsync(
   //       {
@@ -425,9 +424,6 @@ const ChoiceAddressScreen = () => {
   //   };
   // };
 
-
-
-
   // const updateCamera = useCallback((map, coordinates, heading, screenRatio) => {
   //   const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
   //     coordinates.latitude,
@@ -467,7 +463,7 @@ const ChoiceAddressScreen = () => {
   //         useNativeDriver: true,
   //       }).start();
   //     }, 500);
-  //   } 
+  //   }
   //   },[coordinates, heading]
   // );
 

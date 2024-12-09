@@ -7,87 +7,47 @@ import {
   StyleSheet,
   View,
   ViewStyle,
+  useAnimatedValue,
 } from "react-native";
 
-
-
 export type Props = React.ComponentPropsWithRef<typeof View> & {
-  /**
-   * Whether to show the indicator or hide it.
-   */
   animating?: boolean;
-  /**
-   * The color of the spinner.
-   */
   color?: string;
-  /**
-   * Size of the indicator.
-   */
-  size?: "small" | "large" | number;
-  /**
-   * Whether the indicator should hide when not animating.
-   */
+  size?: number;
   hidesWhenStopped?: boolean;
   style?: StyleProp<ViewStyle>;
-
 };
 
 const DURATION = 2400;
 
-/**
- * Activity indicator is used to present progress of some activity in the app.
- * It can be used as a drop-in for the ActivityIndicator shipped with React Native.
- *
- * ## Usage
- * ```js
- * import * as React from 'react';
- * import { ActivityIndicator, MD2Colors } from 'react-native-paper';
- *
- * const MyComponent = () => (
- *   <ActivityIndicator animating={true} color={MD2Colors.red800} />
- * );
- *
- * export default MyComponent;
- * ```
- */
 const ActivityIndicator = ({
   animating = true,
   color: indicatorColor,
   hidesWhenStopped = true,
-  size: indicatorSize = "small",
+  size: indicatorSize = 24,
   style,
   ...rest
 }: Props) => {
- 
-  const { current: timer } = React.useRef<Animated.Value>(
-    new Animated.Value(0)
-  );
-  const { current: fade } = React.useRef<Animated.Value>(
-    new Animated.Value(!animating && hidesWhenStopped ? 0 : 1)
-  );
+  const timer = useAnimatedValue(0);
+  const fade = useAnimatedValue(!animating && hidesWhenStopped ? 0 : 1);
 
   const rotation = React.useRef<Animated.CompositeAnimation | undefined>(
     undefined
   );
 
-const scale = 10
-
   const startRotation = React.useCallback(() => {
-    // Show indicator
     Animated.timing(fade, {
-      duration: 200 * 10,
+      duration: 200,
       toValue: 1,
       isInteraction: false,
       useNativeDriver: true,
     }).start();
 
-    // Circular animation in loop
     if (rotation.current) {
       timer.setValue(0);
-      // $FlowFixMe
       Animated.loop(rotation.current).start();
     }
-  }, [scale, fade, timer]);
+  }, [fade, timer]);
 
   const stopRotation = () => {
     if (rotation.current) {
@@ -97,11 +57,9 @@ const scale = 10
 
   React.useEffect(() => {
     if (rotation.current === undefined) {
-      // Circular animation in loop
       rotation.current = Animated.timing(timer, {
         duration: DURATION,
         easing: Easing.linear,
-        // Animated.loop does not work if useNativeDriver is true on web
         useNativeDriver: Platform.OS !== "web",
         toValue: 1,
         isInteraction: false,
@@ -111,9 +69,8 @@ const scale = 10
     if (animating) {
       startRotation();
     } else if (hidesWhenStopped) {
-      // Hide indicator first and then stop rotation
       Animated.timing(fade, {
-        duration: 200 * scale,
+        duration: 200,
         toValue: 0,
         useNativeDriver: true,
         isInteraction: false,
@@ -121,9 +78,9 @@ const scale = 10
     } else {
       stopRotation();
     }
-  }, [animating, fade, hidesWhenStopped, startRotation, scale, timer]);
+  }, [animating, fade, hidesWhenStopped, startRotation, timer]);
 
-  const color = indicatorColor ;
+  const color = indicatorColor;
   const size =
     typeof indicatorSize === "string"
       ? indicatorSize === "small"
@@ -154,7 +111,6 @@ const scale = 10
         collapsable={false}
       >
         {[0, 1].map((index) => {
-          // Thanks to https://github.com/n4kz/react-native-indicators for the great work
           const inputRange = Array.from(
             new Array(frames),
             (_, frameIndex) => frameIndex / (frames - 1)
@@ -185,18 +141,20 @@ const scale = 10
             ],
           };
 
-const viewportStyle: Animated.WithAnimatedValue<StyleProp<ViewStyle>> = {
-  width: size,
-  height: size,
-  transform: [
-    {
-      translateY: index ? -size / 2 : 0,
-    },
-    {
-      rotate: timer.interpolate({ inputRange, outputRange }),
-    },
-  ],
-};
+          const viewportStyle: Animated.WithAnimatedValue<
+            StyleProp<ViewStyle>
+          > = {
+            width: size,
+            height: size,
+            transform: [
+              {
+                translateY: index ? -size / 2 : 0,
+              },
+              {
+                rotate: timer.interpolate({ inputRange, outputRange }),
+              },
+            ],
+          };
 
           const offsetStyle = index ? { top: size / 2 } : null;
 
@@ -235,10 +193,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   layer: {
     ...StyleSheet.absoluteFillObject,
-
     justifyContent: "center",
     alignItems: "center",
   },

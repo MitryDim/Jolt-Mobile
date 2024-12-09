@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ActivityIndicator, StyleSheet, Text, Image } from "react-native";
+import { View, StyleSheet, Text, Image } from "react-native";
 import LottieView from "lottie-react-native";
 
 const LoadingOverlay = (props) => {
