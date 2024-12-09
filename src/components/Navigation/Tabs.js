@@ -28,14 +28,14 @@ let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
 //Bouton custom pour le navigation
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity activeOpacity={1} onPress={onPress}>
-    <View className="flex w-20 h-20 top-[-40] rounded-full bg-white">
+    <View className="flex w-20 h-20 top-[-40] rounded-full bg-white justify-center items-center">
       {children}
     </View>
   </TouchableOpacity>
 );
 
 const Tabs = () => {
-  const insets = useSafeAreaInsets(); 
+  const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -58,7 +58,6 @@ const Tabs = () => {
     };
   }, []);
 
-
   const tabBarStyle = [
     styles.tabBarStyle,
     {
@@ -69,185 +68,181 @@ const Tabs = () => {
 
   return (
     <View style={styles.container}>
-        <Tab.Navigator
-          initialRouteName="Home"
-          screenOptions={{ 
-            headerShown: false,
-            tabBarStyle: tabBarStyle,
-            tabBarItemStyle: {
-              height: 70,
-              alignItems: "center",
-              justifyContent: "center",
-            },
-            tabBarShowLabel: false,
+      <Tab.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: tabBarStyle,
+          tabBarShowLabel: false,
+          navigationBarColor: "#FFFFFF",
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeNavigator}
+          options={({ route }) => ({
             navigationBarColor: "#FFFFFF",
-          }}
-        >
-          <Tab.Screen
-            name="Home"
-            component={HomeNavigator}
-            options={({ route }) => ({
-              navigationBarColor: "#FFFFFF",
-              tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? ""; 
-                if (routeName === "") {
-                  return { display: "none" };
-                }
-                return tabBarStyle;
-              })(route),
-              tabBarIcon: ({ focused }) => {
-                return (
+            tabBarStyle: ((route) => {
+              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+              if (routeName === "") {
+                return { display: "none" };
+              }
+              return tabBarStyle;
+            })(route),
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <View className="w-full h-full justify-center flex ">
                   <IconComponent
                     library="MaterialCommunityIcons"
                     name="home-analytics"
                     style={{ color: focused ? "#70E575" : "grey" }}
-                    size={35}
+                    size={size}
                   />
-                );
-              },
-            })}
-          />
-          <Tab.Screen
-            name="Trajet Effectués"
-            component={RouteTraveledNavigator}
-            options={({ route }) => ({
-              navigationBarColor: "#FFFFFF",
-              tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? ""; 
-                if (routeName === "TrackingDetailsScreen") {
-                  return { display: "none" };
-                }
-                return tabBarStyle;
-              })(route),
-              tabBarIcon: ({ focused }) => {
-                return (
-                  <IconComponent
-                    library="MaterialCommunityIcons"
-                    name="map-marker-path"
-                    style={{ color: focused ? "#70E575" : "grey" }}
-                    size={35}
-                  />
-                );
-              },
-            })}
-          />
-          <Tab.Screen
-            name="Navigate"
-            component={NavigateNavigator}
-            options={({ route }) => ({
-              tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+                </View>
+              );
+            },
+          })}
+        />
+        <Tab.Screen
+          name="Trajet Effectués"
+          component={RouteTraveledNavigator}
+          options={({ route }) => ({
+            navigationBarColor: "#FFFFFF",
+            tabBarStyle: ((route) => {
+              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+              if (routeName === "TrackingDetailsScreen") {
+                return { display: "none" };
+              }
+              return tabBarStyle;
+            })(route),
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <IconComponent
+                  library="MaterialCommunityIcons"
+                  name="map-marker-path"
+                  style={{ color: focused ? "#70E575" : "grey" }}
+                  size={size}
+                />
+              );
+            },
+          })}
+        />
+        <Tab.Screen
+          name="Navigate"
+          component={NavigateNavigator}
+          options={({ route }) => ({
+            tabBarStyle: ((route) => {
+              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
 
-                if (routeName === "ChoiceItinerary" || routeName === "Travel") {
-                  return { display: "none" };
-                }
-                return tabBarStyle;
-              })(route),
-              tabBarIcon: ({ focused }) => {
-                return (
-                  <IconComponent
-                    library="MaterialCommunityIcons"
-                    name="human-scooter"
-                    className="mr-1"
-                    style={{ color: focused ? "#70E575" : "grey" }}
-                    size={35}
-                  />
-                );
-              },
-              tabBarButton: (props) => {
-                return <CustomTabBarButton {...props} />;
-              },
-            })}
-          />
+              if (routeName === "ChoiceItinerary" || routeName === "Travel") {
+                return { display: "none" };
+              }
+              return tabBarStyle;
+            })(route),
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <IconComponent
+                  library="MaterialCommunityIcons"
+                  name="human-scooter"
+                  style={{ color: focused ? "#70E575" : "grey" }}
+                  size={size}
+                />
+              );
+            },
+            tabBarButton: (props) => {
+              return <CustomTabBarButton {...props} />;
+            },
+          })}
+        />
 
-          <Tab.Screen
-            name="maintains"
-            component={MaintainsNavigator}
-            options={{
-              tabBarIcon: ({ focused }) => {
-                return (
-                  <IconComponent
-                    library="MaterialCommunityIcons"
-                    name="wrench"
-                    style={{ color: focused ? "#70E575" : "grey" }}
-                    size={32}
-                  />
-                );
-              },
-              tabBarBadge:
-                maintainsItemsNumber >= 100
-                  ? "+99"
-                  : maintainsItemsNumber.toString(),
-              tabBarBadgeStyle: {
-                backgroundColor: "red",
-                borderRadius: 10, // Adjust the border radius for smaller corners
-                color: "white",
-                fontSize: 10,
-                fontWeight: "bold",
-                display: maintainsItemsNumber > 0 ? "flex" : "none",
-              },
-            }}
-          />
-          <Tab.Screen
-            name="Profile"
-            component={ProfileNavigator}
-            options={{
-              tabBarIcon: ({ focused }) => {
-                return (
-                  <>
-                    {avatar ? (
-                      <View
-                        className="bg-white w-12 h-12 rounded-full overflow-hidden"
-                        style={{
-                          borderColor: focused ? "#70E575" : "white",
-                          borderWidth: 2,
-                        }}
-                      >
-                        <Image
-                          source={avatar}
-                          style={{ width: "100%", height: "100%" }}
-                        />
-                      </View>
-                    ) : username ? (
-                      <Avatar
-                        username={username}
-                        style={{
-                          backgroundColor: focused ? "#70E575" : "lightblue",
-                        }}
-                      ></Avatar>
-                    ) : (
-                      <IconComponent
-                        library="MaterialCommunityIcons"
-                        name="account-circle-outline"
-                        style={{ color: focused ? "#70E575" : "lightblue" }}
-                        size={35}
+        <Tab.Screen
+          name="maintains"
+          component={MaintainsNavigator}
+          options={{
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <IconComponent
+                  library="MaterialCommunityIcons"
+                  name="wrench"
+                  style={{ color: focused ? "#70E575" : "grey" }}
+                  size={size}
+                />
+              );
+            },
+            tabBarBadge:
+              maintainsItemsNumber >= 100
+                ? "+99"
+                : maintainsItemsNumber.toString(),
+            tabBarBadgeStyle: {
+              backgroundColor: "red",
+              borderRadius: 10, // Adjust the border radius for smaller corners
+              color: "white",
+              fontSize: 10,
+              fontWeight: "bold",
+              display: maintainsItemsNumber > 0 ? "flex" : "none",
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileNavigator}
+          options={{
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <>
+                  {avatar ? (
+                    <View
+                      className="bg-white w-12 h-12 rounded-full overflow-hidden"
+                      style={{
+                        borderColor: focused ? "#70E575" : "white",
+                        borderWidth: 2,
+                      }}
+                    >
+                      <Image
+                        source={avatar}
+                        style={{ width: "100%", height: "100%" }}
                       />
-                    )}
-                  </>
-                );
-              },
-            }}
-          />
-
-          <Tab.Screen
-            name="Auth"
-            component={AuthNavigator}
-            options={{
-              tabBarIcon: ({ focused }) => {
-                return (
-                  <>
+                    </View>
+                  ) : username ? (
+                    <Avatar
+                      username={username}
+                      style={{
+                        backgroundColor: focused ? "#70E575" : "lightblue",
+                      }}
+                    ></Avatar>
+                  ) : (
                     <IconComponent
-                      library="MaterialIcons"
-                      name="logo-dev"
-                      style={{ color: focused ? "#70E575" : "grey" }}
-                      size={35}
+                      library="MaterialCommunityIcons"
+                      name="account-circle-outline"
+                      style={{ color: focused ? "#70E575" : "lightblue" }}
+                      size={size}
                     />
-                  </>
-                );
-              },
-            }}
-          />
-        </Tab.Navigator> 
+                  )}
+                </>
+              );
+            },
+          }}
+        />
+
+        <Tab.Screen
+          name="Auth"
+          component={AuthNavigator}
+          options={{
+            tabBarIcon: ({ focused, size }) => {
+              return (
+                <>
+                  <IconComponent
+                    library="MaterialIcons"
+                    name="logo-dev"
+                    style={{ color: focused ? "#70E575" : "grey" }}
+                    size={size}
+                  />
+                </>
+              );
+            },
+          }}
+        />
+      </Tab.Navigator>
     </View>
   );
 };

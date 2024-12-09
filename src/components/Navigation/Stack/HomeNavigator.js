@@ -32,7 +32,10 @@ function HomeNavigator() {
       <Stack.Screen
         name="HomeScreen"
         component={HomeScreen}
-        options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
+        options={{
+          navigationBarColor: "#FFFFFF",
+          headerShown: false,
+        }}
       />
       <Stack.Screen
         name="Maintains"
@@ -41,7 +44,7 @@ function HomeNavigator() {
           navigationBarColor: "#FFFFFF",
           headerShown: true,
           headerTitle: "Mes Entretients",
-          headerBackTitleVisible: false,
+          headerBackButtonDisplayMode: "minimal",
           headerTransparent: false,
           presentation: "fullScreenModal",
           headerLeft: () => (

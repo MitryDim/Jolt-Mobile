@@ -1,17 +1,17 @@
 {
   "expo": {
+    "newArchEnabled": true,
     "name": "jolt-mobile",
     "slug": "jolt",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "splash": {
       "resizeMode": "contain",
-      "backgroundColor": "#70E575"
+      "backgroundColor": "#70E575",
+      "display": "fade"
     },
     "ios": {
       "supportsTablet": true,

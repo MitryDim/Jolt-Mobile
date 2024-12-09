@@ -8,6 +8,8 @@ import {
   TextInput,
   Keyboard,
   Button,
+  useAnimatedValue,
+  
 } from "react-native";
 import React, {
   useRef,
@@ -61,7 +63,7 @@ const ChoiceAddressScreen = () => {
   const mapRef = useRef(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["10%", "25%", "95%"]);
-  const heading = useRef(new Animated.Value(0)).current;
+  const heading = useAnimatedValue(0);
   const [route, setRoute] = useState([]);
   const coordinates = new AnimatedRegion({
     latitude: 0,

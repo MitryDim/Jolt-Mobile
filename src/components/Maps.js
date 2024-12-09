@@ -8,6 +8,7 @@ import {
   Pressable,
   Animated as animated2,
   Alert,
+  useAnimatedValue,
 } from "react-native";
 import React, {
   useRef,
@@ -86,7 +87,7 @@ const Maps = ({
     routeOptions: initialRouteOptions ? initialRouteOptions : [],
     bottomSheetClose: true,
     exitConfirmation: false,
-    heading: useRef(new animated2.Value(0)).current,
+    heading: useAnimatedValue(0),
     coordinates: new AnimatedRegion({
       latitude: 0,
       longitude: 0,
@@ -805,7 +806,7 @@ const Maps = ({
     <>
       <AnimatedMapView
         ref={mapRef}
-        showsMyLocationButton={true}
+        showsMyLocationButton={false}
         showsUserLocation={false}
         followsUserLocation={false}
         zoomEnabled={true}
@@ -822,6 +823,10 @@ const Maps = ({
               routeCoordinates.coordinates.length > 0 &&
               !showManeuver && (
                 <React.Fragment key={index}>
+                  {console.log(
+                    "routeCoordinates",
+                    routeCoordinates?.coordinates
+                  )}
                   <Polyline
                     onPress={() => onPolylineSelect(index)}
                     coordinates={routeCoordinates?.coordinates}

@@ -18,7 +18,7 @@ function NavigateNavigator() {
         name="ChoiceItinerary"
         component={ChoiceItineraryScreen}
         options={({ route }) => ({
-          headerTitle: () => { 
+          headerTitle: () => {
             return (
               <View
                 style={{
@@ -46,7 +46,7 @@ function NavigateNavigator() {
           },
           headerShown: true,
           headerBackButtonMenuEnabled: false,
-          headerBackTitleVisible: false,
+          headerBackButtonDisplayMode: "minimal",
           headerTitleAlign: "left",
         })}
       />

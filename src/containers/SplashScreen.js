@@ -6,6 +6,7 @@ import {
   Animated,
   Dimensions,
   Platform,
+  useAnimatedValue,
 } from "react-native";
 import LottieView from "lottie-react-native";
 import IconComponent from "../components/Icons";
@@ -13,23 +14,20 @@ import * as Location from "expo-location";
 import * as ExpoSplashScreen from "expo-splash-screen";
 
 import PermissionScreen from "./PermissionLocationScreen";
-ExpoSplashScreen.preventAutoHideAsync();
-
+ExpoSplashScreen.preventAutoHideAsync(); 
 const messages = require("../../assets/SplashScreen/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);
 
-
-
 const SplashScreen = ({ navigation }) => {
-  const opacityAnimationLoading = new Animated.Value(0);
-  const opacityAnimationSplash1 = new Animated.Value(1);
-  const opacityAnimationSplash2 = new Animated.Value(0);
+  const opacityAnimationLoading = useAnimatedValue(0);
+  const opacityAnimationSplash1 = useAnimatedValue(1);
+  const opacityAnimationSplash2 = useAnimatedValue(0);
   const splashScreen2 = useRef(null);
 
   const screenWidth = Dimensions.get("window").width;
-  const translateX = useRef(new Animated.Value(-screenWidth)).current;
+  const translateX = useAnimatedValue(-screenWidth);
 
   // Choix aléatoire d'un message
   const randomIndex = Math.floor(Math.random() * messages.length);
@@ -93,7 +91,7 @@ const SplashScreen = ({ navigation }) => {
     }
   }
   const onLayoutRootView = useCallback(async () => {
-    await ExpoSplashScreen.hideAsync();
+    await ExpoSplashScreen.hide();
   }, []);
 
   return (
