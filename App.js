@@ -9,7 +9,7 @@ import { useFonts } from "expo-font";
 import * as ExpoSplashScreen from "expo-splash-screen";
 
 export default function App() {
-  ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
+ // ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
    const [isLoaded] = useFonts({
      Navigation: require("./assets/fonts/Navigation.ttf"),
    });

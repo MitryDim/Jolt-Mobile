@@ -21,24 +21,18 @@ import MapView, {
   Polyline,
   Marker,
   AnimatedRegion,
-  MarkerAnimated,
-  UrlTile,
-  MAP_TYPES,
+  MarkerAnimated, 
 } from "react-native-maps";
-import * as utils from "../utils/Utils";
-import { AnimatedMapView } from "react-native-maps/lib/MapView";
+import * as utils from "../utils/Utils"; 
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import * as Location from "expo-location";
 import Arrow from "../components/Arrow";
-import ManeuverView from "./ManeuverView/index";
-import { useFocusEffect } from "@react-navigation/native";
+import ManeuverView from "./ManeuverView/index"; 
 import * as api from "../helpers/Api";
 import {
   getDistance,
   findNearest,
-  getRhumbLineBearing,
-  getCompassDirection,
-  isPointInPolygon,
+  getRhumbLineBearing, 
 } from "geolib";
 import {
   useSafeAreaFrame,
@@ -806,9 +800,8 @@ const Maps = ({
 
   return (
     <>
-      <AnimatedMapView
+      <MapView
         ref={mapRef}
-        mapType={"none"}
         showsMyLocationButton={false}
         showsUserLocation={false}
         followsUserLocation={false}
@@ -819,12 +812,6 @@ const Maps = ({
         showsBuildings={true}
         style={styleMaps}
       >
-        <UrlTile
-          urlTemplate="http://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-          zIndex={10}
-        />
         {routesToDisplay?.length > 0 &&
           routesToDisplay?.map(
             (routeCoordinates, index) =>
@@ -841,18 +828,10 @@ const Maps = ({
                     onPress={() => onPolylineSelect(index)}
                     coordinates={routeCoordinates?.coordinates}
                     
-                    strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
-                    strokeColors={[
-                      "#7F0000",
-                      "#00000000", // no color, creates a "long" gradient between the previous and next coordinate
-                      "#B24112",
-                      "#E5845C",
-                      "#238C23",
-                      "#7F0000",
-                    ]}
                     strokeWidth={6}
                     zIndex={88}
                     tappable={true}
+                    strokeColor="blue"
                   />
                   <Marker
                     coordinate={
@@ -940,7 +919,7 @@ const Maps = ({
             </MarkerAnimated>
           </>
         )}
-      </AnimatedMapView>
+      </MapView>
 
       {isNavigating && showManeuver && currentInstruction && (
         <>
