@@ -4,7 +4,7 @@ import AuthScreen from "../../../containers/AuthScreen";
 
 function AuthNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Auth">
+    <Stack.Navigator initialRouteName="AuthScreen">
       <Stack.Screen
         name="AuthScreen"
         component={AuthScreen}

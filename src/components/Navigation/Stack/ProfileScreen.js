@@ -4,7 +4,7 @@ const Stack = createNativeStackNavigator();
 
 function ProfileNavigator() {
   return (
-    <Stack.Navigator initialRouteName="Profile">
+    <Stack.Navigator initialRouteName="ProfileScreen">
       <Stack.Screen
         name="ProfileScreen"
         component={ProfileScreen}

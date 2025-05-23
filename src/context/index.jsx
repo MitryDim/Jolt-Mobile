@@ -1,0 +1,38 @@
+import React, { createContext, useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store"; 
+export const UserContext = createContext();
+
+export const UserProvider = ({ children }) => {
+
+  const [user, setUser] = useState(null);
+
+  // Au démarrage, vérifie si l'utilisateur est déjà connecté
+  useEffect(() => {
+    const loadUser = async () => {
+      const userData = await SecureStore.getItemAsync("user");
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const login = async (userData) => {
+    console.log("Login pressed", userData);
+    await SecureStore.setItemAsync("user", JSON.stringify(userData));
+    setUser(userData);
+  };
+  const logout = async () => {
+    // Supprime les données de l'utilisateur du stockage sécurisé
+    await SecureStore.deleteItemAsync("user");
+    setUser(null);
+    return true;
+  };
+
+  return (
+    <UserContext.Provider value={{ user, login, logout }}>
+      {children}
+    </UserContext.Provider>
+  );
+};

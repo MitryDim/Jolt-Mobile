@@ -1,14 +1,15 @@
 {
   "expo": {
     "newArchEnabled": true,
-
     "name": "jolt-mobile",
     "slug": "jolt",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#70E575",
@@ -24,7 +25,7 @@
     "androidNavigationBar": {
       "backgroundColor": "#70E575"
     },
-    "android": { 
+    "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#70E575"
@@ -53,7 +54,8 @@
           "color": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

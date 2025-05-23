@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
 } from "react-native";
+import { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import avatar from "../../../assets/avatar.jpg";
 import Avatar from "../Avatar";
 import AuthNavigator from "./Stack/AuthNavigator";
+import { UserContext } from "../../context"; 
 const Tab = createBottomTabNavigator();
 const username = "Val";
 let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
@@ -35,6 +37,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 );
 
 const Tabs = () => {
+  const { user } = useContext(UserContext);
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -184,62 +187,43 @@ const Tabs = () => {
           }}
         />
         <Tab.Screen
-          name="Profile"
-          component={ProfileNavigator}
+          name={user ? "Profile" : "Auth"}
+          component={user ? ProfileNavigator : AuthNavigator}
           options={{
             tabBarIcon: ({ focused, size }) => {
-              return (
-                <>
-                  {avatar ? (
-                    <View
-                      className="bg-white w-12 h-12 rounded-full overflow-hidden"
-                      style={{
-                        borderColor: focused ? "#70E575" : "white",
-                        borderWidth: 2,
-                      }}
-                    >
-                      <Image
-                        source={avatar}
-                        style={{ width: "100%", height: "100%" }}
-                      />
-                    </View>
-                  ) : username ? (
+              return user && user.pseudo ? (
+                <View
+                  className="bg-white w-12 h-12 rounded-full overflow-hidden"
+                  style={{
+                    borderColor: focused ? "#70E575" : "white",
+                    borderWidth: 2,
+                  }}
+                >
+                  {/* Si tu as une image d'avatar dans user, affiche-la, sinon affiche l'avatar avec pseudo */}
+                  {user.avatar ? (
+                    <Image
+                      source={{ uri: user.avatar }}
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  ) : (
                     <Avatar
-                      username={username}
+                      username={user.pseudo}
                       style={{
                         backgroundColor: focused ? "#70E575" : "lightblue",
                       }}
-                    ></Avatar>
-                  ) : (
-                    <IconComponent
-                      library="MaterialCommunityIcons"
-                      name="account-circle-outline"
-                      style={{ color: focused ? "#70E575" : "lightblue" }}
-                      size={size}
                     />
                   )}
-                </>
+                </View>
+              ) : (
+                <IconComponent
+                  library="MaterialCommunityIcons"
+                  name="account-circle-outline"
+                  style={{ color: focused ? "#70E575" : "lightblue" }}
+                  size={size}
+                />
               );
             },
-          }}
-        />
-
-        <Tab.Screen
-          name="Auth"
-          component={AuthNavigator}
-          options={{
-            tabBarIcon: ({ focused, size }) => {
-              return (
-                <>
-                  <IconComponent
-                    library="MaterialIcons"
-                    name="logo-dev"
-                    style={{ color: focused ? "#70E575" : "grey" }}
-                    size={size}
-                  />
-                </>
-              );
-            },
+            tabBarLabel: user ? "Profil" : "Connexion",
           }}
         />
       </Tab.Navigator>
