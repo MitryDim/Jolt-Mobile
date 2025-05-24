@@ -56,7 +56,7 @@ const AuthScreen = () => {
           accessToken: accessToken,
           refreshToken: refreshToken,
           email: userData.email,
-          pseudo: userData.pseudo,
+          username: userData.username,
         });
         // Redirige l'utilisateur si besoin
       } else {

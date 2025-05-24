@@ -1,9 +1,9 @@
 import React, { createContext, useState, useEffect } from "react";
-import * as SecureStore from "expo-secure-store"; 
+import * as SecureStore from "expo-secure-store";
+import { EXPO_AUTH_SERVICE_URL } from "@env"; // Assurez-vous que cette variable d'environnement est définie dans votre fichier .env
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-
   const [user, setUser] = useState(null);
 
   // Au démarrage, vérifie si l'utilisateur est déjà connecté
@@ -24,6 +24,22 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
   };
   const logout = async () => {
+    const response = await fetch(`${EXPO_AUTH_SERVICE_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-client-type": "mobile", // Indique que la requête provient d'une application mobile
+        authorization: `Bearer ${user?.accessToken}`, // Utilise le token de l'utilisateur
+      },
+      body: JSON.stringify({ refreshToken: user?.refreshToken }), // Envoie le refresh token pour la déconnexion
+    });
+
+    if (!response.ok) {
+      console.log("Erreur lors de la déconnexion :", response.status);
+      console.error("Erreur lors de la déconnexion ");
+      return false; // Retourne false en cas d'erreur
+    }
+
     // Supprime les données de l'utilisateur du stockage sécurisé
     await SecureStore.deleteItemAsync("user");
     setUser(null);

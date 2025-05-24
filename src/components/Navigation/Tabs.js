@@ -191,7 +191,7 @@ const Tabs = () => {
           component={user ? ProfileNavigator : AuthNavigator}
           options={{
             tabBarIcon: ({ focused, size }) => {
-              return user && user.pseudo ? (
+              return user && user.username ? (
                 <View
                   className="bg-white w-12 h-12 rounded-full overflow-hidden"
                   style={{
@@ -199,7 +199,7 @@ const Tabs = () => {
                     borderWidth: 2,
                   }}
                 >
-                  {/* Si tu as une image d'avatar dans user, affiche-la, sinon affiche l'avatar avec pseudo */}
+                  {/* Si tu as une image d'avatar dans user, affiche-la, sinon affiche l'avatar avec username */}
                   {user.avatar ? (
                     <Image
                       source={{ uri: user.avatar }}
@@ -207,7 +207,7 @@ const Tabs = () => {
                     />
                   ) : (
                     <Avatar
-                      username={user.pseudo}
+                      username={user.username}
                       style={{
                         backgroundColor: focused ? "#70E575" : "lightblue",
                       }}
