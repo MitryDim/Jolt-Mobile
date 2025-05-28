@@ -19,7 +19,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sup.joltmobile",
       "infoPlist": {
-        "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
+        "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience.",
+        "UIBackgroundModes": ["remote-notification"]
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "androidNavigationBar": {
