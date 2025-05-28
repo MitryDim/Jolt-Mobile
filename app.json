@@ -20,7 +20,10 @@
       "bundleIdentifier": "com.sup.joltmobile",
       "infoPlist": {
         "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience.",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification"
+        ]
       },
       "entitlements": {
         "aps-environment": "production"
@@ -36,6 +39,8 @@
       },
       "package": "com.anonymous.joltmobile",
       "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]
@@ -63,9 +68,15 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "f9784f40-1a48-4d33-9a7d-717679e2f016"
+        "projectId": "60033ee7-9be5-4b4e-99b7-e53910ad40f4"
       }
     },
-    "owner": "mitrydim"
+    "owner": "mitrydim",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/60033ee7-9be5-4b4e-99b7-e53910ad40f4"
+    }
   }
 }
