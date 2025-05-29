@@ -1,3 +1,12 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "0c2e543e-a802-4bb8-9c60-5de387a48b37"
+      }
+    },
+    "android": {
+      "package": "com.mitrydim.joltmobile"
+    }
+  }
 }
