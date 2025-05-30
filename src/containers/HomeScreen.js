@@ -12,32 +12,39 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import scootersData from "../Data/myScooters";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";
-import { useNotification } from "../context/NotificationContext";
+// import { useNotification } from "../context/NotificationContext";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
 
 const HomeScreen = () => {
   const [scooters, setScooters] = useState([]);
-  const { expoPushToken, notification, error } = useNotification();
+  // const { expoPushToken, notification, error } = useNotification();
 
   useEffect(() => {
     const updatedScooters = [
       ...scootersData,
-      { id: new Date().getTime().toString(), add: true },
+      {
+        id: new Date().getTime().toString(),
+        add: true,
+        img: "",
+        title: "",
+        counter: "",
+        maintains: "",
+      },
     ];
     setScooters(updatedScooters);
   }, []);
 
-  if (error) {
-    console.error("Error fetching scooters data:", error);
-    return (
-      <SafeAreaView className="flex mb-[60px]">
-        <Text className="mt-4 text-xl text-center font-bold">Erreur</Text>
-        <Text className="text-center">{error.message}</Text>
-      </SafeAreaView>
-    );
-  }
+  // if (error) {
+  //   console.error("Error fetching scooters data:", error);
+  //   return (
+  //     <SafeAreaView className="flex mb-[60px]">
+  //       <Text className="mt-4 text-xl text-center font-bold">Erreur</Text>
+  //       <Text className="text-center">{error.message}</Text>
+  //     </SafeAreaView>
+  //   );
+  // }
   return (
     <SafeAreaView className="flex mb-[60px]">
       <Text className="mt-4 text-xl text-center font-bold">Ton équipement</Text>
@@ -117,7 +124,7 @@ const HomeScreen = () => {
         T'es dernier trajets
       </Text>
       <Separator />
-      <View style={{ margin: 16 }}>
+      {/* <View style={{ margin: 16 }}>
         <Text style={{ fontWeight: "bold" }}>Expo Push Token :</Text>
         <Text selectable numberOfLines={1} style={{ fontSize: 12 }}>
           {expoPushToken || "Aucun token"}
@@ -130,7 +137,7 @@ const HomeScreen = () => {
             ? JSON.stringify(notification.request.content, null, 2)
             : "Aucune notification reçue"}
         </Text>
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 };
