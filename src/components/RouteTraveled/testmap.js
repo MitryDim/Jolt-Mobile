@@ -8,8 +8,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { formatDistance, formatElapsedTime } from "./utils";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { formatDistance, formatElapsedTime } from "./utils"; 
 import MapView, { Polyline, Marker } from "react-native-maps";
 import IconComponent from "../Icons";
 import { CenterRegion } from "./functions";
@@ -17,8 +16,7 @@ import { CenterRegion } from "./functions";
 const TrackingDetailsScreen = ({ route }) => {
   const { data } = route.params; // Récupérer l'élément passé en paramètre
   const trackingData = data;
-  const insets = useSafeAreaInsets();
-
+ 
   //TODO REPLACE THIS WITH REAL DATA
 
   return (

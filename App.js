@@ -3,9 +3,14 @@ import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import "./assets/styles/global.css";
 import Tabs from "./src/components/Navigation/Tabs";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { UserProvider } from "./src/context";
+import { enableScreens } from "react-native-screens";
+enableScreens();
 // import { NotificationProvider } from "./src/context/NotificationContext";
 // import * as TaskManager from "expo-task-manager";
 // import * as Notifications from "expo-notifications";
@@ -45,14 +50,14 @@ export default function App() {
   //   // You can specify options here if needed.
   // });
 
-  return ( 
-      <UserProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <StatusBar />
-            <Tabs />
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </UserProvider> 
+  return (
+    <UserProvider>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar />
+         <Tabs /> 
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </UserProvider>
   );
 }

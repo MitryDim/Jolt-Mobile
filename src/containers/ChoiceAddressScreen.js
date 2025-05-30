@@ -20,20 +20,10 @@ import React, {
   useMemo,
 } from "react";
 import MapView, {
-  AnimatedRegion,
-  Circle,
-  Marker,
-  MapMarker,
-  MarkerAnimated,
-  Polyline,
+  AnimatedRegion, 
 } from "react-native-maps";
-import * as Location from "expo-location";
-import Arrow from "../components/Arrow";
-import { AnimatedMapView } from "react-native-maps/lib/MapView";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import * as Location from "expo-location"; 
+ 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import BottomSheet, {
   BottomSheetFlatList,
@@ -75,7 +65,7 @@ const ChoiceAddressScreen = () => {
   const [SCREEN_HEIGHT_RATIO, setScreenHeightRation] = useState(height / 1920); // 1920 est un exemple de hauteur d'écran de référence
 
   const [timeoutId, setTimeoutId] = useState(null);
-  const insets = useSafeAreaInsets();
+  //const insets = useSafeAreaInsets();
 
   const MERCATOR_OFFSET = Math.pow(2, 28);
   const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
@@ -471,7 +461,7 @@ const ChoiceAddressScreen = () => {
 
   return (
     <LocationPermissionWrapper>
-      <View style={{ flex: 1, marginBottom: 60, paddingBottom: insets.bottom }}>
+      <View style={{ flex: 1, marginBottom: 60, paddingBottom: 30 }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
 

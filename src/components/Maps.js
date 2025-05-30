@@ -35,8 +35,7 @@ import {
   getRhumbLineBearing, 
 } from "geolib";
 import {
-  useSafeAreaFrame,
-  useSafeAreaInsets,
+  useSafeAreaFrame, 
 } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -59,10 +58,7 @@ const Maps = ({
   sheetOffsetValue,
   infoTravelAnimatedStyle,
 }) => {
-  const frame = useSafeAreaFrame();
-  const sheetOffset = useSharedValue(
-    sheetOffsetValue > 0 ? sheetOffsetValue : 0
-  );
+ 
   const mapRef = useRef(null);
   const lastLocation = useRef(null);
   const distanceTraveled = useRef(0);
