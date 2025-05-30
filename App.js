@@ -8,46 +8,47 @@ import { useFonts } from "expo-font";
 import { UserProvider } from "./src/context";
 import { enableScreens } from "react-native-screens";
 enableScreens();
-// import { NotificationProvider } from "./src/context/NotificationContext";
-// import * as TaskManager from "expo-task-manager";
-// import * as Notifications from "expo-notifications";
+import { NotificationProvider } from "./src/context/NotificationContext";
+import * as TaskManager from "expo-task-manager";
+import * as Notifications from "expo-notifications";
 export default function App() {
   // ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
   const [isLoaded] = useFonts({
     Navigation: require("./assets/fonts/Navigation.ttf"),
   });
 
-  // Notifications.setNotificationHandler({
-  //   handleNotification: async () => ({
-  //     shouldShowAlert: true,
-  //     shouldPlaySound: true,
-  //     shouldSetBadge: true,
-  //   }),
-  // });
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
 
-  // const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND_NOTIFICATION_TASK";
+  const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND_NOTIFICATION_TASK";
 
-  // TaskManager.defineTask(
-  //   BACKGROUND_NOTIFICATION_TASK,
-  //   async ({ data, error }) => {
-  //     if (error) {
-  //       console.error("Error in background notification task:", error);
-  //       return;
-  //     }
-  //     if (data) {
-  //       const notification = data.notification;
-  //       console.log("Received background notification:", notification);
-  //     }
-  //   }
-  // );
+  TaskManager.defineTask(
+    BACKGROUND_NOTIFICATION_TASK,
+    async ({ data, error }) => {
+      if (error) {
+        console.error("Error in background notification task:", error);
+        return;
+      }
+      if (data) {
+        const notification = data.notification;
+        console.log("Received background notification:", notification);
+      }
+    }
+  );
 
-  // Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK, {
-  //   // This task will run in the background when a notification is received
-  //   // while the app is in the background or terminated.
-  //   // You can specify options here if needed.
-  // });
+  Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK, {
+    // This task will run in the background when a notification is received
+    // while the app is in the background or terminated.
+    // You can specify options here if needed.
+  });
 
   return (
+    <NotificationProvider>
     <UserProvider>
       <SafeAreaProvider>
         <NavigationContainer>
@@ -56,5 +57,6 @@ export default function App() {
         </NavigationContainer>
       </SafeAreaProvider>
     </UserProvider>
+    </NotificationProvider>
   );
 }
