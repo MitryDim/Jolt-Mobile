@@ -24,7 +24,14 @@ const HomeScreen = () => {
   useEffect(() => {
     const updatedScooters = [
       ...scootersData,
-      { id: new Date().getTime().toString(), add: true },
+      {
+        id: new Date().getTime().toString(),
+        add: true,
+        img: "",
+        title: "",
+        counter: "",
+        maintains: "",
+      },
     ];
     setScooters(updatedScooters);
   }, []);
