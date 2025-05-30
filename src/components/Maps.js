@@ -33,10 +33,7 @@ import {
   getDistance,
   findNearest,
   getRhumbLineBearing, 
-} from "geolib";
-import {
-  useSafeAreaFrame, 
-} from "react-native-safe-area-context";
+} from "geolib"; 
 import Animated, {
   useSharedValue,
   useDerivedValue,

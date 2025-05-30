@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Text, View, TextInput, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native";
 import LogoGreen from "../../assets/logo/logo";
 import IconComponent from "../components/Icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";

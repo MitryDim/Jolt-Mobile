@@ -7,8 +7,8 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react"; 
+import { SafeAreaView } from "react-native";
 import scootersData from "../Data/myScooters";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";

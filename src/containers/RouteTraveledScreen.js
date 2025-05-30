@@ -1,7 +1,7 @@
 import { View, Text, FlatList } from "react-native";
 import React from "react";
 import TraveledCards from "../components/RouteTraveled/TraveledCards";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native";
 import items from "../Data/traveled";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Separator from "../components/Separator";

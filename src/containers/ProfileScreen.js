@@ -1,6 +1,6 @@
 import { View, Text, Button, Pressable, Image } from "react-native";
 import React, { useContext } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native";
 import Separator from "../components/Separator";
 import avatar from "../../assets/avatar.jpg";
 import { UserContext } from "../context";

@@ -18,11 +18,11 @@ import MaintainsNavigator from "./Stack/MaintainsNavigator";
 import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React, { useEffect, useState } from "react";
 import IconComponent from "../Icons";
-//import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import avatar from "../../../assets/avatar.jpg";
 import Avatar from "../Avatar";
 import AuthNavigator from "./Stack/AuthNavigator";
-import { UserContext } from "../../context";
+import { UserContext } from "../../context"; 
 const Tab = createBottomTabNavigator();
 const username = "Val";
 let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
@@ -38,7 +38,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const { user } = useContext(UserContext);
-  //const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Tabs = () => {
   const tabBarStyle = [
     styles.tabBarStyle,
     {
-      bottom: 30, //insets.bottom,
+      bottom: insets.bottom,
       display: isKeyboardVisible && Platform.OS === "android" ? "none" : "flex",
     },
   ];
