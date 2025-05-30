@@ -10,11 +10,7 @@ export default ({ config }) => ({
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     assetBundlePatterns: ["**/*"],
-    splash: {
-      resizeMode: "contain",
-      backgroundColor: "#70E575",
-      display: "fade",
-    },
+
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.sup.joltmobile",
@@ -63,6 +59,13 @@ export default ({ config }) => ({
         {
           icon: "./assets/icon.png",
           color: "#ffffff",
+        },
+      ],
+      [
+        "expo-splash-screen",
+        {
+          backgroundColor: "#ffffff",
+          image: "./assets/icon.png",
         },
       ],
       "expo-font",
