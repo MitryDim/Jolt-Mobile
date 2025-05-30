@@ -6,9 +6,9 @@ import Tabs from "./src/components/Navigation/Tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { UserProvider } from "./src/context";
-import { NotificationProvider } from "./src/context/NotificationContext";
-import * as TaskManager from "expo-task-manager";
-import * as Notifications from "expo-notifications";
+// import { NotificationProvider } from "./src/context/NotificationContext";
+// import * as TaskManager from "expo-task-manager";
+// import * as Notifications from "expo-notifications";
 export default function App() {
   // ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
   const [isLoaded] = useFonts({
