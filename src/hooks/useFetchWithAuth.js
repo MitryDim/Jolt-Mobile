@@ -14,7 +14,7 @@ export function useFetchWithAuth() {
     const headers = {
       ...(options.headers || {}),
       "Content-Type": "application/json",
-      "x-client-type" : "mobile", // Indique que la requête provient d'une application mobile
+      "x-client-type": "mobile", // Indique que la requête provient d'une application mobile
     };
     if (opts.protected && user?.accessToken) {
       headers.Authorization = `Bearer ${user.accessToken}`;
@@ -30,7 +30,7 @@ export function useFetchWithAuth() {
     ) {
       console.warn("Token invalide, tentative de rafraîchissement...");
       const userData = await SecureStore.getItemAsync("user");
-      const storedUser = userData ? JSON.parse(userData) : null; 
+      const storedUser = userData ? JSON.parse(userData) : null;
       const refreshRes = await fetch(
         `${EXPO_AUTH_SERVICE_URL}/auth/refreshToken`,
         {
@@ -39,7 +39,7 @@ export function useFetchWithAuth() {
             "Content-Type": "application/json",
             "x-client-type": "mobile",
             Authorization: `Bearer ${storedUser?.refreshToken}`, // Utilise l'ancien token pour la requête de rafraîchissement
-          } 
+          },
         }
       );
 
@@ -73,3 +73,4 @@ export function useFetchWithAuth() {
 
   return fetchWithAuth;
 }
+ 

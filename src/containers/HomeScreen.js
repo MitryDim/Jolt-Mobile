@@ -7,7 +7,7 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import React, { useEffect, useState } from "react"; 
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native";
 import scootersData from "../Data/myScooters";
 import Card from "../components/Cards";
@@ -36,15 +36,6 @@ const HomeScreen = () => {
     setScooters(updatedScooters);
   }, []);
 
-  if (error) {
-    console.error("Error fetching scooters data:", error);
-    return (
-      <SafeAreaView className="flex mb-[60px]">
-        <Text className="mt-4 text-xl text-center font-bold">Erreur</Text>
-        <Text className="text-center">{error.message}</Text>
-      </SafeAreaView>
-    );
-  }
   return (
     <SafeAreaView className="flex mb-[60px]">
       <Text className="mt-4 text-xl text-center font-bold">Ton équipement</Text>
