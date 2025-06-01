@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import "./assets/styles/global.css";
 import Tabs from "./src/components/Navigation/Tabs";
- import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { UserProvider } from "./src/context";
 import { enableScreens } from "react-native-screens";
@@ -11,6 +11,33 @@ enableScreens();
 import { NotificationProvider } from "./src/context/NotificationContext";
 import * as TaskManager from "expo-task-manager";
 import * as Notifications from "expo-notifications";
+import FlashMessage, {
+  showMessage,
+  hideMessage,
+} from "react-native-flash-message";
+import { NetworkProvider, useNetwork } from "./src/context/networkContext";
+
+function NetworkBanner() {
+  const { isConnected } = useNetwork();
+
+  React.useEffect(() => {
+    if (!isConnected) {
+      showMessage({
+        message: "Aucune connexion internet détectée.",
+        type: "danger",
+        icon: "auto",
+        duration: 10000, // durée longue, mais on va le garder tant que pas de réseau
+        floating: true,
+        autoHide: false,
+      });
+    } else {
+      hideMessage();
+    }
+  }, [isConnected]);
+
+  return null;
+}
+
 export default function App() {
   // ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
   const [isLoaded] = useFonts({
@@ -49,14 +76,18 @@ export default function App() {
 
   return (
     <NotificationProvider>
-    <UserProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <StatusBar />
-         <Tabs /> 
-        </NavigationContainer>
-      </SafeAreaProvider>
-    </UserProvider>
+      <NetworkProvider>
+        <NetworkBanner />
+        <UserProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <StatusBar />
+              <Tabs />
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </UserProvider>
+        <FlashMessage position="top" />
+      </NetworkProvider>
     </NotificationProvider>
   );
 }

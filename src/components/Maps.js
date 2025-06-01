@@ -21,19 +21,15 @@ import MapView, {
   Polyline,
   Marker,
   AnimatedRegion,
-  MarkerAnimated, 
+  MarkerAnimated,
 } from "react-native-maps";
-import * as utils from "../utils/Utils"; 
+import * as utils from "../utils/Utils";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import * as Location from "expo-location";
 import Arrow from "../components/Arrow";
-import ManeuverView from "./ManeuverView/index"; 
+import ManeuverView from "./ManeuverView/index";
 import * as api from "../helpers/Api";
-import {
-  getDistance,
-  findNearest,
-  getRhumbLineBearing, 
-} from "geolib"; 
+import { getDistance, findNearest, getRhumbLineBearing } from "geolib";
 import Animated, {
   useSharedValue,
   useDerivedValue,
@@ -55,7 +51,6 @@ const Maps = ({
   sheetOffsetValue,
   infoTravelAnimatedStyle,
 }) => {
- 
   const mapRef = useRef(null);
   const lastLocation = useRef(null);
   const distanceTraveled = useRef(0);
@@ -246,6 +241,36 @@ const Maps = ({
       return null;
     }
   };
+  const findClosestPolylineIndexWithDirection = (
+    polyline,
+    location,
+    heading,
+    angleThreshold = 90
+  ) => {
+    let minDistance = Infinity;
+    let closestIndex = 0;
+
+    polyline.forEach((point, index) => {
+      const distance = getDistance(
+        { latitude: location.latitude, longitude: location.longitude },
+        { latitude: point.latitude, longitude: point.longitude }
+      );
+      const bearing = getRhumbLineBearing(
+        { latitude: location.latitude, longitude: location.longitude },
+        { latitude: point.latitude, longitude: point.longitude }
+      );
+      // Calcul de la différence d'angle (toujours positive, modulo 360)
+      let angleDiff = Math.abs(((bearing - heading + 540) % 360) - 180);
+
+      // On ne retient que les points "devant" l'utilisateur (dans le cône)
+      if (angleDiff <= angleThreshold && distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    return closestIndex;
+  };
 
   const getIndexCoordinates = (routeCoordinates, targetCoordinates) => {
     for (let i = 0; i < routeCoordinates.length; i++) {
@@ -267,27 +292,17 @@ const Maps = ({
     if (!route?.coordinates || !position) return;
 
     const coordinates = route?.coordinates;
-    const closestPointIndex = coordinates.reduce(
-      (closestIndex, point, index) => {
-        const distance = getDistance(position, {
-          latitude: point.latitude,
-          longitude: point.longitude,
-        });
-        return distance <
-          getDistance(position, {
-            latitude: coordinates[closestIndex].latitude,
-            longitude: coordinates[closestIndex].longitude,
-          })
-          ? index
-          : closestIndex;
-      },
-      0
+    const closestIndex = findClosestPolylineIndexWithDirection(
+      coordinates,
+      position,
+      heading,
+      90
     );
     console.log("====================================");
-    console.log("closestPointIndex", closestPointIndex);
+    console.log("closestPointIndex", closestIndex);
     console.log("====================================");
-    setCurrentStep(closestPointIndex);
-    return closestPointIndex;
+    setCurrentStep(closestIndex);
+    return closestIndex;
   };
 
   const checkIfOffRoute = (position) => {
@@ -325,7 +340,8 @@ const Maps = ({
     console.log("====================================");
     console.log("distanceToNextPoint", distanceToNextPoint);
     console.log("====================================");
-    if (distanceToNextPoint <= 10) {
+    const transitionThreshold = 20; // mètres, à ajuster selon tests réels
+    if (distanceToNextPoint <= transitionThreshold) {
       console.log("====================================");
       console.log("nextStep", nextStep);
       console.log(nextStep.instruction);
@@ -382,7 +398,7 @@ const Maps = ({
         route?.coordinates,
         heading
       );
-      //updateState({ currentInstruction: instruction });
+      updateState({ currentInstruction: instruction });
     }
     let allDistanceCalculate = 0;
 
@@ -418,133 +434,113 @@ const Maps = ({
     );
     let allDistanceRes = 0;
     let lastIndexCoordinates = 0;
+    const transitionThreshold = 20; // mètres
+    const headingTolerance = 30; // degrés
 
-    if (indexCoordinates === 0) {
+    // Recherche de l'instruction courante et de la suivante
+    let currentInstruction = null;
+    let nextInstruction = null;
+    for (let i = 0; i < instructions.length; i++) {
+      const [start, end] = instructions[i].way_points;
+      if (indexCoordinates >= start && indexCoordinates <= end) {
+        currentInstruction = instructions[i];
+        nextInstruction = instructions[i + 1] || null;
+        break;
+      }
+    }
+
+    // Si très proche de la fin de l'instruction courante, anticipe la suivante
+    if (
+      currentInstruction &&
+      nextInstruction &&
+      getDistance(
+        currentPosition,
+        routeCoordinates[currentInstruction.way_points[1]]
+      ) < transitionThreshold
+    ) {
+      return {
+        closestInstruction: nextInstruction,
+        distanceRest: getDistance(
+          currentPosition,
+          routeCoordinates[nextInstruction.way_points[0]]
+        ),
+        distance: getAllDistanceRest(
+          routeCoordinates,
+          nextInstruction.way_points[0]
+        ),
+      };
+    }
+
+    // Sinon, logique classique avec headingTolerance
+    if (currentInstruction) {
       let distanceRest = 0;
-
+      let inFront = false;
       for (
-        let i = instructions[0].way_points[0];
-        i <= instructions[0].way_points[1];
+        let i = currentInstruction.way_points[0];
+        i <= currentInstruction.way_points[1];
         i++
       ) {
-        countIncorrectPath = 0;
         const coordinates = routeCoordinates[i];
-        distanceRest += getDistance(currentPosition, coordinates);
+        const inFrontOfPosition = IsInFront(
+          currentPosition,
+          coordinates,
+          heading
+        );
+        const inFrontOfPositionPrecise = IsInFrontPrecise(
+          currentPosition,
+          coordinates,
+          heading
+        );
+        if (inFrontOfPosition) {
+          distanceRest += getDistance(currentPosition, coordinates);
+          lastIndexCoordinates = i;
+        }
+        if (inFrontOfPositionPrecise) inFront = true;
       }
       allDistanceRes = getAllDistanceRest(
         routeCoordinates,
-        instructions[0].way_points[1]
+        lastIndexCoordinates
       );
       allDistanceRes += distanceRest;
 
-      if (distanceRest > instructions[1].distance - 6) {
-        return {
-          closestInstruction: getInstructionByCoordinates(
-            routeCoordinates,
-            instructions,
-            instructions[0].way_points[1]
-          ),
-          distanceRest: distanceRest,
-          distance: allDistanceRes,
-        };
+      const instructionByCoordinates = getInstructionByCoordinates(
+        routeCoordinates,
+        instructions,
+        currentInstruction.way_points[1]
+      );
+
+      const bearingBefore = instructionByCoordinates.maneuver.bearing_before;
+      const distanceToInstruction = getDistance(
+        currentPosition,
+        routeCoordinates[currentInstruction.way_points[1]]
+      );
+      const isHeadingOk =
+        Math.abs(((heading - bearingBefore + 540) % 360) - 180) <
+        headingTolerance;
+
+      // Si on est dans la zone de transition, on tolère le heading
+      if (distanceToInstruction < transitionThreshold) {
+        countIncorrectPath = 0;
+      } else if (isHeadingOk && inFront) {
+        countIncorrectPath = 0;
       } else {
-        return {
-          closestInstruction: instructions[0],
-          distanceRest: distanceRest,
-          distance: allDistanceRes,
-        };
+        console.warn("Heading incorrect ou pas dans la bonne direction");
+        countIncorrectPath += 1;
       }
-    } else {
-      const inFront = IsInFront(currentPosition, nearestPoint, heading);
 
-      const instruction = instructions.find((item) => {
-        const [start, end] = item.way_points;
-        return (
-          (inFront && indexCoordinates > start && indexCoordinates <= end) ||
-          (!inFront && indexCoordinates >= start && indexCoordinates < end)
-        );
-      });
-
-      if (instruction) {
-        let distanceRest = 0;
-        let inFront = false;
-        for (
-          let i = instruction.way_points[0];
-          i <= instruction.way_points[1];
-          i++
-        ) {
-          const coordinates = routeCoordinates[i];
-          const inFrontOfPosition = IsInFront(
-            currentPosition,
-            coordinates,
-            heading
-          );
-          const inFrontOfPositionPrecise = IsInFrontPrecise(
-            currentPosition,
-            coordinates,
-            heading
-          );
-          if (inFrontOfPosition) {
-            distanceRest += getDistance(currentPosition, coordinates);
-            lastIndexCoordinates = i;
-          }
-          if (inFrontOfPositionPrecise) inFront = true;
-        }
-        allDistanceRes = getAllDistanceRest(
-          routeCoordinates,
-          lastIndexCoordinates
-        );
-        allDistanceRes += distanceRest;
-
-        const instructionByCoordinates = getInstructionByCoordinates(
-          routeCoordinates,
-          instructions,
-          instruction.way_points[1]
-        );
-
-        const bearingBefore = instructionByCoordinates.maneuver.bearing_before;
-        if (sameDirection(heading, bearingBefore) && inFront) {
-          countIncorrectPath = 0;
-        } else {
-          if (
-            instructionByCoordinates.maneuver.bearing_before == 0 &&
-            instructionByCoordinates.maneuver.bearing_after == 0
-          ) {
-            let pos1 = 0;
-            let pos2 = 0;
-            const wayPoint = instruction.way_points[1];
-
-            pos1 = routeCoordinates[wayPoint - 1];
-            pos2 = routeCoordinates[wayPoint];
-
-            const headingPoly = getRhumbLineBearing(pos1, pos2);
-            if (sameDirection(heading, headingPoly) && inFront) {
-              console.log("same direction");
-              countIncorrectPath = 0;
-            } else {
-              console.log("not same direction +1 ");
-              countIncorrectPath += 1;
-            }
-            console.log("headingPoly", headingPoly);
-          } else {
-            console.log("HEADING NOKKKKK +1 ");
-            countIncorrectPath += 1;
-          }
-        }
-
-        return {
-          closestInstruction: instructionByCoordinates,
-          distanceRest: distanceRest,
-          distance: allDistanceRes,
-        };
-      } else {
-        return {
-          closestInstruction: null,
-          distanceRest: 0,
-          distance: 0,
-        };
-      }
+      return {
+        closestInstruction: instructionByCoordinates,
+        distanceRest: distanceRest,
+        distance: allDistanceRes,
+      };
     }
+
+    // Cas où aucune instruction n'est trouvée
+    return {
+      closestInstruction: null,
+      distanceRest: 0,
+      distance: 0,
+    };
   };
 
   const updateCamera = useCallback(
@@ -713,8 +709,8 @@ const Maps = ({
           locationSubscription = await Location.watchPositionAsync(
             {
               accuracy: Location.Accuracy.BestForNavigation,
-              timeInterval: 1000,
-              distanceInterval: 5,
+              timeInterval: 2000,
+              distanceInterval: 2,
             },
             (newLocation) => {
               let { coords } = newLocation;
@@ -761,14 +757,14 @@ const Maps = ({
                   checkIfOffRoute(newPosition);
                 }
 
-                // getInstruction(
-                //   {
-                //     latitude: coords.latitude,
-                //     longitude: coords.longitude,
-                //   },
-                //   coords.heading,
-                //   coords.speed
-                // );
+                getInstruction(
+                  {
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                  },
+                  coords.heading,
+                  coords.speed
+                );
               }
             }
           );
@@ -820,11 +816,12 @@ const Maps = ({
                     lineCap={"round"}
                     onPress={() => onPolylineSelect(index)}
                     coordinates={routeCoordinates?.coordinates}
-                    
                     strokeWidth={6}
                     zIndex={88}
                     tappable={true}
-                    strokeColor="blue"
+                    strokeColor={
+                      selectedRouteIndex === index ? "purple" : "blue"
+                    }
                   />
                   <Marker
                     coordinate={

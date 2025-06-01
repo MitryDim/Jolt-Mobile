@@ -1,10 +1,13 @@
 import { useContext } from "react";
 import * as SecureStore from "expo-secure-store";
 import { UserContext } from "../context";
-import { EXPO_AUTH_SERVICE_URL } from "@env"; // Assurez-vous que cette variable d'environnement est définie dans votre fichier .env
+import { EXPO_AUTH_SERVICE_URL } from "@env";
+import * as Network from "expo-network";
+
 export function useFetchWithAuth() {
   const { user, logout } = useContext(UserContext);
   const fetchWithAuth = async (url, options = {}, opts = {}) => {
+
     // Si la route est protégée, vérifie le user
     if (opts.protected && (!user || !user.accessToken)) {
       throw new Error("Utilisateur non connecté");
@@ -73,4 +76,3 @@ export function useFetchWithAuth() {
 
   return fetchWithAuth;
 }
- 

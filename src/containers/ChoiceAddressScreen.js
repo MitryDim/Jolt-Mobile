@@ -461,7 +461,7 @@ const ChoiceAddressScreen = () => {
 
   return (
     <LocationPermissionWrapper>
-      <View style={{ flex: 1, marginBottom: 60, paddingBottom: 30 }}>
+      <View style={{ flex: 1,  paddingBottom: 75 }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
 
