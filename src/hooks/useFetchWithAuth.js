@@ -6,72 +6,105 @@ import * as Network from "expo-network";
 
 export function useFetchWithAuth() {
   const { user, logout } = useContext(UserContext);
+
   const fetchWithAuth = async (url, options = {}, opts = {}) => {
-
-    // Si la route est protégée, vérifie le user
-    if (opts.protected && (!user || !user.accessToken)) {
-      throw new Error("Utilisateur non connecté");
-    }
-
-    // Prépare les headers
-    const headers = {
-      ...(options.headers || {}),
-      "Content-Type": "application/json",
-      "x-client-type": "mobile", // Indique que la requête provient d'une application mobile
-    };
-    if (opts.protected && user?.accessToken) {
-      headers.Authorization = `Bearer ${user.accessToken}`;
-    }
-
-    // Première requête
-    let response = await fetch(url, { ...options, headers });
-
-    // Si token invalide et route protégée, tente refresh
-    if (
-      opts.protected &&
-      (response.status === 401 || response.status === 403)
-    ) {
-      console.warn("Token invalide, tentative de rafraîchissement...");
-      const userData = await SecureStore.getItemAsync("user");
-      const storedUser = userData ? JSON.parse(userData) : null;
-      const refreshRes = await fetch(
-        `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-client-type": "mobile",
-            Authorization: `Bearer ${storedUser?.refreshToken}`, // Utilise l'ancien token pour la requête de rafraîchissement
-          },
-        }
-      );
-
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        console.log("Nouveau token reçu :", refreshData);
-        const newAccessToken = refreshData?.data?.accessToken;
-        console.log("Nouveau accessToken :", newAccessToken);
-        const newRefreshToken =
-          refreshData?.data?.refreshToken || storedUser.refreshToken;
-
-        // Mets à jour SecureStore
-        const newUser = {
-          ...storedUser,
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        };
-        await SecureStore.setItemAsync("user", JSON.stringify(newUser));
-
-        // Relance la requête initiale avec le nouveau token
-        headers.Authorization = `Bearer ${newAccessToken}`;
-        response = await fetch(url, { ...options, headers });
-      } else {
-        await logout();
-        throw new Error("Session expirée, veuillez vous reconnecter.");
+    try {
+      // Vérifie la connexion réseau
+      const networkState = await Network.getNetworkStateAsync();
+      if (!networkState.isConnected) {
+        return { data: null, error: "Pas de connexion Internet", status: 0 };
       }
+
+      // Vérifie l'utilisateur pour les routes protégées
+      if (opts.protected && (!user || !user.accessToken)) {
+        return { data: null, error: "Utilisateur non connecté", status: 401 };
+      }
+
+      // Prépare les headers
+      const headers = {
+        ...(options.headers || {}),
+        "Content-Type": "application/json",
+        "x-client-type": "mobile",
+      };
+      if (opts.protected && user?.accessToken) {
+        headers.Authorization = `Bearer ${user.accessToken}`;
+      }
+
+      // Première requête
+      let response = await fetch(url, { ...options, headers });
+
+      // Si token invalide et route protégée, tente refresh
+      if (
+        opts.protected &&
+        (response.status === 401 || response.status === 403)
+      ) {
+        const userData = await SecureStore.getItemAsync("user");
+        const storedUser = userData ? JSON.parse(userData) : null;
+        const refreshRes = await fetch(
+          `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-client-type": "mobile",
+              Authorization: `Bearer ${storedUser?.refreshToken}`,
+            },
+          }
+        );
+
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          const newAccessToken = refreshData?.data?.accessToken;
+          const newRefreshToken =
+            refreshData?.data?.refreshToken || storedUser.refreshToken;
+
+          // Mets à jour SecureStore
+          const newUser = {
+            ...storedUser,
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+          };
+          await SecureStore.setItemAsync("user", JSON.stringify(newUser));
+
+          // Relance la requête initiale avec le nouveau token
+          headers.Authorization = `Bearer ${newAccessToken}`;
+          response = await fetch(url, { ...options, headers });
+        } else {
+          await logout();
+          return {
+            data: null,
+            error: "Session expirée, veuillez vous reconnecter.",
+            status: 401,
+          };
+        }
+      }
+
+      // Tente de parser la réponse
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        // Peut arriver si la réponse n'est pas du JSON
+        data = null;
+      }
+
+      if (!response.ok) {
+        return {
+          data,
+          error: data?.message || "Erreur lors de la requête",
+          status: response.status,
+        };
+      }
+
+      return { data, error: null, status: response.status };
+    } catch (err) {
+      // Erreur réseau ou autre
+      return {
+        data: null,
+        error: err.message || "Erreur inconnue",
+        status: 0,
+      };
     }
-    console.log("Response status:", response);
-    return response;
   };
 
   return fetchWithAuth;

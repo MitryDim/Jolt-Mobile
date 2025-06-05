@@ -33,7 +33,12 @@ const AuthScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetchWithAuth(
+      console.log("Login pressed", email, password);
+      if (!email || !password) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+      const { data, error, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/auth/getToken`,
         {
           method: "POST",
@@ -47,9 +52,8 @@ const AuthScreen = () => {
           }),
         }
       );
-
-      if (response.ok) {
-        const data = await response.json();
+      console.log("data", data, error, status);
+      if (!error) {
         const userData = data?.data?.user;
         const accessToken = data?.data?.accessToken;
         const refreshToken = data?.data?.refreshToken;
@@ -64,11 +68,9 @@ const AuthScreen = () => {
           username: userData.username,
         });
         // Redirige l'utilisateur si besoin
-      } else {
-        const errorData = await response.json();
+      } else { 
         alert(
-          errorData?.message ||
-            "Erreur lors de la connexion. Veuillez réessayer."
+          error || "Erreur lors de la connexion. Veuillez réessayer."
         );
         return;
       }

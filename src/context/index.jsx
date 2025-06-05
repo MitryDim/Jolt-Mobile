@@ -24,7 +24,7 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
   };
   const logout = async () => {
-    const response = await fetch(`${EXPO_GATEWAY_SERVICE_URL}/auth/logout`, {
+    fetch(`${EXPO_GATEWAY_SERVICE_URL}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,15 +34,6 @@ export const UserProvider = ({ children }) => {
       body: JSON.stringify({ refreshToken: user?.refreshToken }), // Envoie le refresh token pour la déconnexion
     });
 
-    if (!response.ok) {
-      console.log("Erreur lors de la déconnexion :", response.status);
-      console.error("Erreur lors de la déconnexion ");
-      await SecureStore.deleteItemAsync("user");
-      setUser(null);
-      return true;
-    }
-
-    // Supprime les données de l'utilisateur du stockage sécurisé
     await SecureStore.deleteItemAsync("user");
     setUser(null);
     return true;

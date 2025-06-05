@@ -14,7 +14,7 @@ import Card from "../components/Cards";
 import Separator from "../components/Separator";
 import { useNotification } from "../context/NotificationContext";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
-import {EXPO_GATEWAY_SERVICE_URL} from "@env"; 
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
@@ -37,7 +37,17 @@ const HomeScreen = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des scooters");
+          setScooters([
+            {
+              id: new Date().getTime().toString(),
+              add: true,
+              img: "",
+              title: "",
+              counter: "",
+              maintains: "",
+            },
+          ]);
+          return;
         }
 
         const data = await response.json();
@@ -60,16 +70,6 @@ const HomeScreen = () => {
         });
         setScooters(formatted);
       } catch (error) {
-        setScooters([
-          {
-            id: "error",
-            add: false,
-            img: "",
-            title: "Erreur de chargement",
-            counter: "",
-            maintains: "",
-          },
-        ]);
         console.error("Erreur lors de la récupération des scooters:", error);
       }
     };
