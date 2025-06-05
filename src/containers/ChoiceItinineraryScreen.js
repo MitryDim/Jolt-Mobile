@@ -14,7 +14,7 @@ import {
   StyleSheet,
   Pressable,
 } from "react-native";
-import Maps from "../components/Maps";
+import MapContainer from "../components/Maps/MapContainer";
 import * as Location from "expo-location";
 import {
   GestureHandlerRootView,
@@ -235,7 +235,12 @@ const ChoiceItinerary = (geoadress) => {
       heading: heading,
     });
   };
-
+  useEffect(() => {
+    console.log("TravelScreen mounted");
+    return () => {
+      console.log("TravelScreen unmounted");
+    };
+  }, []);
   useEffect(() => {
     getAllRoutes();
   }, [geoadress.route.params]);
@@ -283,7 +288,7 @@ const ChoiceItinerary = (geoadress) => {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           <Animated.View style={[styles.map, mapAnimatedStyle]}>
-            <Maps
+            <MapContainer
               styleMaps={styles.map}
               initialRouteOptions={routeOptions}
               selectedRouteIndex={selectedRouteIndex}

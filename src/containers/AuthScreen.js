@@ -6,6 +6,8 @@ import IconComponent from "../components/Icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { UserContext } from "../context";
 import { useNavigation } from "@react-navigation/native";
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
@@ -16,7 +18,7 @@ const AuthScreen = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { login, user } = useContext(UserContext);
   const navigation = useNavigation();
-
+  const fetchWithAuth = useFetchWithAuth();
   useEffect(() => {
     if (user) {
       //redirect to home screen
@@ -31,17 +33,20 @@ const AuthScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.1.188:5000/auth/getToken", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-client-type": "mobile",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
+      const response = await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/auth/getToken`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-client-type": "mobile", // Indique que la requête provient d'une application mobile
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -86,18 +91,28 @@ const AuthScreen = () => {
     }
 
     try {
-      const response = await fetch("http://192.168.1.188:5000/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-client-type": "mobile",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-          username: username,
-        }),
-      });
+      if (!email || !password || !username) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      // Vérifie si l'email est valide
+      const response = await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/auth/checkEmail`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-client-type": "mobile", // Indique que la requête provient d'une application mobile
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            username: username,
+          }),
+        }
+      );
+
       if (response.ok) {
         const data = await response.json();
         const userData = data?.data?.user;
@@ -107,7 +122,6 @@ const AuthScreen = () => {
         }
         alert("Inscription réussie. Veuillez valider votre adresse mail.");
         handleAuthMode();
-
       } else {
         const errorData = await response.json();
         alert(

@@ -13,27 +13,79 @@ import scootersData from "../Data/myScooters";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";
 import { useNotification } from "../context/NotificationContext";
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
+import {EXPO_GATEWAY_SERVICE_URL} from "@env"; 
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
 
 const HomeScreen = () => {
+  const fetchWithAuth = useFetchWithAuth();
+
   const [scooters, setScooters] = useState([]);
   const { expoPushToken, notification, error } = useNotification();
 
   useEffect(() => {
-    const updatedScooters = [
-      ...scootersData,
-      {
-        id: new Date().getTime().toString(),
-        add: true,
-        img: "",
-        title: "",
-        counter: "",
-        maintains: "",
-      },
-    ];
-    setScooters(updatedScooters);
+    const fetchScooters = async () => {
+      try {
+        const response = await fetchWithAuth(
+          `${EXPO_GATEWAY_SERVICE_URL}/vehicle`, // Remplacez par l'URL de votre API
+          {
+            method: "GET",
+          },
+          { protected: true }
+        );
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des scooters");
+        }
+
+        const data = await response.json();
+        console.log("Scooters data:", data);
+        const formatted = data?.data.map((item) => ({
+          id: item._id,
+          add: false,
+          img: item.image,
+          title: `${item.brand} ${item.model} (${item.year})`,
+          counter: item.mileage,
+          maintains: "", // À adapter selon tes besoins
+        }));
+        formatted.push({
+          id: new Date().getTime().toString(),
+          add: true,
+          img: "",
+          title: "",
+          counter: "",
+          maintains: "",
+        });
+        setScooters(formatted);
+      } catch (error) {
+        setScooters([
+          {
+            id: "error",
+            add: false,
+            img: "",
+            title: "Erreur de chargement",
+            counter: "",
+            maintains: "",
+          },
+        ]);
+        console.error("Erreur lors de la récupération des scooters:", error);
+      }
+    };
+    fetchScooters();
+    // const updatedScooters = [
+    //   ...scootersData,
+    //   {
+    //     id: new Date().getTime().toString(),
+    //     add: true,
+    //     img: "",
+    //     title: "",
+    //     counter: "",
+    //     maintains: "",
+    //   },
+    // ];
+    // setScooters(updatedScooters);
   }, []);
 
   return (

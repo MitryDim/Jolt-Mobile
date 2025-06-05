@@ -42,8 +42,7 @@ import { useNavigation } from "@react-navigation/native";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 import LocationPermissionWrapper from "../components/LocationPermissionWrapper";
-import Maps from "../components/Maps";
-
+import MapContainer  from "../components/Maps/MapContainer" ;
 const ChoiceAddressScreen = () => {
   const { navigate } = useNavigation();
   //TODO: MOVE TO .ENV
@@ -461,11 +460,11 @@ const ChoiceAddressScreen = () => {
 
   return (
     <LocationPermissionWrapper>
-      <View style={{ flex: 1,  paddingBottom: 75 }}>
+      <View style={{ flex: 1, paddingBottom: 75 }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={{ borderRadius: 30, backgroundColor: "white" }}></View>
 
-          <Maps
+          <MapContainer
             styleMaps={styles.map}
             initialRouteOptions={null}
             selectedRouteIndex={null}
@@ -474,7 +473,7 @@ const ChoiceAddressScreen = () => {
             userSpeed={null}
             isNavigating={true}
             screenHeightRatio={SCREEN_HEIGHT_RATIO}
-          ></Maps>
+          ></MapContainer>
 
           {/* <AnimatedMapView
             style={styles.map}

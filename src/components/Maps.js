@@ -681,7 +681,7 @@ const Maps = ({
     return { latitudeDelta, longitudeDelta };
   }
 
-  //TODO: MOVE TO ANOTHER FILE ^
+
   const findClosestPointOnPolyline = async (
     currentPosition,
     polylineCoordinates

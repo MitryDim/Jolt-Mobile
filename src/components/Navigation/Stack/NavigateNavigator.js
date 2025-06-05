@@ -1,20 +1,25 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ChoiceAddressScreen from "../../../containers/ChoiceAddressScreen";
 import ChoiceItineraryScreen from "../../../containers/ChoiceItinineraryScreen";
-import TravelScreen from "../../../containers/TravelScreen";
+import TravelScreen from "../../../containers/TravelScreen1";
 import { Text, View } from "react-native";
 import IconComponent from "../../Icons";
+import MapScreen from "../../../containers/MapScreen";
 const Stack = createNativeStackNavigator();
 
 function NavigateNavigator() {
   return (
-    <Stack.Navigator initialRouteName="ChoiceAddress">
+    <Stack.Navigator initialRouteName="MapScreen">
       <Stack.Screen
-        name="ChoiceAddress"
-        component={ChoiceAddressScreen}
-        options={{ navigationBarColor: "#FFFFFF", headerShown: false }}
+        name="MapScreen"
+        component={MapScreen}
+        options={{
+          navigationBarColor: "#FFFFFF",
+          headerShown: false,
+          unmountOnBlur: true,
+        }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="ChoiceItinerary"
         component={ChoiceItineraryScreen}
         options={({ route }) => ({
@@ -45,6 +50,7 @@ function NavigateNavigator() {
             );
           },
           headerShown: true,
+          unmountOnBlur: true,
           headerBackButtonMenuEnabled: false,
           headerBackButtonDisplayMode: "minimal",
           headerTitleAlign: "left",
@@ -55,8 +61,9 @@ function NavigateNavigator() {
         component={TravelScreen}
         options={({ route }) => ({
           headerShown: false,
+          unmountOnBlur: true,
         })}
-      />
+      /> */}
     </Stack.Navigator>
     // Navigation
   );

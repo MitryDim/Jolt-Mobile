@@ -16,6 +16,7 @@ import FlashMessage, {
   hideMessage,
 } from "react-native-flash-message";
 import { NetworkProvider, useNetwork } from "./src/context/networkContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -81,8 +82,10 @@ export default function App() {
         <UserProvider>
           <SafeAreaProvider>
             <NavigationContainer>
+              <GestureHandlerRootView style={{ flex: 1 }}>
               <StatusBar />
               <Tabs />
+              </GestureHandlerRootView>
             </NavigationContainer>
           </SafeAreaProvider>
         </UserProvider>

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { EXPO_AUTH_SERVICE_URL } from "@env"; // Assurez-vous que cette variable d'environnement est définie dans votre fichier .env
+import { EXPO_GATEWAY_SERVICE_URL } from "@env"; // Assurez-vous que cette variable d'environnement est définie dans votre fichier .env
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
@@ -24,7 +24,7 @@ export const UserProvider = ({ children }) => {
     setUser(userData);
   };
   const logout = async () => {
-    const response = await fetch(`${EXPO_AUTH_SERVICE_URL}/auth/logout`, {
+    const response = await fetch(`${EXPO_GATEWAY_SERVICE_URL}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,7 +37,9 @@ export const UserProvider = ({ children }) => {
     if (!response.ok) {
       console.log("Erreur lors de la déconnexion :", response.status);
       console.error("Erreur lors de la déconnexion ");
-      return false; // Retourne false en cas d'erreur
+      await SecureStore.deleteItemAsync("user");
+      setUser(null);
+      return true;
     }
 
     // Supprime les données de l'utilisateur du stockage sécurisé

@@ -6,7 +6,7 @@ import avatar from "../../assets/avatar.jpg";
 import { UserContext } from "../context";
 import { useNavigation } from "@react-navigation/native";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
-import {EXPO_USER_SERVICE_URL} from "@env"; 
+import { EXPO_GATEWAY_SERVICE_URL } from "@env"; 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const fetchWithAuth = useFetchWithAuth();
@@ -23,27 +23,19 @@ const ProfileScreen = () => {
       PressClassName: "mt-4",
       textClassName: "text-red-500 underline",
       onPress: async () => {
-        console.log("Supprimer le compte", EXPO_USER_SERVICE_URL);
+        console.log("Supprimer le compte", EXPO_GATEWAY_SERVICE_URL);
         //fetch
         // Supprime le compte de l'utilisateur
         try {
-          const response =
-            await /* `fetchWithAuth` is a custom hook that is used to make authenticated
-          API requests. It handles the process of adding authentication
-          headers or tokens to the request before sending it. In the
-          `ProfileScreen` component, `fetchWithAuth` is used to send a DELETE
-          request to the specified URL for deleting a user account. It
-          ensures that the request is made with the necessary authentication
-          credentials to perform the account deletion operation securely. */
-            fetchWithAuth(
-              `${EXPO_USER_SERVICE_URL}/users/delete`,
-              {
-                method: "DELETE",
-              },
-              {
-                protected: true,
-              }
-            );
+          const response = await fetchWithAuth(
+            `${EXPO_GATEWAY_SERVICE_URL}/users/delete`,
+            {
+              method: "DELETE",
+            },
+            {
+              protected: true,
+            }
+          );
           console.log("response ", response);
           if (!response.ok) {
             alert("Erreur lors de la suppression du compte.");

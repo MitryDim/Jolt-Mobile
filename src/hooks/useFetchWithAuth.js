@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import * as SecureStore from "expo-secure-store";
 import { UserContext } from "../context";
-import { EXPO_AUTH_SERVICE_URL } from "@env";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import * as Network from "expo-network";
 
 export function useFetchWithAuth() {
@@ -35,7 +35,7 @@ export function useFetchWithAuth() {
       const userData = await SecureStore.getItemAsync("user");
       const storedUser = userData ? JSON.parse(userData) : null;
       const refreshRes = await fetch(
-        `${EXPO_AUTH_SERVICE_URL}/auth/refreshToken`,
+        `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
         {
           method: "POST",
           headers: {
