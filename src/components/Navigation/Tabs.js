@@ -22,11 +22,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import avatar from "../../../assets/avatar.jpg";
 import Avatar from "../Avatar";
 import AuthNavigator from "./Stack/AuthNavigator";
-import { UserContext } from "../../context"; 
+import { UserContext } from "../../context/AuthContext";
+import { MaintainContext } from "../../context/MaintainContext";
 const Tab = createBottomTabNavigator();
 const username = "Val";
-let maintainsItemsNumber = 2; // Nombre de maintenances à effectuer
-
+ 
 //Bouton custom pour le navigation
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity activeOpacity={1} onPress={onPress}>
@@ -38,6 +38,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const { user } = useContext(UserContext);
+  const { pendingCount } = useContext(MaintainContext);
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -172,17 +173,14 @@ const Tabs = () => {
                 />
               );
             },
-            tabBarBadge:
-              maintainsItemsNumber >= 100
-                ? "+99"
-                : maintainsItemsNumber.toString(),
+            tabBarBadge: pendingCount?.toString(),
             tabBarBadgeStyle: {
               backgroundColor: "red",
               borderRadius: 10, // Adjust the border radius for smaller corners
               color: "white",
               fontSize: 10,
               fontWeight: "bold",
-              display: maintainsItemsNumber > 0 ? "flex" : "none",
+              display: pendingCount > 0 ? "flex" : "none",
             },
           }}
         />

@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native";
 import LogoGreen from "../../assets/logo/logo";
 import IconComponent from "../components/Icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { UserContext } from "../context";
+import { UserContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
@@ -66,12 +66,11 @@ const AuthScreen = () => {
           refreshToken: refreshToken,
           email: userData.email,
           username: userData.username,
+          id: userData.id,
         });
         // Redirige l'utilisateur si besoin
-      } else { 
-        alert(
-          error || "Erreur lors de la connexion. Veuillez réessayer."
-        );
+      } else {
+        alert(error || "Erreur lors de la connexion. Veuillez réessayer.");
         return;
       }
 

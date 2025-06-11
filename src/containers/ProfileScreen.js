@@ -3,7 +3,7 @@ import React, { useContext } from "react";
 import { SafeAreaView } from "react-native";
 import Separator from "../components/Separator";
 import avatar from "../../assets/avatar.jpg";
-import { UserContext } from "../context";
+import { UserContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env"; 

@@ -5,164 +5,123 @@ import {
   ScrollView,
   Image,
   Dimensions,
-  Platform,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { SafeAreaView } from "react-native";
-import scootersData from "../Data/myScooters";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";
 import { useNotification } from "../context/NotificationContext";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import { MaintainContext } from "../context/MaintainContext";
+import { useFocusEffect } from "@react-navigation/native";
+import VehicleCarousel from "../components/VehicleCarousel";
+import { useVehicles } from "../hooks/useVehicles";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
+  const scrollRef = useRef(null);
+  const { changeVehicle, vehicle } = useContext(MaintainContext);
   const fetchWithAuth = useFetchWithAuth();
-
   const [scooters, setScooters] = useState([]);
   const { expoPushToken, notification, error } = useNotification();
+  const {
+    vehicles,
+    loading,
+    error: errorVehicle,
+    fetchVehicles,
+  } = useVehicles();
+  // const fetchScooters = async () => {
+  //   try {
+  //     const { success, data, error } = await fetchWithAuth(
+  //       `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
+  //       {
+  //         method: "GET",
+  //       },
+  //       { protected: true }
+  //     );
+  //     console.log("", data.data);
 
-  useEffect(() => {
-    const fetchScooters = async () => {
-      try {
-        const response = await fetchWithAuth(
-          `${EXPO_GATEWAY_SERVICE_URL}/vehicle`, // Remplacez par l'URL de votre API
-          {
-            method: "GET",
-          },
-          { protected: true }
-        );
+  //     if (error) {
+  //       setScooters([
+  //         {
+  //           id: new Date().getTime().toString(),
+  //           add: true,
+  //           img: "",
+  //           title: "",
+  //           mileage: "",
+  //           maintains: "",
+  //           firstPurchaseDate: "",
+  //         },
+  //       ]);
+  //       return;
+  //     }
+  //     const formatted = data?.data.map((item) => ({
+  //       id: item._id,
+  //       add: false,
+  //       img: item.image,
+  //       title: `${item.brand} ${item.model}`,
+  //       mileage: item.mileage,
+  //       maintains: "", // À adapter selon tes besoins
+  //       firstPurchaseDate: item?.firstPurchaseDate,
+  //     }));
+  //     formatted.push({
+  //       id: new Date().getTime().toString(),
+  //       add: true,
+  //       img: "",
+  //       title: "",
+  //       mileage: "",
+  //       maintains: "",
+  //       firstPurchaseDate: "",
+  //     });
+  //     formatted.sort((a, b) => {
+  //       if (a.id === vehicle?.id) return -1; // Met l'élément sélectionné en premier
+  //     });
+  //     setScooters(formatted);
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération des scooters:", error);
+  //   }
+  // };
 
-        if (!response.ok) {
-          setScooters([
-            {
-              id: new Date().getTime().toString(),
-              add: true,
-              img: "",
-              title: "",
-              counter: "",
-              maintains: "",
-            },
-          ]);
-          return;
-        }
+  useFocusEffect(
+    useCallback(() => {
+      fetchVehicles();
+    }, [])
+  );
 
-        const data = await response.json();
-        console.log("Scooters data:", data);
-        const formatted = data?.data.map((item) => ({
-          id: item._id,
-          add: false,
-          img: item.image,
-          title: `${item.brand} ${item.model} (${item.year})`,
-          counter: item.mileage,
-          maintains: "", // À adapter selon tes besoins
-        }));
-        formatted.push({
-          id: new Date().getTime().toString(),
-          add: true,
-          img: "",
-          title: "",
-          counter: "",
-          maintains: "",
-        });
-        setScooters(formatted);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des scooters:", error);
-      }
-    };
-    fetchScooters();
-    // const updatedScooters = [
-    //   ...scootersData,
-    //   {
-    //     id: new Date().getTime().toString(),
-    //     add: true,
-    //     img: "",
-    //     title: "",
-    //     counter: "",
-    //     maintains: "",
-    //   },
-    // ];
-    // setScooters(updatedScooters);
-  }, []);
-
+  const handleScrollEnd = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / CARD_WIDTH);
+    const item = vehicles[index];
+    if (item && !item.add) {
+      changeVehicle(item);
+    }
+  };
   return (
     <SafeAreaView className="flex mb-[60px]">
       <Text className="mt-4 text-xl text-center font-bold">Ton équipement</Text>
       <Separator />
-      <ScrollView
-        height={CARD_HEIGHT}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH}
-        decelerationRate={"fast"}
-        snapToAlignment="center"
-        pagingEnabled={true}
-        contentInset={{
-          top: 0,
-          left: SPACING_FOR_CARD_INSET,
-          bottom: 0,
-          right: SPACING_FOR_CARD_INSET,
+      <VehicleCarousel
+        items={vehicles}
+        onCardPress={(item) => {
+          // logique pour afficher le détail du scooter
         }}
-        contentContainerStyle={{ height: CARD_HEIGHT }}
-      >
-        {scooters.map((item, index) => (
-          <Card
-            key={index}
-            cardWidth={CARD_WIDTH}
-            add={item.add}
-            onClick={() => {}}
-          >
-            <View
-              style={{
-                width: "100%",
-                height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: "5",
-                borderRadius: 15,
-              }}
-            >
-              <Image
-                source={{ uri: item.img }}
-                resizeMode="contain"
-                style={[styles.image, { backgroundColor: "transparent" }]}
-              />
-              <Text style={{ fontSize: 16, fontWeight: "700", top: 3 }}>
-                {item.title}
-              </Text>
-              <View
-                style={[styles.row]}
-                className="top-4 w-[90%] flex justify-between space-x-4"
-              >
-                <View>
-                  <Text
-                    className="font-semibold text-start"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    Compteur
-                  </Text>
-                  <Text className="text-center">{item.counter} km</Text>
-                </View>
-                <View>
-                  <Text
-                    className="font-semibold text-end"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    Entretient à faire
-                  </Text>
-                  <Text className="text-center">{item.maintains}</Text>
-                </View>
-              </View>
-            </View>
-          </Card>
-        ))}
-      </ScrollView>
+        onAddPress={() => navigation.navigate("AddVehicle")}
+        onMomentumScrollEnd={handleScrollEnd}
+        styles={styles}
+        navigation={navigation}
+        onFavoriteChange={fetchVehicles} 
+        showAddCard={true}
+      />
+
       <Text className="mt-4 text-xl text-center font-bold">
         T'es dernier trajets
       </Text>

@@ -1,13 +1,14 @@
-import { createNativeStackNavigator} from "@react-navigation/native-stack";
-
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import HomeScreen from "../../../containers/HomeScreen";
 import SplashScreen from "../../../containers/SplashScreen";
 import MaintainsScreen from "../../../containers/MaintainsScreen";
 import { Button } from "react-native";
+import AddScooterForm from "../../AddScooter"; 
+import { HeaderBackButton } from "@react-navigation/elements";
 const Stack = createNativeStackNavigator();
 
-function HomeNavigator() {
+function HomeNavigator() { 
   const config = {
     animation: "spring",
     config: {
@@ -36,6 +37,28 @@ function HomeNavigator() {
           navigationBarColor: "#FFFFFF",
           headerShown: false,
         }}
+      />
+      <Stack.Screen
+        name="AddVehicle"
+        component={AddScooterForm}
+        options={({ navigation }) => ({
+          navigationBarColor: "#FFFFFF",
+          headerShown: true,
+          headerTitle: "Ajouter un Véhicule",
+          headerBackButtonDisplayMode: "minimal",
+          headerTransparent: false,
+          presentation: "fullScreenModal",
+          headerLeft: (props) => (
+            <HeaderBackButton
+              title="Fermer"
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                } 
+              }}
+            />
+          ),
+        })}
       />
       <Stack.Screen
         name="Maintains"

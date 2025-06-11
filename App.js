@@ -5,7 +5,7 @@ import "./assets/styles/global.css";
 import Tabs from "./src/components/Navigation/Tabs";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import { UserProvider } from "./src/context";
+import { UserProvider } from "./src/context/AuthContext";
 import { enableScreens } from "react-native-screens";
 enableScreens();
 import { NotificationProvider } from "./src/context/NotificationContext";
@@ -17,6 +17,7 @@ import FlashMessage, {
 } from "react-native-flash-message";
 import { NetworkProvider, useNetwork } from "./src/context/networkContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { MaintainProvider } from "./src/context/MaintainContext";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -80,14 +81,16 @@ export default function App() {
       <NetworkProvider>
         <NetworkBanner />
         <UserProvider>
-          <SafeAreaProvider>
-            <NavigationContainer>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-              <StatusBar />
-              <Tabs />
-              </GestureHandlerRootView>
-            </NavigationContainer>
-          </SafeAreaProvider>
+          <MaintainProvider>
+            <SafeAreaProvider>
+              <NavigationContainer>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <StatusBar />
+                  <Tabs />
+                </GestureHandlerRootView>
+              </NavigationContainer>
+            </SafeAreaProvider>
+          </MaintainProvider>
         </UserProvider>
         <FlashMessage position="top" />
       </NetworkProvider>

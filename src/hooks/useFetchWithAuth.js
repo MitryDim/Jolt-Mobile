@@ -1,11 +1,11 @@
 import { useContext } from "react";
 import * as SecureStore from "expo-secure-store";
-import { UserContext } from "../context";
+import { UserContext } from "../context/AuthContext";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import * as Network from "expo-network";
 
 export function useFetchWithAuth() {
-  const { user, logout } = useContext(UserContext);
+  const { user, logout,setUser } = useContext(UserContext);
 
   const fetchWithAuth = async (url, options = {}, opts = {}) => {
     try {
@@ -65,7 +65,7 @@ export function useFetchWithAuth() {
             refreshToken: newRefreshToken,
           };
           await SecureStore.setItemAsync("user", JSON.stringify(newUser));
-
+          setUser(newUser); // Met à jour le contexte utilisateur
           // Relance la requête initiale avec le nouveau token
           headers.Authorization = `Bearer ${newAccessToken}`;
           response = await fetch(url, { ...options, headers });
