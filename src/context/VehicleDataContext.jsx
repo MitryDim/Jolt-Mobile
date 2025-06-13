@@ -94,12 +94,14 @@ export const VehicleDataProvider = ({ children }) => {
 
   // Fonction pour changer de véhicule
   const changeVehicle = async (vehicle) => {
+    if (!vehicle || !user) return;
     setVehicleSelected(vehicle);
     await SecureStore.setItemAsync("selectedVehicle", vehicle);
   };
 
   useEffect(() => {
     if (socketRef.current) {
+      if (!vehicleSelected && !user) return;
       socketRef.current.emit("vehicle:change", {
         userId: user.id,
         vehicle: vehicleSelected,

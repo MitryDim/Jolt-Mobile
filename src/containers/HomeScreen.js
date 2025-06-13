@@ -41,7 +41,7 @@ const HomeScreen = ({ navigation }) => {
     useCallback(() => {
       console.log("HomeScreen focus effect");
       fetchAndUpdateVehicles();
-    }, [])
+    }, [user])
   );
 
   const handleScrollEnd = (event) => {
