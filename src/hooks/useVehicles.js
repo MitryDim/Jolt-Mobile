@@ -13,14 +13,20 @@ export function useVehicles() {
     setError(null);
     try {
       // 1. Récupère les véhicules
-      const { data, error } = await fetchWithAuth(
+      const { data, error, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
         { method: "GET" },
         { protected: true }
       );
+      // Si 304, on ne fait rien, on garde la liste actuelle
+      if (status === 0) {
+        setLoading(false);
+        return;
+      }
+
       if (error) {
         setError(error);
-        setVehicles([]);
+        // setVehicles([]);
         setLoading(false);
         return;
       }
@@ -65,7 +71,7 @@ export function useVehicles() {
       setVehicles(vehiclesWithMaint);
     } catch (e) {
       setError(e);
-      setVehicles([]);
+      // setVehicles([]);
     }
     setLoading(false);
   }, [fetchWithAuth]);

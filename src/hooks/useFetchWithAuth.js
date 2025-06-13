@@ -5,7 +5,7 @@ import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import * as Network from "expo-network";
 
 export function useFetchWithAuth() {
-  const { user, logout,setUser } = useContext(UserContext);
+  const { user, logout, setUser } = useContext(UserContext);
 
   const fetchWithAuth = async (url, options = {}, opts = {}) => {
     try {
@@ -23,9 +23,17 @@ export function useFetchWithAuth() {
       // Prépare les headers
       const headers = {
         ...(options.headers || {}),
-        "Content-Type": "application/json",
         "x-client-type": "mobile",
       };
+
+      // Ajoute Content-Type seulement si ce n'est pas du FormData
+      if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+        console.warn(
+          "Content-Type non spécifié, ajout de 'application/json' par défaut"
+        );
+        headers["Content-Type"] = "application/json";
+      }
+
       if (opts.protected && user?.accessToken) {
         headers.Authorization = `Bearer ${user.accessToken}`;
       }
@@ -40,15 +48,12 @@ export function useFetchWithAuth() {
       ) {
         const userData = await SecureStore.getItemAsync("user");
         const storedUser = userData ? JSON.parse(userData) : null;
+        headers.Authorization = `Bearer ${storedUser?.refreshToken}`;
         const refreshRes = await fetch(
           `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-client-type": "mobile",
-              Authorization: `Bearer ${storedUser?.refreshToken}`,
-            },
+            headers: headers,
           }
         );
 
@@ -68,6 +73,9 @@ export function useFetchWithAuth() {
           setUser(newUser); // Met à jour le contexte utilisateur
           // Relance la requête initiale avec le nouveau token
           headers.Authorization = `Bearer ${newAccessToken}`;
+          console.log("Token rafraîchi, relance de la requête initiale");
+          console.log("newAccessToken:", newAccessToken);
+          console.log("headers:", headers);
           response = await fetch(url, { ...options, headers });
         } else {
           await logout();
@@ -98,7 +106,7 @@ export function useFetchWithAuth() {
 
       return { data, error: null, status: response.status };
     } catch (err) {
-      // Erreur réseau ou autre
+      // Erreur réseau ou autre 
       return {
         data: null,
         error: err.message || "Erreur inconnue",

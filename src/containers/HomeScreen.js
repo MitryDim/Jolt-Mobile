@@ -17,83 +17,24 @@ import { SafeAreaView } from "react-native";
 import Card from "../components/Cards";
 import Separator from "../components/Separator";
 import { useNotification } from "../context/NotificationContext";
-import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
-import { EXPO_GATEWAY_SERVICE_URL } from "@env";
-import { MaintainContext } from "../context/MaintainContext";
 import { useFocusEffect } from "@react-navigation/native";
 import VehicleCarousel from "../components/VehicleCarousel";
-import { useVehicles } from "../hooks/useVehicles";
+import { useVehicleData } from "../context/VehicleDataContext";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
 
 const HomeScreen = ({ navigation }) => {
-  const scrollRef = useRef(null);
-  const { changeVehicle, vehicle } = useContext(MaintainContext);
-  const fetchWithAuth = useFetchWithAuth();
-  const [scooters, setScooters] = useState([]);
-  const { expoPushToken, notification, error } = useNotification();
-  const {
-    vehicles,
-    loading,
-    error: errorVehicle,
-    fetchVehicles,
-  } = useVehicles();
-  // const fetchScooters = async () => {
-  //   try {
-  //     const { success, data, error } = await fetchWithAuth(
-  //       `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
-  //       {
-  //         method: "GET",
-  //       },
-  //       { protected: true }
-  //     );
-  //     console.log("", data.data);
+  const scrollRef = useRef(null); 
+  const { expoPushToken, notification, error:notificationError } = useNotification();
+  const { vehicles, vehicleSelected, changeVehicle, fetchAndUpdateVehicles } =
+    useVehicleData();
 
-  //     if (error) {
-  //       setScooters([
-  //         {
-  //           id: new Date().getTime().toString(),
-  //           add: true,
-  //           img: "",
-  //           title: "",
-  //           mileage: "",
-  //           maintains: "",
-  //           firstPurchaseDate: "",
-  //         },
-  //       ]);
-  //       return;
-  //     }
-  //     const formatted = data?.data.map((item) => ({
-  //       id: item._id,
-  //       add: false,
-  //       img: item.image,
-  //       title: `${item.brand} ${item.model}`,
-  //       mileage: item.mileage,
-  //       maintains: "", // À adapter selon tes besoins
-  //       firstPurchaseDate: item?.firstPurchaseDate,
-  //     }));
-  //     formatted.push({
-  //       id: new Date().getTime().toString(),
-  //       add: true,
-  //       img: "",
-  //       title: "",
-  //       mileage: "",
-  //       maintains: "",
-  //       firstPurchaseDate: "",
-  //     });
-  //     formatted.sort((a, b) => {
-  //       if (a.id === vehicle?.id) return -1; // Met l'élément sélectionné en premier
-  //     });
-  //     setScooters(formatted);
-  //   } catch (error) {
-  //     console.error("Erreur lors de la récupération des scooters:", error);
-  //   }
-  // };
 
   useFocusEffect(
     useCallback(() => {
-      fetchVehicles();
+      console.log("HomeScreen focus effect");
+      fetchAndUpdateVehicles();
     }, [])
   );
 
@@ -118,7 +59,7 @@ const HomeScreen = ({ navigation }) => {
         onMomentumScrollEnd={handleScrollEnd}
         styles={styles}
         navigation={navigation}
-        onFavoriteChange={fetchVehicles} 
+        onFavoriteChange={fetchAndUpdateVehicles}
         showAddCard={true}
       />
 

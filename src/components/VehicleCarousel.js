@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ScrollView,
   View,
@@ -22,23 +22,49 @@ const VehicleCarousel = ({
   onMomentumScrollEnd,
   styles,
   navigation,
-  showAddCard = true,
+  showAddCard = false,
   onFavoriteChange, // callback optionnel pour refresh la liste
+  scrollToIndex = 0,
 }) => {
   const scrollRef = useRef(null);
+  const [currentScrollIndex, setCurrentScrollIndex] = useState(0);
   const fetchWithAuth = useFetchWithAuth();
 
   // Filtrer la card d'ajout si showAddCard est false
-  const filteredItems = showAddCard ? items : items.filter((item) => !item.add);
+  let filteredItems = showAddCard ? items : items.filter((item) => !item.add);
+  // Ajoute la card "Ajouter" si showAddCard est true et qu'elle n'est pas déjà présente
+  if (showAddCard && !filteredItems.some((item) => item.add)) {
+    filteredItems = [
+      ...filteredItems,
+      {
+        id: `add-card-${Date.now()}`,
+        add: true,
+        img: "",
+        title: "",
+        mileage: "",
+        maintains: "",
+        firstPurchaseDate: "",
+      },
+    ];
+  }
+
+  const handleScroll = (event) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(
+      offsetX / (CARD_WIDTH + 2 * SPACING_FOR_CARD_INSET)
+    );
+    setCurrentScrollIndex(index);
+  };
 
   // Fonction pour mettre en favoris
   const handleFavorite = async (vehicleId) => {
     try {
-      const { data, error, success } = await fetchWithAuth(
+      const { data, error, success, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle/${vehicleId}/favorite`,
-        { method: "POST" },
+        { method: "POST", body: {} },
         { protected: true }
       );
+
       console.log("Mise en favoris réussie :", data, error);
       if (error) {
         console.error("Erreur lors de la mise en favoris :", error);
@@ -54,6 +80,21 @@ const VehicleCarousel = ({
       // Gère l'erreur si besoin
     }
   };
+  useEffect(() => {
+    if (
+      scrollRef.current &&
+      scrollToIndex >= 0 &&
+      scrollToIndex !== currentScrollIndex
+    ) {
+      console.log("Scrolling to index:", scrollToIndex);
+      scrollRef.current.scrollTo({
+        x: scrollToIndex * (CARD_WIDTH + 2 * SPACING_FOR_CARD_INSET),
+        animated: true,
+      });
+      setCurrentScrollIndex(scrollToIndex); // Mets à jour l'index courant pour éviter la boucle
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollToIndex]);
 
   return (
     <ScrollView
@@ -63,18 +104,17 @@ const VehicleCarousel = ({
       nestedScrollEnabled={true}
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
-      snapToInterval={CARD_WIDTH}
+      snapToInterval={CARD_WIDTH + 2 * SPACING_FOR_CARD_INSET}
       decelerationRate={"fast"}
       snapToAlignment="center"
       pagingEnabled={true}
-      contentInset={{
-        top: 0,
-        left: SPACING_FOR_CARD_INSET,
-        bottom: 0,
-        right: SPACING_FOR_CARD_INSET,
+      contentContainerStyle={{
+        height: CARD_HEIGHT,
       }}
-      contentContainerStyle={{ height: CARD_HEIGHT }}
+      style={{ marginHorizontal: SPACING_FOR_CARD_INSET }}
       onMomentumScrollEnd={onMomentumScrollEnd}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
     >
       {filteredItems.map((item, index) => (
         <Card

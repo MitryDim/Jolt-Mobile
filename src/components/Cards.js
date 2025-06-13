@@ -3,15 +3,10 @@ import { View, Text, Image, StyleSheet, TouchableOpacity,Dimensions } from "reac
 import IconComponent from "./Icons";
 
  
-const Card = ({
-  cardWidth , 
-  add = false,
-  onClick,
-  children,
-}) => {
+const Card = ({ cardWidth, add = false, onPress, children }) => {
   return (
     <TouchableOpacity
-      onPress={onClick}
+      onPress={onPress}
       style={[styles.cardStyle, { width: cardWidth }]}
     >
       {add ? (

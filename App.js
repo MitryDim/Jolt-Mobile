@@ -18,6 +18,7 @@ import FlashMessage, {
 import { NetworkProvider, useNetwork } from "./src/context/networkContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaintainProvider } from "./src/context/MaintainContext";
+import { VehicleDataProvider } from "./src/context/VehicleDataContext";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -81,16 +82,16 @@ export default function App() {
       <NetworkProvider>
         <NetworkBanner />
         <UserProvider>
-          <MaintainProvider>
-            <SafeAreaProvider>
-              <NavigationContainer>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <StatusBar />
-                  <Tabs />
-                </GestureHandlerRootView>
-              </NavigationContainer>
-            </SafeAreaProvider>
-          </MaintainProvider>
+          <VehicleDataProvider> 
+              <SafeAreaProvider>
+                <NavigationContainer>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <StatusBar />
+                    <Tabs />
+                  </GestureHandlerRootView>
+                </NavigationContainer>
+              </SafeAreaProvider> 
+          </VehicleDataProvider>
         </UserProvider>
         <FlashMessage position="top" />
       </NetworkProvider>

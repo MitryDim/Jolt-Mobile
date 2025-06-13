@@ -11,7 +11,7 @@ export const MaintainProvider = ({ children }) => {
   const fetchWithAuth = useFetchWithAuth();
   const [pendingCount, setPendingCount] = useState(0);
   const [vehicle, setVehicle] = useState(null);
-  const { user,setUser } = useContext(UserContext);
+  const { user,setUser,logout } = useContext(UserContext);
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export const MaintainProvider = ({ children }) => {
     console.log("Changing vehicle to:", id);
     if (user && id) {
       setVehicle(id);
-      await SecureStore.setItemAsync("selectedVehicleId", id);
+      await SecureStore.setItemAsync("selectedVehicle", id);
     }
   };
 

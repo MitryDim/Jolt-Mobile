@@ -6,18 +6,43 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  Image,
+  TouchableOpacity,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const AddScooterForm = ({ onAdd }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [mileage, setMileage] = useState("");
   const [image, setImage] = useState("");
+  const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
   const fetchWithAuth = useFetchWithAuth();
+
+  // Fonction pour choisir une image
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  // Fonction utilitaire pour afficher la date en français
+  const formatDateFR = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    return `${day}/${month}/${year}`;
+  };
 
   const handleSubmit = async () => {
     if (!brand || !model || !purchaseDate || !mileage) {
@@ -25,18 +50,25 @@ const AddScooterForm = ({ onAdd }) => {
       return;
     }
     setLoading(true);
+
+    const formData = new FormData();
+    formData.append("brand", brand);
+    formData.append("model", model);
+    formData.append("firstPurchaseDate", purchaseDate);
+    formData.append("mileage", mileage);
+    if (imageUri) {
+      formData.append("image", {
+        uri: imageUri,
+        name: "photo.jpg",
+        type: "image/*",
+      });
+    }
+
     const { data, error } = await fetchWithAuth(
       `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand,
-          model,
-          firstPurchaseDate: purchaseDate,
-          mileage,
-          image,
-        }),
+        body: formData,
       },
       { protected: true }
     );
@@ -49,7 +81,7 @@ const AddScooterForm = ({ onAdd }) => {
       setModel("");
       setpurchaseDate("");
       setMileage("");
-      setImage("");
+      setImageUri("");
       if (onAdd) onAdd(); // Pour rafraîchir la liste si besoin
     }
   };
@@ -69,13 +101,20 @@ const AddScooterForm = ({ onAdd }) => {
         value={model}
         onChangeText={setModel}
       />
-      <TextInput
+      <TouchableOpacity
         style={styles.input}
-        placeholder="Année"
-        value={purchaseDate}
-        onChangeText={setPurchaseDate}
-        keyboardType="numeric"
-      />
+        onPress={() => {
+          console.log("Ouverture du DatePicker");
+          setShowDatePicker(true);
+        }}
+        activeOpacity={0.7}
+      >
+        <Text style={{ color: purchaseDate ? "#000" : "#888" }}>
+          {purchaseDate
+            ? formatDateFR(purchaseDate)
+            : "Date d'achat (JJ/MM/AAAA)"}
+        </Text>
+      </TouchableOpacity>
       <TextInput
         style={styles.input}
         placeholder="Kilométrage"
@@ -83,12 +122,22 @@ const AddScooterForm = ({ onAdd }) => {
         onChangeText={setMileage}
         keyboardType="numeric"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="URL de l'image (optionnel)"
-        value={image}
-        onChangeText={setImage}
-      />
+      <Pressable style={styles.button} onPress={pickImage}>
+        <Text style={styles.buttonText}>
+          {imageUri ? "Changer l'image" : "Choisir une image"}
+        </Text>
+      </Pressable>
+      {imageUri ? (
+        <Image
+          source={{ uri: imageUri }}
+          style={{
+            width: 100,
+            height: 100,
+            marginVertical: 10,
+            alignSelf: "center",
+          }}
+        />
+      ) : null}
       <Pressable
         style={[styles.button, loading && { backgroundColor: "#ccc" }]}
         onPress={handleSubmit}
@@ -98,6 +147,21 @@ const AddScooterForm = ({ onAdd }) => {
           {loading ? "Ajout..." : "Ajouter"}
         </Text>
       </Pressable>
+      {showDatePicker && (
+        <DateTimePicker
+          value={purchaseDate ? new Date(purchaseDate) : new Date()}
+          mode="date"
+          display="default"
+          locale="fr-FR"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              const iso = selectedDate.toISOString().split("T")[0];
+              setPurchaseDate(iso);
+            }
+          }}
+        />
+      )}
     </View>
   );
 };

@@ -19,14 +19,13 @@ import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React, { useEffect, useState } from "react";
 import IconComponent from "../Icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import avatar from "../../../assets/avatar.jpg";
 import Avatar from "../Avatar";
 import AuthNavigator from "./Stack/AuthNavigator";
 import { UserContext } from "../../context/AuthContext";
-import { MaintainContext } from "../../context/MaintainContext";
+import { useVehicleData } from "../../context/VehicleDataContext";
+
 const Tab = createBottomTabNavigator();
-const username = "Val";
- 
+
 //Bouton custom pour le navigation
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity activeOpacity={1} onPress={onPress}>
@@ -38,7 +37,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const Tabs = () => {
   const { user } = useContext(UserContext);
-  const { pendingCount } = useContext(MaintainContext);
+  const { pendingCount } = useVehicleData();
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
