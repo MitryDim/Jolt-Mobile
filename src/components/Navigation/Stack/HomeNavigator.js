@@ -4,11 +4,12 @@ import HomeScreen from "../../../containers/HomeScreen";
 import SplashScreen from "../../../containers/SplashScreen";
 import MaintainsScreen from "../../../containers/MaintainsScreen";
 import { Button } from "react-native";
-import AddScooterForm from "../../AddScooter"; 
+import AddScooterForm from "../../AddScooter";
 import { HeaderBackButton } from "@react-navigation/elements";
+import TrackingDetailsScreen from "../../RouteTraveled/testmap";
 const Stack = createNativeStackNavigator();
 
-function HomeNavigator() { 
+function HomeNavigator() {
   const config = {
     animation: "spring",
     config: {
@@ -54,7 +55,7 @@ function HomeNavigator() {
               onPress={() => {
                 if (navigation.canGoBack()) {
                   navigation.goBack();
-                } 
+                }
               }}
             />
           ),
@@ -71,8 +72,36 @@ function HomeNavigator() {
           headerTransparent: false,
           presentation: "fullScreenModal",
           headerLeft: () => (
-            <Button title="Fermer" onPress={() => navigation.goBack()} />
+            <HeaderBackButton
+              title="Fermer"
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }}
+            />
           ),
+        })}
+      />
+      <Stack.Screen
+        name="TrackingDetailsScreen"
+        component={TrackingDetailsScreen}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <HeaderBackButton
+              title="Fermer"
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }}
+            />
+          ),
+          headerTitleAlign: "center",
+          headerShown: true,
+          animation: "slide_from_bottom",
+          presentation: "fullScreenModal",
+          navigationBarColor: "#FFFFFF",
         })}
       />
     </Stack.Navigator>

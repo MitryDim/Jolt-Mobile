@@ -157,32 +157,33 @@ const Tabs = () => {
             },
           })}
         />
-
-        <Tab.Screen
-          name="maintains"
-          component={MaintainsNavigator}
-          options={{
-            tabBarIcon: ({ focused, size }) => {
-              return (
-                <IconComponent
-                  library="MaterialCommunityIcons"
-                  name="wrench"
-                  style={{ color: focused ? "#70E575" : "grey" }}
-                  size={size}
-                />
-              );
-            },
-            tabBarBadge: pendingCount?.toString(),
-            tabBarBadgeStyle: {
-              backgroundColor: "red",
-              borderRadius: 10, // Adjust the border radius for smaller corners
-              color: "white",
-              fontSize: 10,
-              fontWeight: "bold",
-              display: pendingCount > 0 ? "flex" : "none",
-            },
-          }}
-        />
+        {user && (
+          <Tab.Screen
+            name="maintains"
+            component={MaintainsNavigator}
+            options={{
+              tabBarIcon: ({ focused, size }) => {
+                return (
+                  <IconComponent
+                    library="MaterialCommunityIcons"
+                    name="wrench"
+                    style={{ color: focused ? "#70E575" : "grey" }}
+                    size={size}
+                  />
+                );
+              },
+              tabBarBadge: pendingCount?.toString(),
+              tabBarBadgeStyle: {
+                backgroundColor: "red",
+                borderRadius: 10, // Adjust the border radius for smaller corners
+                color: "white",
+                fontSize: 10,
+                fontWeight: "bold",
+                display: pendingCount > 0 ? "flex" : "none",
+              },
+            }}
+          />
+        )}
         <Tab.Screen
           name={user ? "Profile" : "Auth"}
           component={user ? ProfileNavigator : AuthNavigator}

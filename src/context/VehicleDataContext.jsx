@@ -39,48 +39,46 @@ export const VehicleDataProvider = ({ children }) => {
       const jwt = user.accessToken;
       if (!jwt) return;
 
-      socketRef.current = createSocket(jwt);
-
-      socketRef.current.emit("join", user.id);
+      socketRef.current = createSocket(jwt, user.id);
 
       socketRef.current.on("maintain:update", (data) => {
-        setPendingCount(data.pendingCount);
+        console?.log("Socket maintain:update received:", data);
+        if (data?.pendingCount !== undefined)
+          setPendingCount(data.pendingCount);
       });
 
-      socketRef.current.on("unauthorized", async () => {
-        // Gestion du JWT expiré
-        const userData = await SecureStore.getItemAsync("user");
-        const storedUser = userData ? JSON.parse(userData) : null;
-        if (!storedUser?.refreshToken) {
-          // logout(); // à adapter selon ton app
-          return;
-        }
-        const { data, error } = await fetchWithAuth(
-          `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-client-type": "mobile",
-              Authorization: `Bearer ${storedUser.refreshToken}`,
-            },
-          }
-        );
-        if (data?.data?.accessToken) {
-          const newUser = {
-            ...storedUser,
-            accessToken: data.data.accessToken,
-            refreshToken: data.data.refreshToken || storedUser.refreshToken,
-          };
-          await SecureStore.setItemAsync("user", JSON.stringify(newUser));
-          setUser(newUser);
-          socketRef.current.disconnect();
-          socketRef.current = createSocket(newUser.accessToken);
-          socketRef.current.emit("join", user.id);
-        } else {
-          logout();
-        }
-      });
+      // socketRef.current.on("unauthorized", async () => {
+      //   // Gestion du JWT expiré
+      //   const userData = await SecureStore.getItemAsync("user");
+      //   const storedUser = userData ? JSON.parse(userData) : null;
+      //   if (!storedUser?.refreshToken) {
+      //     // logout(); // à adapter selon ton app
+      //     return;
+      //   }
+      //   const { data, error } = await fetchWithAuth(
+      //     `${EXPO_GATEWAY_SERVICE_URL}/auth/refreshToken`,
+      //     {
+      //       method: "POST",
+      //       headers: {
+      //         "x-client-type": "mobile",
+      //         Authorization: `Bearer ${storedUser.refreshToken}`,
+      //       },
+      //     }
+      //   );
+      //   if (data?.data?.accessToken) {
+      //     const newUser = {
+      //       ...storedUser,
+      //       accessToken: data.data.accessToken,
+      //       refreshToken: data.data.refreshToken || storedUser.refreshToken,
+      //     };
+      //     await SecureStore.setItemAsync("user", JSON.stringify(newUser));
+      //     setUser(newUser);
+      //     socketRef.current.disconnect();
+      //     setupSocket();
+      //   } else {
+      //     logout();
+      //   }
+      // });
     };
 
     restoreVehicle();
@@ -96,26 +94,31 @@ export const VehicleDataProvider = ({ children }) => {
 
   // Fonction pour changer de véhicule
   const changeVehicle = async (vehicle) => {
-    setVehicleSelected( vehicle);
-    await SecureStore.setItemAsync("selectedVehicle",vehicle);
+    setVehicleSelected(vehicle);
+    await SecureStore.setItemAsync("selectedVehicle", vehicle);
   };
 
-    useEffect(() => {
-      if (socketRef.current) {
-        socketRef.current.emit("vehicle:change", {
-          userId: user.id,
-          vehicle: vehicleSelected,
-        });
-      }
-    }, [vehicleSelected]);
+  useEffect(() => {
+    if (socketRef.current) {
+      socketRef.current.emit("vehicle:change", {
+        userId: user.id,
+        vehicle: vehicleSelected,
+      });
+    }
+  }, [vehicleSelected]);
 
   const fetchAndUpdateVehicles = async () => {
+    if (!user) {
+      setVehicles([]);
+      setVehicleSelected(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const { data, error, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
-        { method: "GET"},
+        { method: "GET" },
         { protected: true }
       );
       console?.log("status:", status, data, error);
@@ -127,6 +130,8 @@ export const VehicleDataProvider = ({ children }) => {
         console?.log("Error fetching vehicles:", error);
         setError(error);
         setLoading(false);
+        setVehicles([]);
+        setVehicleSelected(null);
         return;
       }
       const vehiclesList =
@@ -145,7 +150,7 @@ export const VehicleDataProvider = ({ children }) => {
       const { data: maintData } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/maintain/count`,
         {
-          method: "POST", 
+          method: "POST",
           body: JSON.stringify({ vehicleIds }),
         },
         { protected: true }
