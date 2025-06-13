@@ -8,14 +8,14 @@ import Separator from "../components/Separator";
 const RouteTraveledScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, marginBottom: "60px" }}>
-      <Text className="mt-4 text-xl text-center font-bold">
-        Route Traveled
-      </Text>
+      <Text className="mt-4 text-xl text-center font-bold">Route Traveled</Text>
       <Separator />
       <GestureHandlerRootView>
         <FlatList
           data={items}
-          renderItem={({ item }) => <TraveledCards data={item} />}
+          renderItem={({ item }) => (
+            <TraveledCards width={"100%"} data={item} />
+          )}
           keyExtractor={(item) => item.id}
         />
       </GestureHandlerRootView>

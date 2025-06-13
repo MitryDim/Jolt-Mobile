@@ -146,7 +146,7 @@ const TraveledCards = ({
   );
 
   if (swipeable) {
-    return <Swipeable {...props}>{CardContent}</Swipeable>;
+    return <Swipeable renderRightActions={renderLeftActions} {...props}>{CardContent}</Swipeable>;
   }
   return CardContent;
 };
