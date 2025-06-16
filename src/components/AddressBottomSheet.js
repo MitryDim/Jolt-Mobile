@@ -10,9 +10,8 @@ import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import IconComponent from "./Icons";
 import ActivityIndicator from "./ActivityIndicator";
 import { calculateMultipleRoutes } from "../helpers/Api";
-
+import * as Location from "expo-location";
 const AddressBottomSheet = ({
-  userLocation,
   bottomSheetRef,
   onSelectAddress,
   onSheetHeightChange,
@@ -53,7 +52,21 @@ const AddressBottomSheet = ({
   };
 
   const handleSelect = async (item) => {
+    let userLocation = await Location.getLastKnownPositionAsync({
+      maxAge: 10000, // 10 seconds
+      requiredAccuracy: Location.Accuracy.High,
+    });
+    if (!userLocation)
+      userLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.BestForNavigation,
+      });
+    console.log("User location:", userLocation);
     if (!userLocation) return;
+    userLocation = {
+      latitude: userLocation.coords.latitude,
+      longitude: userLocation.coords.longitude,
+      heading: userLocation.coords.heading,
+    };
     try {
       const endCoords = [
         item.geometry.coordinates[0],

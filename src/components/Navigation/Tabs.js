@@ -207,7 +207,7 @@ const Tabs = () => {
     options: ({ route }) => ({
       tabBarStyle: ((route) => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-        if (mode === "itinerary") {
+        if (mode === "itinerary" || mode === "travel") {
           return { display: "none" };
         }
         return tabBarStyle;

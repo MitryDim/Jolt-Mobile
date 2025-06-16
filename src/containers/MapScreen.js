@@ -50,26 +50,26 @@ const MapScreen = () => {
   useEffect(() => {
     setMode(mode);
   }, [mode]);
-  useEffect(() => {
-    let subscription;
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
+  // useEffect(() => {
+  //   let subscription;
+  //   (async () => {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status !== "granted") return;
 
-      subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Highest,
-          timeInterval: 1000,
-          distanceInterval: 2,
-        },
-        (location) => {
-          setUserLocation(location.coords);
-        }
-      );
-    })();
+  //     subscription = await Location.watchPositionAsync(
+  //       {
+  //         accuracy: Location.Accuracy.Highest,
+  //         timeInterval: 1000,
+  //         distanceInterval: 2,
+  //       },
+  //       (location) => {
+  //         setUserLocation(location.coords);
+  //       }
+  //     );
+  //   })();
 
-    return () => subscription?.remove();
-  }, []);
+  //   return () => subscription?.remove();
+  // }, []);
 
   const screenHeightRatio = useMemo(() => {
     if (!sheetHeight || sheetHeight < 50) {
@@ -79,9 +79,7 @@ const MapScreen = () => {
   }, [sheetHeight]);
 
   const renderModeSpecificUI = () => {
-    console.log("mode:", mode);
-    if (mode === "address") {
-      console.log("Rendering AddressBottomSheet");
+    if (mode === "address") { 
       return (
         <View
           style={{
@@ -107,7 +105,7 @@ const MapScreen = () => {
       );
     }
 
-    if (mode === "itinerary") { 
+    if (mode === "itinerary") {
       return (
         <View
           style={{

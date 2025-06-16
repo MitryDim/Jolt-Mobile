@@ -15,7 +15,8 @@ export const useNavigationLogic = ({
   showManeuver,
   userSpeed,
   mode,
-}) => { 
+  isCameraLocked,
+}) => {
   const { width, height } = Dimensions.get("window");
   const SCREEN_RATIO = screenHeightRatio || height / 1920;
   const isUpdatingRef = useRef(false);
@@ -105,15 +106,19 @@ export const useNavigationLogic = ({
 
     return { latitudeDelta, longitudeDelta };
   };
-  const getOffset = (zoom, heading, screenRatio, mode) => {
+  const getOffset = (zoom, heading, screenRatio, mode, currentLatitude) => {
     // Ajustement plus agressif si en navigation
-    const factor = mode === "travel" ? 0.01 : 0.005;
+    const factor =
+      mode === "travel" ? 0.01 + (speedRef.current / 100) * 0.005 : 0.005;
     const BASE_OFFSET = -factor * screenRatio;
     const offset = BASE_OFFSET / Math.pow(2, zoom);
     const radHeading = heading * (Math.PI / 180);
+    // Ajuster la longitude en fonction de la latitude actuelle
+    const latitudeCorrection = 1 / Math.cos(currentLatitude * (Math.PI / 180));
+
     return {
       offsetLatitude: -offset * Math.cos(radHeading),
-      offsetLongitude: -offset * Math.sin(radHeading),
+      offsetLongitude: -offset * Math.sin(radHeading) * latitudeCorrection,
     };
   };
 
@@ -123,6 +128,7 @@ export const useNavigationLogic = ({
 
   const updateCamera = useCallback(
     (map, coords, headingValue) => {
+      if (isCameraLocked) return;
       if (!coords || !map) return;
 
       const zoomLevel = Platform.OS === "ios" ? 20 : 19;
@@ -138,7 +144,8 @@ export const useNavigationLogic = ({
         Platform.OS === "ios" ? 3 : 2,
         coords.heading,
         SCREEN_RATIO,
-        mode
+        mode,
+        coords.latitude
       );
 
       map.animateCamera(
@@ -164,7 +171,7 @@ export const useNavigationLogic = ({
           heading.value + alpha * (coords.heading - heading.value);
       })();
     },
-    [SCREEN_RATIO]
+    [SCREEN_RATIO, isCameraLocked]
   );
 
   // =============================
@@ -191,6 +198,12 @@ export const useNavigationLogic = ({
   const IsInFront = (a, b, heading) => {
     const angle = getRhumbLineBearing(a, b);
     return angle <= heading + 90 && angle >= heading - 90;
+  };
+
+  // Trouve le point le plus proche d'une polyligne
+  const getNearestDistanceToPolyline = (currentPosition, polyline) => {
+    const nearest = findNearest(currentPosition, polyline);
+    return getDistance(currentPosition, nearest);
   };
 
   const getCurrentInstruction = (
@@ -248,7 +261,6 @@ export const useNavigationLogic = ({
   };
 
   const getInstruction = async (curLoc, headingValue, speed) => {
-    console.log("getInstruction called with: tt1 ", initialRouteOptions);
     if (!initialRouteOptions?.instructions) return;
 
     const { instructions, coordinates: coords } = initialRouteOptions;
@@ -303,7 +315,18 @@ export const useNavigationLogic = ({
       Math.abs(hd - (lastHeading.current ?? 0)) < MIN_HEADING_CHANGE &&
       Math.abs(speed - (lastSpeed.current ?? 0)) < MIN_SPEED_CHANGE;
 
-    if (shouldIgnore) return;
+    if (shouldIgnore) return; 
+    if (initialRouteOptions?.coordinates) {
+      const distanceToRoute = getNearestDistanceToPolyline(
+        location.coords,
+        initialRouteOptions.coordinates
+      );
+      console.log("Distance to route:", distanceToRoute);
+      if (distanceToRoute > 30) {
+        console.log("Hors itinéraire, recalcul en cours...");
+        // déclenchement éventuel d'un recalcul via api
+      }
+    }
 
     isUpdatingRef.current = true;
 

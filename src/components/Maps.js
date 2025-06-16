@@ -30,11 +30,7 @@ import Arrow from "../components/Arrow";
 import ManeuverView from "./ManeuverView/index";
 import * as api from "../helpers/Api";
 import { getDistance, findNearest, getRhumbLineBearing } from "geolib";
-import Animated, {
-  useSharedValue,
-  useDerivedValue,
-  useAnimatedStyle,
-} from "react-native-reanimated";
+import Animated  from "react-native-reanimated";
 import LoadingOverlay from "./LoadingOverlay";
 
 const Maps = ({

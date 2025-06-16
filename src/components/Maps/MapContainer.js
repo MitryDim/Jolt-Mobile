@@ -25,6 +25,8 @@ const MapContainer = ({
   infoTravelAnimatedStyle,
   mode,
 }) => {
+  const [isCameraLocked, setIsCameraLocked] = useState(false);
+  const cameraTimeoutRef = useRef(null);
   const mapRef = useRef(null);
   const isTravel = mode === "travel";
   const routesToShow = isTravel
@@ -48,9 +50,20 @@ const MapContainer = ({
     showManeuver,
     userSpeed,
     mode,
+    isCameraLocked,
   });
 
-
+  const handleUserPan = () => {
+    if (isNavigating) {
+      setIsCameraLocked(true);
+      // Optionnel : relance la caméra auto après 5s d'inactivité
+      if (cameraTimeoutRef.current) clearTimeout(cameraTimeoutRef.current);
+      cameraTimeoutRef.current = setTimeout(
+        () => setIsCameraLocked(false),
+        5000
+      );
+    }
+  };
 
   useEffect(() => {
     let subscription;
@@ -59,9 +72,7 @@ const MapContainer = ({
       if (status !== "granted") return;
       subscription = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.Highest,
-          timeInterval: 1000,
-          distanceInterval: 2,
+          accuracy: Location.Accuracy.BestForNavigation,
         },
         (location) => handleLocationUpdate(location, mapRef.current)
       );
@@ -71,7 +82,7 @@ const MapContainer = ({
 
   useEffect(() => {
     if (
-      (mode === "address") &&
+      mode === "address" &&
       currentRegion &&
       mapRef.current &&
       typeof handleLocationUpdate === "function"
@@ -101,7 +112,12 @@ const MapContainer = ({
 
   return (
     <>
-      <MapView ref={mapRef} style={styleMaps}>
+      <MapView
+        ref={mapRef}
+        style={styleMaps}
+        onPanDrag={handleUserPan}
+        onRegionChange={handleUserPan}
+      >
         <MapRoutes
           routes={routesToShow}
           isNavigating={isNavigating}
@@ -117,12 +133,7 @@ const MapContainer = ({
           <NavigationMarker coordinates={coordinates} heading={heading} />
         )}
       </MapView>
-      {console.log(
-        "MapContainer render",
-        isNavigating,
-        showManeuver,
-        currentInstruction
-      )}
+
       {isNavigating && showManeuver && currentInstruction && (
         <ManeuverOverlay
           currentInstruction={currentInstruction}
