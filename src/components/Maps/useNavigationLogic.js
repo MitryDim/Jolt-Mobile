@@ -15,7 +15,7 @@ export const useNavigationLogic = ({
   showManeuver,
   userSpeed,
   mode,
-}) => {
+}) => { 
   const { width, height } = Dimensions.get("window");
   const SCREEN_RATIO = screenHeightRatio || height / 1920;
   const isUpdatingRef = useRef(false);
@@ -248,9 +248,10 @@ export const useNavigationLogic = ({
   };
 
   const getInstruction = async (curLoc, headingValue, speed) => {
-    if (!routeOptions?.[0]?.instructions) return;
+    console.log("getInstruction called with: tt1 ", initialRouteOptions);
+    if (!initialRouteOptions?.instructions) return;
 
-    const { instructions, coordinates: coords } = routeOptions[0];
+    const { instructions, coordinates: coords } = initialRouteOptions;
     const inst = getCurrentInstruction(
       curLoc,
       instructions,

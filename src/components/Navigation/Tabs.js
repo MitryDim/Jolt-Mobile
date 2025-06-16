@@ -23,7 +23,7 @@ import Avatar from "../Avatar";
 import AuthNavigator from "./Stack/AuthNavigator";
 import { UserContext } from "../../context/AuthContext";
 import { useVehicleData } from "../../context/VehicleDataContext";
-
+import { useNavigationMode } from "../../context/NavigationModeContext";
 const Tab = createBottomTabNavigator();
 
 //Bouton custom pour le navigation
@@ -36,6 +36,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 );
 
 const Tabs = () => {
+  const { mode } = useNavigationMode();
   const { user } = useContext(UserContext);
   const { pendingCount } = useVehicleData();
   const insets = useSafeAreaInsets();
@@ -206,7 +207,7 @@ const Tabs = () => {
     options: ({ route }) => ({
       tabBarStyle: ((route) => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-        if (routeName === "ChoiceItinerary" || routeName === "Travel") {
+        if (mode === "itinerary") {
           return { display: "none" };
         }
         return tabBarStyle;
@@ -292,3 +293,5 @@ const styles = StyleSheet.create({
   },
 });
 export default Tabs;
+
+

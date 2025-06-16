@@ -8,6 +8,7 @@ import NavigationMarker from "./NavigationMarker";
 import ManeuverOverlay from "./ManeuverOverlay";
 import { useNavigationLogic } from "./useNavigationLogic";
 import LoadingOverlay from "../LoadingOverlay";
+import HeaderMap from "./HeaderMap";
 
 const MapContainer = ({
   styleMaps,
@@ -22,9 +23,13 @@ const MapContainer = ({
   handleSheetClose,
   sheetOffsetValue,
   infoTravelAnimatedStyle,
-  mode
+  mode,
 }) => {
   const mapRef = useRef(null);
+  const isTravel = mode === "travel";
+  const routesToShow = isTravel
+    ? [initialRouteOptions[selectedRouteIndex]]
+    : initialRouteOptions;
   const {
     coordinates,
     heading,
@@ -37,13 +42,16 @@ const MapContainer = ({
     remainingTimeInSeconds,
     distance,
   } = useNavigationLogic({
-    initialRouteOptions,
+    initialRouteOptions: initialRouteOptions[selectedRouteIndex],
     isNavigating,
     screenHeightRatio,
     showManeuver,
     userSpeed,
     mode,
-  }); 
+  });
+
+
+
   useEffect(() => {
     let subscription;
     (async () => {
@@ -61,13 +69,43 @@ const MapContainer = ({
     return () => subscription?.remove();
   }, [handleLocationUpdate]);
 
+  useEffect(() => {
+    if (
+      (mode === "address") &&
+      currentRegion &&
+      mapRef.current &&
+      typeof handleLocationUpdate === "function"
+    ) {
+      updateCamera(mapRef.current, currentRegion, currentRegion.heading);
+    }
+    // Si on est en mode itinerary (choix d'itinéraire) et qu'on a des routes
+    if (
+      mode === "itinerary" &&
+      initialRouteOptions &&
+      initialRouteOptions.length > 0 &&
+      mapRef.current
+    ) {
+      // Récupère tous les points de toutes les routes
+      const allCoords = initialRouteOptions
+        .map((route) => route.coordinates)
+        .flat();
+
+      if (allCoords.length > 0) {
+        mapRef.current.fitToCoordinates(allCoords, {
+          edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
+          animated: true,
+        });
+      }
+    }
+  }, [mode, initialRouteOptions]);
+
   return (
     <>
       <MapView ref={mapRef} style={styleMaps}>
         <MapRoutes
-          routes={routeOptions}
+          routes={routesToShow}
           isNavigating={isNavigating}
-          selectedRouteIndex={selectedRouteIndex}
+          selectedRouteIndex={isTravel ? 0 : selectedRouteIndex}
           onPolylineSelect={onPolylineSelect}
           showManeuver={showManeuver}
           currentRegion={currentRegion}
@@ -79,7 +117,12 @@ const MapContainer = ({
           <NavigationMarker coordinates={coordinates} heading={heading} />
         )}
       </MapView>
-
+      {console.log(
+        "MapContainer render",
+        isNavigating,
+        showManeuver,
+        currentInstruction
+      )}
       {isNavigating && showManeuver && currentInstruction && (
         <ManeuverOverlay
           currentInstruction={currentInstruction}

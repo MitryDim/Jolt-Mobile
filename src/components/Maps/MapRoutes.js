@@ -14,12 +14,11 @@ const MapRoutes = ({
   if (!routes?.length) return null;
 
   return routes.map((route, index) => {
-    console.log("MapRoutes rendered with route:", route, "at index:", index);
     const isSelected = index === selectedRouteIndex;
     const shouldRender =
       (!isNavigating && !showManeuver) || (isNavigating && isSelected);
 
-    if (!route?.coordinates?.length || !shouldRender) return null; 
+    if (!route?.coordinates?.length || !shouldRender) return null;
 
     return (
       <React.Fragment key={index}>
