@@ -30,6 +30,9 @@ const NavigationMarker = ({ coordinates, heading }) => {
     <MarkerAnimated
       coordinate={coordinates}
       flat={false} 
+      anchor={{ x: 0.39, y: 0.28 }}
+      zIndex={1000}
+      
     >
       <Arrow />
     </MarkerAnimated>

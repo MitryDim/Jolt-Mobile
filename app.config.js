@@ -74,6 +74,7 @@ export default ({ config }) => ({
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
       ],
+      "@maplibre/maplibre-react-native",
       "expo-font",
       "expo-secure-store",
     ],

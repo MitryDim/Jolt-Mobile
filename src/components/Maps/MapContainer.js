@@ -134,6 +134,7 @@ const MapContainer = ({
         style={styleMaps}
         onPanDrag={handleUserPan}
         //onRegionChange={handleUserPan}
+        showsUserLocation={true}
       >
         <MapRoutes
           routes={routesToShow}

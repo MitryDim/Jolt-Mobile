@@ -1,7 +1,8 @@
 import { useRef, useState, useCallback } from "react";
 import { Dimensions, Platform, useAnimatedValue } from "react-native";
 import { AnimatedRegion } from "react-native-maps";
-import { getDistance, findNearest, getRhumbLineBearing } from "geolib";
+import { getDistance, findNearest, getGreatCircleBearing } from "geolib";
+
 import * as api from "../../helpers/Api";
 import {
   runOnJS,
@@ -62,6 +63,13 @@ export const useNavigationLogic = ({
           )) /
           2
     );
+
+    const interpolatePosition = (start, end, t) => {
+      return {
+        latitude: start.latitude + (end.latitude - start.latitude) * t,
+        longitude: start.longitude + (end.longitude - start.longitude) * t,
+      };
+    };
 
   const mercatorLongitudeToX = (longitude) =>
     Math.round(MERCATOR_OFFSET + (MERCATOR_RADIUS * longitude * Math.PI) / 180);
@@ -212,7 +220,10 @@ export const useNavigationLogic = ({
   };
 
   const IsInFront = (currentPosition, targetPosition, heading) => {
-    const angleToTarget = getRhumbLineBearing(currentPosition, targetPosition);
+    const angleToTarget = getGreatCircleBearing(
+      currentPosition,
+      targetPosition
+    );
     const diff = Math.abs(heading - angleToTarget);
 
     // On considère que si la différence angulaire est inférieure à 90°, c'est devant
