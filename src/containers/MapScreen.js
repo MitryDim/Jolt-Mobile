@@ -50,27 +50,46 @@ const MapScreen = () => {
   useEffect(() => {
     setMode(mode);
   }, [mode]);
-  // useEffect(() => {
-  //   let subscription;
-  //   (async () => {
-  //     const { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status !== "granted") return;
+  useEffect(() => {
+    console.log("MapScreen rendered with mode:", mode);
+    let subscription;
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
 
-  //     subscription = await Location.watchPositionAsync(
-  //       {
-  //         accuracy: Location.Accuracy.Highest,
-  //         timeInterval: 1000,
-  //         distanceInterval: 2,
-  //       },
-  //       (location) => {
-  //         setUserLocation(location.coords);
-  //       }
-  //     );
-  //   })();
+      let location = await Location.getLastKnownPositionAsync({
+        requiredAccuracy: Location.Accuracy.BestForNavigation,
+        maxAge: 5000,
+      });
+      if (!location)
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.BestForNavigation,
+        });
 
-  //   return () => subscription?.remove();
-  // }, []);
+      setUserLocation(location.coords);
 
+      // subscription = await Location.watchPositionAsync(
+      //   {
+      //     accuracy: Location.Accuracy.Highest,
+      //     timeInterval: 1000,
+      //     distanceInterval: 2,
+      //   },
+      //   (location) => {
+      //     setUserLocation(location.coords);
+      //   }
+      // );
+    })();
+
+    // return () => subscription?.remove();
+  }, []);
+
+  const handleSheetChange = (open) => {
+    if (!open) {
+      bottomSheetRef.current?.snapToIndex(0); // Ouvre au premier snap point
+    } else {
+      bottomSheetRef.current?.close(); // Ferme le sheet
+    }
+  };
   const screenHeightRatio = useMemo(() => {
     if (!sheetHeight || sheetHeight < 50) {
       return SCREEN_HEIGHT / BASE_REFERENCE_HEIGHT;
@@ -79,7 +98,7 @@ const MapScreen = () => {
   }, [sheetHeight]);
 
   const renderModeSpecificUI = () => {
-    if (mode === "address") { 
+    if (mode === "address") {
       return (
         <View
           style={{
@@ -173,14 +192,13 @@ const MapScreen = () => {
           mode={mode}
           initialRouteOptions={initialRouteOptions}
           selectedRouteIndex={selectedRouteIndex}
-          userSpeed={userSpeed}
           isNavigating={mode === "travel" || mode === "address"}
           screenHeightRatio={screenHeightRatio}
           currentRegion={userLocation}
           showManeuver={showManeuver}
           styleMaps={styles.map}
           onPolylineSelect={(index) => console.log("Polyline selected:", index)}
-          handleSheetClose={() => console.log("Sheet closed")}
+          handleSheetClose={handleSheetChange}
           sheetOffsetValue={sheetHeight}
           infoTravelAnimatedStyle={infoTravelAnimatedStyle}
         />

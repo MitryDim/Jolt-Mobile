@@ -16,7 +16,7 @@ const AddressBottomSheet = ({
   onSelectAddress,
   onSheetHeightChange,
 }) => {
-  const snapPoints = useMemo(() => ["10%", "25%", "95%"], []);
+  const snapPoints = useMemo(() => [90, "25%", "95%"], []);
   const [addressInput, setAddressInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,6 +43,31 @@ const AddressBottomSheet = ({
       setLoading(false);
     }
   };
+
+  const renderHeader = () => (
+    <View style={styles.inputContainer}>
+      <IconComponent icon="search" library="MaterialIcons" size={20} />
+      <TextInput
+        style={styles.input}
+        placeholder="Entrez une adresse"
+        value={addressInput}
+        onChangeText={handleInputChange}
+        onFocus={() => bottomSheetRef?.current?.expand()}
+      />
+      {loading ? (
+        <ActivityIndicator size={20} />
+      ) : (
+        addressInput.length > 0 && (
+          <IconComponent
+            icon="close"
+            library="MaterialIcons"
+            size={20}
+            onPress={() => setAddressInput("")}
+          />
+        )
+      )}
+    </View>
+  );
 
   const handleInputChange = (text) => {
     setAddressInput(text);
@@ -96,32 +121,12 @@ const AddressBottomSheet = ({
       ref={bottomSheetRef}
       index={1}
       snapPoints={snapPoints}
+      enableDynamicSizing={false}
       enablePanDownToClose={false}
       onChange={handleSheetChange}
       onLayout={(e) => onSheetHeightChange?.(e.nativeEvent.layout.height)}
     >
-      <View style={styles.inputContainer}>
-        <IconComponent icon="search" library="MaterialIcons" size={20} />
-        <TextInput
-          style={styles.input}
-          placeholder="Entrez une adresse"
-          value={addressInput}
-          onChangeText={handleInputChange}
-          onFocus={() => bottomSheetRef?.current?.expand()}
-        />
-        {loading ? (
-          <ActivityIndicator size={20} />
-        ) : (
-          addressInput.length > 0 && (
-            <IconComponent
-              icon="close"
-              library="MaterialIcons"
-              size={20}
-              onPress={() => setAddressInput("")}
-            />
-          )
-        )}
-      </View>
+      {renderHeader()}
       <BottomSheetFlatList
         data={suggestions}
         renderItem={renderItem}

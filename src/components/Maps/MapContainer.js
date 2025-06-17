@@ -8,7 +8,12 @@ import NavigationMarker from "./NavigationMarker";
 import ManeuverOverlay from "./ManeuverOverlay";
 import { useNavigationLogic } from "./useNavigationLogic";
 import LoadingOverlay from "../LoadingOverlay";
-import HeaderMap from "./HeaderMap";
+import OptionBottomSheet from "./BottomSheet/OptionButtomSheet";
+import IconComponent from "../Icons";
+import Animated, {
+  useAnimatedProps,
+  useDerivedValue,
+} from "react-native-reanimated";
 
 const MapContainer = ({
   styleMaps,
@@ -16,7 +21,6 @@ const MapContainer = ({
   selectedRouteIndex,
   onPolylineSelect,
   currentRegion,
-  userSpeed,
   isNavigating,
   screenHeightRatio,
   showManeuver,
@@ -26,6 +30,7 @@ const MapContainer = ({
   mode,
 }) => {
   const [isCameraLocked, setIsCameraLocked] = useState(false);
+  const isCameraLockedRef = useRef(false);
   const cameraTimeoutRef = useRef(null);
   const mapRef = useRef(null);
   const isTravel = mode === "travel";
@@ -43,28 +48,38 @@ const MapContainer = ({
     arrivalTimeStr,
     remainingTimeInSeconds,
     distance,
+    speedValue,
   } = useNavigationLogic({
     initialRouteOptions: initialRouteOptions[selectedRouteIndex],
     isNavigating,
     screenHeightRatio,
     showManeuver,
-    userSpeed,
     mode,
-    isCameraLocked,
+    isCameraLockedRef,
   });
 
   const handleUserPan = () => {
     if (isNavigating) {
+      console.log("User panned the map, locking camera.");
       setIsCameraLocked(true);
+      isCameraLockedRef.current = true;
+      // setIsCameraLocked(true);
       // Optionnel : relance la caméra auto après 5s d'inactivité
       if (cameraTimeoutRef.current) clearTimeout(cameraTimeoutRef.current);
       cameraTimeoutRef.current = setTimeout(
-        () => setIsCameraLocked(false),
-        5000
+        () => {
+          isCameraLockedRef.current = false;
+          setIsCameraLocked(false);
+        }, //setIsCameraLocked(false),
+        10000
       );
     }
   };
 
+  useEffect(() => {
+    if (!isNavigating) return;
+    handleSheetClose(isCameraLocked);
+  }, [isCameraLocked]);
   useEffect(() => {
     let subscription;
     (async () => {
@@ -74,21 +89,23 @@ const MapContainer = ({
         {
           accuracy: Location.Accuracy.BestForNavigation,
         },
-        (location) => handleLocationUpdate(location, mapRef.current)
+        (location) => {
+          handleLocationUpdate(location, mapRef.current);
+        }
       );
     })();
     return () => subscription?.remove();
-  }, [handleLocationUpdate]);
+  }, []);
 
   useEffect(() => {
-    if (
-      mode === "address" &&
-      currentRegion &&
-      mapRef.current &&
-      typeof handleLocationUpdate === "function"
-    ) {
-      updateCamera(mapRef.current, currentRegion, currentRegion.heading);
-    }
+    // if (
+    //   mode === "address" &&
+    //   currentRegion &&
+    //   mapRef.current &&
+    //   typeof handleLocationUpdate === "function"
+    // ) {
+    //   updateCamera(mapRef.current, currentRegion, currentRegion.heading);
+    // }
     // Si on est en mode itinerary (choix d'itinéraire) et qu'on a des routes
     if (
       mode === "itinerary" &&
@@ -116,7 +133,7 @@ const MapContainer = ({
         ref={mapRef}
         style={styleMaps}
         onPanDrag={handleUserPan}
-        onRegionChange={handleUserPan}
+        //onRegionChange={handleUserPan}
       >
         <MapRoutes
           routes={routesToShow}
@@ -145,12 +162,45 @@ const MapContainer = ({
         />
       )}
 
+      {isNavigating && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 80,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <IconComponent
+            icon="speedometer"
+            library="MaterialCommunityIcons"
+            size={24}
+            color="black"
+            style={{ marginRight: 8 }}
+          />
+
+          <Text style={{ color: "black", marginLeft: 8 }}>{speedValue}</Text>
+        </View>
+      )}
+
       {isLoading && (
         <LoadingOverlay>
           <Text style={{ color: "white" }}>
             Recherche d'un nouvel itinéraire...
           </Text>
         </LoadingOverlay>
+      )}
+
+      {isNavigating && isCameraLocked && (
+        <OptionBottomSheet
+          visible={isCameraLocked}
+          onRecenterPress={() => {
+            isCameraLockedRef.current = false;
+            cameraTimeoutRef.current = null;
+            setIsCameraLocked(false);
+          }}
+          remainingTimeInSeconds={remainingTimeInSeconds}
+        ></OptionBottomSheet>
       )}
     </>
   );

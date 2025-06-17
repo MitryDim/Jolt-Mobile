@@ -3,7 +3,12 @@ import { Dimensions, Platform, useAnimatedValue } from "react-native";
 import { AnimatedRegion } from "react-native-maps";
 import { getDistance, findNearest, getRhumbLineBearing } from "geolib";
 import * as api from "../../helpers/Api";
-import { runOnUI, useSharedValue } from "react-native-reanimated";
+import {
+  runOnJS,
+  runOnUI,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 const MERCATOR_OFFSET = Math.pow(2, 28);
 const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
@@ -13,9 +18,8 @@ export const useNavigationLogic = ({
   isNavigating,
   screenHeightRatio,
   showManeuver,
-  userSpeed,
   mode,
-  isCameraLocked,
+  isCameraLockedRef,
 }) => {
   const { width, height } = Dimensions.get("window");
   const SCREEN_RATIO = screenHeightRatio || height / 1920;
@@ -32,6 +36,7 @@ export const useNavigationLogic = ({
   const [startTime, setStartTime] = useState(Date.now());
   const [arrivalTimeStr, setArrivalTimeStr] = useState("00:00");
   const [remainingTimeInSeconds, setRemainingTimeInSeconds] = useState(0);
+  const [speedValue, setSpeedValue] = useState(0);
 
   const coordinates = useRef(
     new AnimatedRegion({ latitude: 0, longitude: 0 })
@@ -127,10 +132,16 @@ export const useNavigationLogic = ({
   // =============================
 
   const updateCamera = useCallback(
-    (map, coords, headingValue) => {
-      if (isCameraLocked) return;
+    (map, coords, isCameraLockedRef, headingValue) => {
+      console.log(
+        "Updating camera with isCameraLocked:",
+        isCameraLockedRef.current
+      );
+      if (isCameraLockedRef.current) return;
       if (!coords || !map) return;
 
+      // const positionChange = getDistance(lastLocation.current, coords) > 1; // seuil de 1m avant d'animer
+      // const headingChange = Math.abs(lastHeading.current - coords.heading) > 3; // seuil de 3°
       const zoomLevel = Platform.OS === "ios" ? 20 : 19;
       const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
         coords.latitude,
@@ -147,7 +158,7 @@ export const useNavigationLogic = ({
         mode,
         coords.latitude
       );
-
+      // if (positionChange || headingChange) {
       map.animateCamera(
         {
           center: {
@@ -163,15 +174,20 @@ export const useNavigationLogic = ({
         },
         { duration: 400 }
       );
+
+      // lastLocation.current = coords;
+      // lastHeading.current = coords.heading;
+      //  }
       runOnUI(() => {
         "worklet";
-
         const alpha = 0.2;
         heading.value =
           heading.value + alpha * (coords.heading - heading.value);
+        //const speed = coords.speed != null ? coords.speed * 3.6 : 0;
+        // runOnJS(setSpeedValue)(speed);
       })();
     },
-    [SCREEN_RATIO, isCameraLocked]
+    [SCREEN_RATIO, isCameraLockedRef]
   );
 
   // =============================
@@ -195,15 +211,22 @@ export const useNavigationLogic = ({
     return found || instructions[instructions.length - 1] || null;
   };
 
-  const IsInFront = (a, b, heading) => {
-    const angle = getRhumbLineBearing(a, b);
-    return angle <= heading + 90 && angle >= heading - 90;
+  const IsInFront = (currentPosition, targetPosition, heading) => {
+    const angleToTarget = getRhumbLineBearing(currentPosition, targetPosition);
+    const diff = Math.abs(heading - angleToTarget);
+
+    // On considère que si la différence angulaire est inférieure à 90°, c'est devant
+    return diff <= 90 || diff >= 270;
   };
 
   // Trouve le point le plus proche d'une polyligne
   const getNearestDistanceToPolyline = (currentPosition, polyline) => {
-    const nearest = findNearest(currentPosition, polyline);
-    return getDistance(currentPosition, nearest);
+    let minDistance = Infinity;
+    polyline.forEach((point) => {
+      const d = getDistance(currentPosition, point);
+      if (d < minDistance) minDistance = d;
+    });
+    return minDistance;
   };
 
   const getCurrentInstruction = (
@@ -278,8 +301,6 @@ export const useNavigationLogic = ({
       distanceTraveled.current += getDistance(lastLocation.current, curLoc);
     }
 
-    speedRef.current = speed;
-
     if (showManeuver && isNavigating) {
       const elapsed = (Date.now() - startTime) / 1000;
       const routeDistance = routeOptions[0]?.routeDistance || 1;
@@ -308,6 +329,7 @@ export const useNavigationLogic = ({
     const MIN_DISTANCE_CHANGE = 2; // en mètres
     const MIN_HEADING_CHANGE = 5; // en degrés
     const MIN_SPEED_CHANGE = 0.5; // en m/s
+    speedRef.current = speed != null ? speed * 3.6 : 0;
 
     const shouldIgnore =
       lastCoords.current &&
@@ -315,7 +337,7 @@ export const useNavigationLogic = ({
       Math.abs(hd - (lastHeading.current ?? 0)) < MIN_HEADING_CHANGE &&
       Math.abs(speed - (lastSpeed.current ?? 0)) < MIN_SPEED_CHANGE;
 
-    if (shouldIgnore) return; 
+    //if (shouldIgnore) return;
     if (initialRouteOptions?.coordinates) {
       const distanceToRoute = getNearestDistanceToPolyline(
         location.coords,
@@ -336,7 +358,7 @@ export const useNavigationLogic = ({
       lastSpeed.current = speed;
 
       coordinates.timing({ latitude, longitude, duration: 500 }).start();
-      updateCamera(map, location.coords, heading);
+      updateCamera(map, location.coords, isCameraLockedRef, heading);
       getInstruction(currentCoords, hd, speed);
     } finally {
       setTimeout(() => {
@@ -356,5 +378,6 @@ export const useNavigationLogic = ({
     isLoading,
     updateCamera,
     handleLocationUpdate,
+    speedValue,
   };
 };
