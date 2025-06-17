@@ -116,6 +116,7 @@ const MapScreen = () => {
                 mode: "itinerary",
                 initialRouteOptions: routeOptions,
                 fromAddress: item.properties.label,
+                isNavigating:false
               });
             }}
             onSheetHeightChange={(height) => setSheetHeight(height)}

@@ -38,6 +38,7 @@ export const useNavigationLogic = ({
   const [arrivalTimeStr, setArrivalTimeStr] = useState("00:00");
   const [remainingTimeInSeconds, setRemainingTimeInSeconds] = useState(0);
   const [speedValue, setSpeedValue] = useState(0);
+  const lastUpdateTime = useRef(Date.now());
 
   const coordinates = useRef(
     new AnimatedRegion({ latitude: 0, longitude: 0 })
@@ -48,7 +49,7 @@ export const useNavigationLogic = ({
   const speedRef = useRef(0);
   const distanceTraveled = useRef(0);
   const currentStep = useRef(0);
-
+  console.log("lastLocation:", lastLocation.current);
   // =============================
   //       UTILITY FUNCTIONS
   // =============================
@@ -64,12 +65,12 @@ export const useNavigationLogic = ({
           2
     );
 
-    const interpolatePosition = (start, end, t) => {
-      return {
-        latitude: start.latitude + (end.latitude - start.latitude) * t,
-        longitude: start.longitude + (end.longitude - start.longitude) * t,
-      };
+  const interpolatePosition = (start, end, t) => {
+    return {
+      latitude: start.latitude + (end.latitude - start.latitude) * t,
+      longitude: start.longitude + (end.longitude - start.longitude) * t,
     };
+  };
 
   const mercatorLongitudeToX = (longitude) =>
     Math.round(MERCATOR_OFFSET + (MERCATOR_RADIUS * longitude * Math.PI) / 180);
@@ -180,20 +181,36 @@ export const useNavigationLogic = ({
           latitudeDelta,
           longitudeDelta,
         },
-        { duration: 400 }
+        { duration: 200 }
       );
 
       // lastLocation.current = coords;
       // lastHeading.current = coords.heading;
       //  }
-      runOnUI(() => {
+      const now = Date.now();
+
+      if (lastLocation.current) {
+        const distanceMeters = getDistance(lastLocation.current, coords);
+        const timeSeconds = (now - lastUpdateTime.current) / 1000;
+        console.log(
+          "distanceMeters:",
+          distanceMeters,
+          "timeSeconds:",
+          timeSeconds
+        );
+        if (timeSeconds > 0 && distanceMeters > 5) {
+          const computedSpeed = (distanceMeters / timeSeconds) * 3.6;
+          runOnJS(setSpeedValue)(computedSpeed);
+        }
+      }
+      lastUpdateTime.current = now;
+      lastLocation.current = coords;
+      runOnUI((coords, now, lastLocation) => {
         "worklet";
-        const alpha = 0.2;
+        const alpha = 0.4;
         heading.value =
           heading.value + alpha * (coords.heading - heading.value);
-        //const speed = coords.speed != null ? coords.speed * 3.6 : 0;
-        // runOnJS(setSpeedValue)(speed);
-      })();
+      })(coords, Date.now(), lastLocation);
     },
     [SCREEN_RATIO, isCameraLockedRef]
   );
@@ -368,13 +385,13 @@ export const useNavigationLogic = ({
       lastHeading.current = hd;
       lastSpeed.current = speed;
 
-      coordinates.timing({ latitude, longitude, duration: 500 }).start();
+      coordinates.timing({ latitude, longitude, duration: 200 }).start();
       updateCamera(map, location.coords, isCameraLockedRef, heading);
       getInstruction(currentCoords, hd, speed);
     } finally {
       setTimeout(() => {
         isUpdatingRef.current = false;
-      }, 300); // anti-concurrence
+      }, 200); // anti-concurrence
     }
   };
 
