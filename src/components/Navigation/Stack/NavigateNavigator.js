@@ -19,14 +19,16 @@ function NavigateNavigator() {
             const mode = route.params?.mode || "address";
             return {
               display: mode === "itinerary" ? "none" : "flex",
-   
             };
           },
           headerLeft: () => (
             <HeaderBackButton
               title="retour"
               onPress={() => {
-                navigation.navigate("MapScreen", { mode: "address" });
+                navigation.navigate("MapScreen", {
+                  key: String(Date.now()),
+                  mode: "address",
+                });
               }}
             />
           ),

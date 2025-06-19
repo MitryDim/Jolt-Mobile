@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import MapView from "react-native-maps";
-import { View, Text } from "react-native";
+import { View, Text, Dimensions } from "react-native";
 import * as Location from "expo-location";
 import MapRoutes from "./MapRoutes";
 import UserMarker from "./UserMarker";
@@ -11,10 +11,18 @@ import LoadingOverlay from "../LoadingOverlay";
 import OptionBottomSheet from "./BottomSheet/OptionButtomSheet";
 import IconComponent from "../Icons";
 import Animated, {
+  Extrapolate,
+  interpolate,
   useAnimatedProps,
+  useAnimatedStyle,
   useDerivedValue,
 } from "react-native-reanimated";
+import { useFocusEffect } from "@react-navigation/native";
+import NavigationBottomSheet from "./BottomSheet/NavigateBottomSheet";
 
+import { useNavigation } from "@react-navigation/native";
+import SpeedBubble from "./SpeedBubble";
+import { useAnimatedPosition } from "../../context/AnimatedPositionContext";
 const MapContainer = ({
   styleMaps,
   initialRouteOptions,
@@ -26,9 +34,11 @@ const MapContainer = ({
   showManeuver,
   handleSheetClose,
   sheetOffsetValue,
+  bottomSheetRef,
   infoTravelAnimatedStyle,
   mode,
 }) => {
+  const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
   const isCameraLockedRef = useRef(false);
   const cameraTimeoutRef = useRef(null);
@@ -57,6 +67,38 @@ const MapContainer = ({
     mode,
     isCameraLockedRef,
   });
+  console.log("MapContainer rendered with mode:", mode);
+  const windowHeight = Dimensions.get("window").height;
+  const animatedPositionRef = useAnimatedPosition();
+  const animatedPosition = animatedPositionRef?.current;
+
+  const speedBubbleAnimatedStyle = useAnimatedStyle(() => {
+    if (!animatedPosition) return {};
+
+    const translateY = interpolate(
+      animatedPosition.value,
+      [windowHeight, 0],
+      [0, -windowHeight],
+      {
+        extrapolateLeft: "extend",
+        extrapolateRight: "extend",
+      }
+    );
+    console.log(
+      "SpeedBubble translateY:",
+      translateY,
+      "  animatedPosition.value",
+      animatedPosition.value,
+    );
+    const zIndex = translateY < -windowHeight / 2 ? 0 : 10;
+    const display = translateY < -windowHeight / 2 ? "none" : "flex";
+
+    return {
+      transform: [{ translateY }],
+      zIndex,
+      display,
+    };
+  });
 
   const handleUserPan = () => {
     if (isNavigating) {
@@ -80,22 +122,28 @@ const MapContainer = ({
     if (!isNavigating) return;
     handleSheetClose(isCameraLocked);
   }, [isCameraLocked]);
-  useEffect(() => {
-    let subscription;
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-        },
-        (location) => {
-          handleLocationUpdate(location, mapRef.current);
-        }
-      );
-    })();
-    return () => subscription?.remove();
-  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let subscription;
+      (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.BestForNavigation,
+          },
+          (location) => {
+            if (mode == "itinerary") return;
+            handleLocationUpdate(location, mapRef.current);
+          }
+        );
+      })();
+      return () => {
+        subscription?.remove();
+      };
+    }, [mode, initialRouteOptions])
+  );
 
   useEffect(() => {
     // if (
@@ -153,35 +201,58 @@ const MapContainer = ({
       </MapView>
 
       {isNavigating && showManeuver && currentInstruction && (
-        <ManeuverOverlay
-          currentInstruction={currentInstruction}
-          distance={distance}
-          arrivalTimeStr={arrivalTimeStr}
-          remainingTimeInSeconds={remainingTimeInSeconds}
-          infoTravelAnimatedStyle={infoTravelAnimatedStyle}
-          handleSheetClose={handleSheetClose}
-        />
+        <View
+          className="absolute top-0 left-0 right-0 z-10 h-full"
+          pointerEvents="box-none"
+        >
+          <ManeuverOverlay
+            currentInstruction={currentInstruction}
+            distance={distance}
+            arrivalTimeStr={arrivalTimeStr}
+            remainingTimeInSeconds={remainingTimeInSeconds}
+            infoTravelAnimatedStyle={infoTravelAnimatedStyle}
+            handleSheetClose={handleSheetClose}
+          />
+          <NavigationBottomSheet
+            bottomSheetRef={bottomSheetRef}
+            currentInstruction={currentInstruction}
+            distance={distance}
+            arrivalTimeStr={arrivalTimeStr}
+            remainingTimeInSeconds={remainingTimeInSeconds}
+            onStop={() => {
+              navigation.navigate("MapScreen", {
+                mode: "address",
+                fromAddress: "",
+                initialRouteOptions: [],
+                userSpeed: 0,
+                currentRegion: null,
+                showManeuver: false,
+                isLoading: false,
+                arrivalTimeStr: "",
+                remainingTimeInSeconds: 0,
+                currentInstruction: null,
+                distance: 0,
+              });
+              // Action pour arrêter la navigation
+            }}
+          />
+        </View>
       )}
 
       {isNavigating && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: 80,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              zIndex: 20,
+            },
+            speedBubbleAnimatedStyle,
+          ]}
         >
-          <IconComponent
-            icon="speedometer"
-            library="MaterialCommunityIcons"
-            size={24}
-            color="black"
-            style={{ marginRight: 8 }}
-          />
-
-          <Text style={{ color: "black", marginLeft: 8 }}>{speedValue}</Text>
-        </View>
+          <SpeedBubble speed={speedValue} />
+        </Animated.View>
       )}
 
       {isLoading && (

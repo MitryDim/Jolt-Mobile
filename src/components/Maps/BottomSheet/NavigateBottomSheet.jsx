@@ -14,12 +14,13 @@ import Animated, {
 import { formatElapsedTime, formatDistance } from "../../../utils/Utils";
 
 export default function NavigationBottomSheet({
-  remainingTimeInSeconds,arrivalTimeStr,
+  remainingTimeInSeconds,
+  arrivalTimeStr,
   distance,
   onStop,
-}) {
-  const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => [56,"50%", "80%"]);
+  bottomSheetRef,
+}) { 
+  const snapPoints = useMemo(() => [56, "50%", "80%"]);
   const animatedIndex = useSharedValue(1);
 
   const animatedFooterStyle = useAnimatedStyle(() => ({

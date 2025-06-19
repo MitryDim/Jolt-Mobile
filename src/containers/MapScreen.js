@@ -18,6 +18,7 @@ import ItineraryBottomSheet from "../components/Maps/BottomSheet/ItineraryBottom
 import HeaderMap from "../components/Maps/HeaderMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationMode } from "../context/NavigationModeContext";
+import { AnimatedPositionContext } from "../context/AnimatedPositionContext";
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const BASE_REFERENCE_HEIGHT = 1920; // référence pour un écran complet sans bottomsheet
 
@@ -47,6 +48,13 @@ const MapScreen = () => {
     route.params?.selectedRouteIndex || 0
   );
   const { setMode } = useNavigationMode();
+  const animatedPositionRef = useRef(null);
+
+  const handleHandleComponent = ({ animatedPosition: ap }) => {
+    animatedPositionRef.current = ap;
+  };
+
+
   useEffect(() => {
     setMode(mode);
   }, [mode]);
@@ -113,12 +121,14 @@ const MapScreen = () => {
             bottomSheetRef={bottomSheetRef}
             onSelectAddress={(item, routeOptions) => {
               navigation.navigate("MapScreen", {
+                key: String(Date.now()),
                 mode: "itinerary",
                 initialRouteOptions: routeOptions,
                 fromAddress: item.properties.label,
-                isNavigating:false
+                isNavigating: false,
               });
             }}
+            handleHandleComponent={handleHandleComponent}
             onSheetHeightChange={(height) => setSheetHeight(height)}
           />
         </View>
@@ -143,6 +153,7 @@ const MapScreen = () => {
             handleGoButtonPress={() => {
               // Navigation vers le mode travel avec les options nécessaires
               navigation.navigate("MapScreen", {
+                key: String(Date.now()),
                 mode: "travel",
                 initialRouteOptions: initialRouteOptions,
                 selectedRouteIndex: selectedRouteIndex,
@@ -183,6 +194,7 @@ const MapScreen = () => {
   };
 
   return (
+    <AnimatedPositionContext.Provider value={animatedPositionRef}>
     <SafeAreaView
       className={`flex ${
         mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
@@ -201,11 +213,13 @@ const MapScreen = () => {
           onPolylineSelect={(index) => console.log("Polyline selected:", index)}
           handleSheetClose={handleSheetChange}
           sheetOffsetValue={sheetHeight}
+          bottomSheetRef={bottomSheetRef}
           infoTravelAnimatedStyle={infoTravelAnimatedStyle}
         />
         {renderModeSpecificUI()}
       </View>
     </SafeAreaView>
+    </AnimatedPositionContext.Provider>
   );
 };
 

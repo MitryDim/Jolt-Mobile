@@ -1,18 +1,22 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { Dimensions, Platform, useAnimatedValue } from "react-native";
 import { AnimatedRegion } from "react-native-maps";
-import { getDistance, findNearest, getGreatCircleBearing } from "geolib";
+import {
+  getDistance,
+  findNearest,
+  getGreatCircleBearing,
+  computeDestinationPoint,
+} from "geolib";
 
 import * as api from "../../helpers/Api";
-import {
-  runOnJS,
-  runOnUI,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { runOnUI, useSharedValue, withSpring } from "react-native-reanimated";
 
 const MERCATOR_OFFSET = Math.pow(2, 28);
 const MERCATOR_RADIUS = MERCATOR_OFFSET / Math.PI;
+let speedHistory = [];
+const DEFAULT_SPEED = 15; // km/h
+const INSTRUCTION_LOOKAHEAD_DISTANCE = 10; // mètres
+const ROUTE_DEVIATION_THRESHOLD = 30; // mètres
 
 export const useNavigationLogic = ({
   initialRouteOptions,
@@ -48,11 +52,29 @@ export const useNavigationLogic = ({
   const lastLocation = useRef(null);
   const speedRef = useRef(0);
   const distanceTraveled = useRef(0);
-  const currentStep = useRef(0);
-  console.log("lastLocation:", lastLocation.current);
   // =============================
   //       UTILITY FUNCTIONS
   // =============================
+
+  useEffect(() => {
+    //reinitialiser les valeurs si le mode change
+
+    lastCoords.current = null;
+    lastHeading.current = null;
+    lastSpeed.current = null;
+    lastLocation.current = null;
+    distanceTraveled.current = 0;
+    coordinates.setValue({ latitude: 0, longitude: 0 });
+    heading.value = withSpring(0, { damping: 10, stiffness: 100 });
+    setCurrentInstruction(null);
+    setRouteOptions(initialRouteOptions || []);
+    setDistance(0);
+    setArrivalTimeStr("00:00");
+    setRemainingTimeInSeconds(0);
+    setSpeedValue(0);
+    setIsLoading(false);
+    lastUpdateTime.current = Date.now();
+  }, [mode]);
 
   const mercatorLatitudeToY = (latitude) =>
     Math.round(
@@ -65,10 +87,67 @@ export const useNavigationLogic = ({
           2
     );
 
-  const interpolatePosition = (start, end, t) => {
+  const findClosestPointOnPolyline = (polyline, point) => {
+    if (polyline.length < 2) {
+      return {
+        closestPoint: polyline[0],
+        minDistance: getDistance(point, polyline[0]),
+        closestIndex: 0,
+      };
+    }
+
+    let closestPoint = null;
+    let minDistance = Number.MAX_SAFE_INTEGER;
+    let closestIndex = -1;
+
+    for (let i = 0; i < polyline.length - 1; i++) {
+      const start = polyline[i];
+      const end = polyline[i + 1];
+
+      const segmentDistance = getDistance(start, end);
+      const toPointDistance = getDistance(start, point);
+      const bearingStartToEnd = getGreatCircleBearing(start, end);
+      const bearingStartToPoint = getGreatCircleBearing(start, point);
+
+      const angleDiff = Math.abs(bearingStartToEnd - bearingStartToPoint);
+      const projectionDistance =
+        toPointDistance * Math.cos(angleDiff * (Math.PI / 180));
+
+      if (projectionDistance >= 0 && projectionDistance <= segmentDistance) {
+        const projectedPoint = computeDestinationPoint(
+          start,
+          projectionDistance,
+          bearingStartToEnd
+        );
+        const distanceToProjectedPoint = getDistance(point, projectedPoint);
+
+        if (distanceToProjectedPoint < minDistance) {
+          minDistance = distanceToProjectedPoint;
+          closestPoint = projectedPoint;
+          closestIndex = i;
+        }
+      } else {
+        // Aux extrémités du segment
+        const distanceToStart = getDistance(point, start);
+        const distanceToEnd = getDistance(point, end);
+
+        if (distanceToStart < minDistance) {
+          minDistance = distanceToStart;
+          closestPoint = start;
+          closestIndex = i;
+        }
+        if (distanceToEnd < minDistance) {
+          minDistance = distanceToEnd;
+          closestPoint = end;
+          closestIndex = i + 1;
+        }
+      }
+    }
+
     return {
-      latitude: start.latitude + (end.latitude - start.latitude) * t,
-      longitude: start.longitude + (end.longitude - start.longitude) * t,
+      closestPoint,
+      minDistance,
+      closestIndex,
     };
   };
 
@@ -122,8 +201,7 @@ export const useNavigationLogic = ({
   };
   const getOffset = (zoom, heading, screenRatio, mode, currentLatitude) => {
     // Ajustement plus agressif si en navigation
-    const factor =
-      mode === "travel" ? 0.01 + (speedRef.current / 100) * 0.005 : 0.005;
+    const factor = 0.005;
     const BASE_OFFSET = -factor * screenRatio;
     const offset = BASE_OFFSET / Math.pow(2, zoom);
     const radHeading = heading * (Math.PI / 180);
@@ -142,19 +220,17 @@ export const useNavigationLogic = ({
 
   const updateCamera = useCallback(
     (map, coords, isCameraLockedRef, headingValue) => {
-      console.log(
-        "Updating camera with isCameraLocked:",
-        isCameraLockedRef.current
-      );
       if (isCameraLockedRef.current) return;
       if (!coords || !map) return;
+
+      let location = coords;
 
       // const positionChange = getDistance(lastLocation.current, coords) > 1; // seuil de 1m avant d'animer
       // const headingChange = Math.abs(lastHeading.current - coords.heading) > 3; // seuil de 3°
       const zoomLevel = Platform.OS === "ios" ? 20 : 19;
       const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
-        coords.latitude,
-        coords.longitude,
+        location.latitude,
+        location.longitude,
         width,
         height,
         zoomLevel
@@ -165,14 +241,14 @@ export const useNavigationLogic = ({
         coords.heading,
         SCREEN_RATIO,
         mode,
-        coords.latitude
+        location.latitude
       );
       // if (positionChange || headingChange) {
       map.animateCamera(
         {
           center: {
-            latitude: coords.latitude + offsetLatitude,
-            longitude: coords.longitude + offsetLongitude,
+            latitude: location.latitude + offsetLatitude,
+            longitude: location.longitude + offsetLongitude,
           },
           heading: coords.heading,
           pitch: Platform.OS === "ios" ? 60 : 75,
@@ -192,25 +268,19 @@ export const useNavigationLogic = ({
       if (lastLocation.current) {
         const distanceMeters = getDistance(lastLocation.current, coords);
         const timeSeconds = (now - lastUpdateTime.current) / 1000;
-        console.log(
-          "distanceMeters:",
-          distanceMeters,
-          "timeSeconds:",
-          timeSeconds
-        );
+
         if (timeSeconds > 0 && distanceMeters > 5) {
           const computedSpeed = (distanceMeters / timeSeconds) * 3.6;
-          runOnJS(setSpeedValue)(computedSpeed);
+          setSpeedValue(computedSpeed);
         }
       }
       lastUpdateTime.current = now;
-      lastLocation.current = coords;
-      runOnUI((coords, now, lastLocation) => {
+      runOnUI((coords, now) => {
         "worklet";
         const alpha = 0.4;
         heading.value =
           heading.value + alpha * (coords.heading - heading.value);
-      })(coords, Date.now(), lastLocation);
+      })(location, Date.now());
     },
     [SCREEN_RATIO, isCameraLockedRef]
   );
@@ -219,21 +289,30 @@ export const useNavigationLogic = ({
   //       NAVIGATION LOGIC
   // =============================
 
+  function updateSpeed(currentSpeed) {
+    if (currentSpeed > 2) {
+      speedHistory.push(currentSpeed);
+      if (speedHistory.length > 10) speedHistory.shift();
+    }
+  }
+
+  function getEstimatedSpeed() {
+    if (speedHistory.length === 0) return DEFAULT_SPEED;
+    return speedHistory.reduce((a, b) => a + b, 0) / speedHistory.length;
+  }
+
+  function calculateETA(distanceRemainingKm) {
+    let speed = getEstimatedSpeed();
+    let timeHours = distanceRemainingKm / speed;
+    return timeHours * 60; // minutes
+  }
+
   const getAllDistanceRest = (coords, i) => {
     let d = 0;
     for (let j = i; j < coords.length - 1; j++) {
       d += getDistance(coords[j], coords[j + 1]);
     }
     return d;
-  };
-
-  const getInstructionByCoordinates = (coordinates, instructions, index) => {
-    const target = coordinates[index];
-    const found = instructions.find((i) => {
-      const [lng, lat] = i.maneuver.location;
-      return lng === target.longitude && lat === target.latitude;
-    });
-    return found || instructions[instructions.length - 1] || null;
   };
 
   const IsInFront = (currentPosition, targetPosition, heading) => {
@@ -247,95 +326,58 @@ export const useNavigationLogic = ({
     return diff <= 90 || diff >= 270;
   };
 
-  // Trouve le point le plus proche d'une polyligne
-  const getNearestDistanceToPolyline = (currentPosition, polyline) => {
-    let minDistance = Infinity;
-    polyline.forEach((point) => {
-      const d = getDistance(currentPosition, point);
-      if (d < minDistance) minDistance = d;
-    });
-    return minDistance;
-  };
+  const getInstruction = (closestIndex, curLoc, headingValue, speed) => {
+    if (!initialRouteOptions?.instructions) return;
 
-  const getCurrentInstruction = (
-    currentPosition,
-    instructions,
-    coords,
-    heading
-  ) => {
-    const nearest = findNearest(currentPosition, coords);
-    const idx = coords.findIndex(
-      (c) =>
-        c.latitude === nearest.latitude && c.longitude === nearest.longitude
+    const { instructions, coordinates: coords } = initialRouteOptions;
+
+    // Trouver l'instruction en cours via l'index
+    const instruction = instructions.find(
+      (i) => i.way_points[0] > closestIndex
     );
-
-    let totalDistance = 0;
-    let lastIdx = 0;
-    let instruction = null;
-
-    for (let i = 0; i < instructions.length; i++) {
-      const [start, end] = instructions[i].way_points;
-      if (idx >= start && idx <= end) {
-        instruction = instructions[i];
-        break;
-      }
+    if (!instruction) {
+      setCurrentInstruction(null);
+      setDistance(0);
+      return;
     }
 
-    if (!instruction)
-      return { closestInstruction: null, distanceRest: 0, distance: 0 };
-
+    // Distance restante sur l'instruction courante
     let distanceRest = 0;
-    for (
-      let i = instruction.way_points[0];
-      i <= instruction.way_points[1];
-      i++
-    ) {
+    let lastIdx = closestIndex;
+    for (let i = closestIndex + 1; i <= instruction.way_points[1]; i++) {
       const point = coords[i];
-      if (IsInFront(currentPosition, point, heading)) {
-        distanceRest += getDistance(currentPosition, point);
+      if (IsInFront(curLoc, point, headingValue)) {
+        distanceRest += getDistance(curLoc, point);
+        curLoc = point;
         lastIdx = i;
       }
     }
 
-    totalDistance = getAllDistanceRest(coords, lastIdx) + distanceRest;
-    const foundInstruction = getInstructionByCoordinates(
-      coords,
-      instructions,
-      instruction.way_points[1]
-    );
-
-    return {
-      closestInstruction: foundInstruction,
-      distanceRest,
-      distance: totalDistance,
-    };
-  };
-
-  const getInstruction = async (curLoc, headingValue, speed) => {
-    if (!initialRouteOptions?.instructions) return;
-
-    const { instructions, coordinates: coords } = initialRouteOptions;
-    const inst = getCurrentInstruction(
-      curLoc,
-      instructions,
-      coords,
-      headingValue
-    );
-
-    setCurrentInstruction(inst);
-    setDistance(inst.distance);
-
-    if (lastLocation.current && speed > 0) {
-      distanceTraveled.current += getDistance(lastLocation.current, curLoc);
+    // Distance totale restante jusqu'à la fin
+    let totalDistance = distanceRest;
+    for (let i = lastIdx; i < coords.length - 1; i++) {
+      totalDistance += getDistance(coords[i], coords[i + 1]);
     }
 
+    setCurrentInstruction({
+      closestInstruction: instruction,
+      distanceRest: distanceRest,
+      distance: totalDistance,
+    });
+    setDistance(totalDistance);
+
+    // if (lastLocation.current && speed > 0) {
+    //   distanceTraveled.current += getDistance(lastLocation.current, curLoc);
+    // }
+ 
     if (showManeuver && isNavigating) {
-      const elapsed = (Date.now() - startTime) / 1000;
-      const routeDistance = routeOptions[0]?.routeDistance || 1;
-      const avgSpeed = speed > 0 ? distanceTraveled.current / elapsed : 25;
-      const remaining = inst.distance / avgSpeed;
-      setRemainingTimeInSeconds(remaining);
-      const eta = new Date(startTime + remaining * 1000);
+      // const elapsed = (Date.now() - startTime) / 1000;
+      // const routeDistance = routeOptions[0]?.routeDistance || 1;
+
+      const remainingMinutes = calculateETA(totalDistance / 1000);
+      setRemainingTimeInSeconds(remainingMinutes * 60);
+
+      const eta = new Date(Date.now() + remainingMinutes * 60 * 1000);
       setArrivalTimeStr(
         `${eta.getHours().toString().padStart(2, "0")}:${eta
           .getMinutes()
@@ -343,8 +385,6 @@ export const useNavigationLogic = ({
           .padStart(2, "0")}`
       );
     }
-
-    lastLocation.current = curLoc;
   };
 
   const handleLocationUpdate = async (location, map) => {
@@ -366,28 +406,65 @@ export const useNavigationLogic = ({
       Math.abs(speed - (lastSpeed.current ?? 0)) < MIN_SPEED_CHANGE;
 
     //if (shouldIgnore) return;
-    if (initialRouteOptions?.coordinates) {
-      const distanceToRoute = getNearestDistanceToPolyline(
-        location.coords,
-        initialRouteOptions.coordinates
-      );
-      console.log("Distance to route:", distanceToRoute);
-      if (distanceToRoute > 30) {
-        console.log("Hors itinéraire, recalcul en cours...");
-        // déclenchement éventuel d'un recalcul via api
-      }
-    }
+    // if (initialRouteOptions?.coordinates) {
+    //   const distanceToRoute = getNearestDistanceToPolyline(
+    //     location.coords,
+    //     initialRouteOptions.coordinates
+    //   );
+    //   console.log("Distance to route:", distanceToRoute);
+    //   if (distanceToRoute > 30) {
+    //     console.log("Hors itinéraire, recalcul en cours...");
+    //     // déclenchement éventuel d'un recalcul via api
+    //   }
+    // }
 
     isUpdatingRef.current = true;
 
     try {
-      lastCoords.current = currentCoords;
+      const newLocation = location.coords;
+      let closestI = null;
+      if (
+        initialRouteOptions?.coordinates &&
+        initialRouteOptions?.coordinates.length > 0
+      ) {
+        const { closestPoint, minDistance, closestIndex } =
+          findClosestPointOnPolyline(
+            initialRouteOptions?.coordinates,
+            newLocation
+          );
+
+        if (minDistance > ROUTE_DEVIATION_THRESHOLD) {
+          console.warn(`Location deviated too far from route: ${minDistance}m`);
+          // Optionnel : Recalculer l'itinéraire ou notifier l'utilisateur
+        }
+        closestI = closestIndex;
+        newLocation.latitude = closestPoint.latitude;
+        newLocation.longitude = closestPoint.longitude;
+      }
+      lastCoords.current = {
+        latitude: newLocation.latitude,
+        longitude: newLocation.longitude,
+      };
       lastHeading.current = hd;
       lastSpeed.current = speed;
 
-      coordinates.timing({ latitude, longitude, duration: 200 }).start();
-      updateCamera(map, location.coords, isCameraLockedRef, heading);
-      getInstruction(currentCoords, hd, speed);
+      coordinates
+        .timing({
+          latitude: newLocation.latitude,
+          longitude: newLocation.longitude,
+          duration: 200,
+        })
+        .start();
+      updateCamera(map, newLocation, isCameraLockedRef, heading);
+      updateSpeed(speedRef.current);
+      getInstruction(closestI, newLocation, hd, speed);
+      if (lastLocation.current) {
+        distanceTraveled.current += getDistance(
+          lastLocation.current,
+          newLocation
+        );
+      }
+      lastLocation.current = newLocation;
     } finally {
       setTimeout(() => {
         isUpdatingRef.current = false;

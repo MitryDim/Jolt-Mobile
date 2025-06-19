@@ -5,22 +5,42 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { View, Text, TextInput, StyleSheet, Keyboard } from "react-native";
+import { View, Text, TextInput, StyleSheet, Keyboard, Animated } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import IconComponent from "./Icons";
 import ActivityIndicator from "./ActivityIndicator";
 import { calculateMultipleRoutes } from "../helpers/Api";
-import * as Location from "expo-location";
+import * as Location from "expo-location"; 
+import { useAnimatedReaction } from "react-native-reanimated";
 const AddressBottomSheet = ({
   bottomSheetRef,
   onSelectAddress,
   onSheetHeightChange,
+  handleHandleComponent,
 }) => {
   const snapPoints = useMemo(() => [90, "25%", "95%"], []);
   const [addressInput, setAddressInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
+ // const animatedPosition = React.useRef(null);
+
+  // const handleHandleComponent = ({ animatedPosition: ap }) => {
+  //   animatedPosition.current = ap;
+  // };
+
+  // useAnimatedReaction(
+  //   () => {
+  //     return animatedPosition.current ? animatedPosition.current.value : 0;
+  //   },
+  //   (position, previousPosition) => {
+  //     if (position !== previousPosition) {
+  //       // Cette callback est exécutée dans le UI thread
+  //       console.log("BottomSheet position (animated):", position);
+  //     }
+  //   },
+  //   [animatedPosition]
+  // );
 
   const handleSheetChange = useCallback((index) => {
     if (snapPoints[index] !== "95%") Keyboard.dismiss();
@@ -125,6 +145,7 @@ const AddressBottomSheet = ({
       enablePanDownToClose={false}
       onChange={handleSheetChange}
       onLayout={(e) => onSheetHeightChange?.(e.nativeEvent.layout.height)}
+      handleComponent={handleHandleComponent}
     >
       {renderHeader()}
       <BottomSheetFlatList
