@@ -19,7 +19,8 @@ export default function NavigationBottomSheet({
   distance,
   onStop,
   bottomSheetRef,
-}) { 
+  handleComponent,
+}) {
   const snapPoints = useMemo(() => [56, "50%", "80%"]);
   const animatedIndex = useSharedValue(1);
 
@@ -82,9 +83,10 @@ export default function NavigationBottomSheet({
         animatedIndex.value = withSpring(toIndex);
       }}
       footerComponent={renderFooter}
-      handleComponent={renderHeader}
+      handleComponent={handleComponent}
     >
       <BottomSheetView>
+        {renderHeader()}
         <View style={styles.content}>
           <Text style={styles.title}>Navigation en cours...</Text>
           <Text style={styles.subtitle}>

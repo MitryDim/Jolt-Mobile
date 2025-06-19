@@ -1,21 +1,11 @@
 import React, { useRef, useState, useEffect, useMemo, use } from "react";
 import { View, StyleSheet, Text, Dimensions } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import * as Location from "expo-location";
 import MapContainer from "../components/Maps/MapContainer";
 import AddressBottomSheet from "../components/AddressBottomSheet";
-import ItinerarySuggestions from "../components/Maps/ItinerarySuggestions";
-import ManeuverOverlay from "../components/Maps/ManeuverOverlay";
 import LoadingOverlay from "../components/LoadingOverlay";
-import BottomSheet, {
-  BottomSheetFlatList,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
-
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import ItineraryBottomSheet from "../components/Maps/BottomSheet/ItineraryBottomSheet";
-import HeaderMap from "../components/Maps/HeaderMap";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigationMode } from "../context/NavigationModeContext";
 import { AnimatedPositionContext } from "../context/AnimatedPositionContext";
@@ -39,8 +29,8 @@ const MapScreen = () => {
     currentInstruction,
     distance,
     infoTravelAnimatedStyle,
-  } = route.params || {};
-
+    isNavigating=true,
+  } = route.params || {}; 
   const [userLocation, setUserLocation] = useState(null);
   const [sheetHeight, setSheetHeight] = useState(0);
   const bottomSheetRef = useRef(null);
@@ -50,17 +40,16 @@ const MapScreen = () => {
   const { setMode } = useNavigationMode();
   const animatedPositionRef = useRef(null);
 
-  const handleHandleComponent = ({ animatedPosition: ap }) => {
+  const handleComponent = ({ animatedPosition: ap }) => {
     animatedPositionRef.current = ap;
   };
-
 
   useEffect(() => {
     setMode(mode);
   }, [mode]);
   useEffect(() => {
     console.log("MapScreen rendered with mode:", mode);
-    let subscription;
+ 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
@@ -119,17 +108,18 @@ const MapScreen = () => {
           <AddressBottomSheet
             userLocation={userLocation}
             bottomSheetRef={bottomSheetRef}
-            onSelectAddress={(item, routeOptions) => {
+            onSelectAddress={(routeLabel, routeOptions) => {
               navigation.navigate("MapScreen", {
                 key: String(Date.now()),
                 mode: "itinerary",
                 initialRouteOptions: routeOptions,
-                fromAddress: item.properties.label,
+                fromAddress: routeLabel,
                 isNavigating: false,
               });
             }}
-            handleHandleComponent={handleHandleComponent}
+            handleComponent={handleComponent}
             onSheetHeightChange={(height) => setSheetHeight(height)}
+            navigation={navigation}
           />
         </View>
       );
@@ -195,30 +185,32 @@ const MapScreen = () => {
 
   return (
     <AnimatedPositionContext.Provider value={animatedPositionRef}>
-    <SafeAreaView
-      className={`flex ${
-        mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
-      }`}
-    >
-      <View>
-        <MapContainer
-          mode={mode}
-          initialRouteOptions={initialRouteOptions}
-          selectedRouteIndex={selectedRouteIndex}
-          isNavigating={mode === "travel" || mode === "address"}
-          screenHeightRatio={screenHeightRatio}
-          currentRegion={userLocation}
-          showManeuver={showManeuver}
-          styleMaps={styles.map}
-          onPolylineSelect={(index) => console.log("Polyline selected:", index)}
-          handleSheetClose={handleSheetChange}
-          sheetOffsetValue={sheetHeight}
-          bottomSheetRef={bottomSheetRef}
-          infoTravelAnimatedStyle={infoTravelAnimatedStyle}
-        />
-        {renderModeSpecificUI()}
-      </View>
-    </SafeAreaView>
+      <SafeAreaView
+        className={`flex ${
+          mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
+        }`}
+      >
+        <View>
+          <MapContainer
+            mode={mode}
+            initialRouteOptions={initialRouteOptions}
+            selectedRouteIndex={selectedRouteIndex}
+            isNavigating={isNavigating}
+            screenHeightRatio={screenHeightRatio}
+            currentRegion={userLocation}
+            showManeuver={showManeuver}
+            styleMaps={styles.map}
+            onPolylineSelect={(index) =>
+              console.log("Polyline selected:", index)
+            }
+            handleSheetClose={handleSheetChange}
+            sheetOffsetValue={sheetHeight}
+            bottomSheetRef={bottomSheetRef}
+            infoTravelAnimatedStyle={infoTravelAnimatedStyle}
+          />
+          {renderModeSpecificUI()}
+        </View>
+      </SafeAreaView>
     </AnimatedPositionContext.Provider>
   );
 };

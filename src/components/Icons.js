@@ -4,6 +4,8 @@ import {
   MaterialCommunityIcons,
   AntDesign,
   Entypo,
+  FontAwesome6,
+  Feather,
 } from "@expo/vector-icons";
 
 const IconComponent = ({ library, icon, ...props }) => {
@@ -18,6 +20,10 @@ const IconComponent = ({ library, icon, ...props }) => {
       return <AntDesign name={icon} {...props} />;
     case "Entypo":
       return <Entypo name={icon} {...props} />;
+    case "FontAwesome6":
+      return <FontAwesome6 name={icon} {...props} />;
+    case "Feather":
+      return <Feather name={icon} {...props} />;
     default:
       return null;
   }

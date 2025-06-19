@@ -5,50 +5,113 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { View, Text, TextInput, StyleSheet, Keyboard, Animated } from "react-native";
-import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BottomSheet, {
+  BottomSheetFlatList,
+  BottomSheetTextInput,
+  TouchableWithoutFeedback,
+} from "@gorhom/bottom-sheet";
 import IconComponent from "./Icons";
-import ActivityIndicator from "./ActivityIndicator";
 import { calculateMultipleRoutes } from "../helpers/Api";
-import * as Location from "expo-location"; 
-import { useAnimatedReaction } from "react-native-reanimated";
+import * as Location from "expo-location";
+import { FlatList } from "react-native-gesture-handler";
+import { useFocusEffect } from "@react-navigation/native";
+import { useNavigationMode } from "../context/NavigationModeContext";
+import LoadingOverlay from "./LoadingOverlay";
+
 const AddressBottomSheet = ({
   bottomSheetRef,
   onSelectAddress,
   onSheetHeightChange,
-  handleHandleComponent,
+  handleComponent,
+  navigation,
 }) => {
+  const [history, setHistory] = useState([]);
+  const { favoritesAddresses, fetchFavorites } = useNavigationMode();
   const snapPoints = useMemo(() => [90, "25%", "95%"], []);
   const [addressInput, setAddressInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
- // const animatedPosition = React.useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const MAX_VISIBLE = 3;
 
-  // const handleHandleComponent = ({ animatedPosition: ap }) => {
-  //   animatedPosition.current = ap;
-  // };
-
-  // useAnimatedReaction(
-  //   () => {
-  //     return animatedPosition.current ? animatedPosition.current.value : 0;
-  //   },
-  //   (position, previousPosition) => {
-  //     if (position !== previousPosition) {
-  //       // Cette callback est exécutée dans le UI thread
-  //       console.log("BottomSheet position (animated):", position);
-  //     }
-  //   },
-  //   [animatedPosition]
-  // );
-
-  const handleSheetChange = useCallback((index) => {
-    if (snapPoints[index] !== "95%") Keyboard.dismiss();
+  useEffect(() => {
+    AsyncStorage.getItem("searchHistory").then((data) => {
+      if (data) setHistory(JSON.parse(data));
+    });
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFavorites();
+    }, [])
+  );
+
+  const addToHistory = async (item) => {
+    // Vérifie si déjà présent (par exemple par id ou label)
+    const exists = history.some((h) => h.properties.id === item.properties.id);
+    if (!exists) {
+      const newHistory = [item, ...history].slice(0, 10); // max 10 éléments
+      setHistory(newHistory);
+      await AsyncStorage.setItem("searchHistory", JSON.stringify(newHistory));
+    }
+  };
+  const filtredHistory = useMemo(() => {
+    if (addressInput.length === 0) return history;
+    return history.filter((h) =>
+      h.properties?.label?.toLowerCase()?.includes(addressInput?.toLowerCase())
+    );
+  }, [addressInput, history]);
+
+  const filteredFavorites = useMemo(() => {
+    if (suggestions && suggestions.length === 0) return favoritesAddresses;
+
+    return favoritesAddresses.filter((fav) =>
+      suggestions.some(
+        (s) =>
+          s.geometry.coordinates[0] === fav.lon &&
+          s.geometry.coordinates[1] === fav.lat
+      )
+    );
+  }, [suggestions, favoritesAddresses]);
+
+  const combinedData = useMemo(() => {
+    const combined = [];
+
+    if (filtredHistory.length > 0) {
+      combined.push(
+        ...filtredHistory.map((item) => ({ ...item, type: "history" }))
+      );
+    }
+
+    if (suggestions.length > 0) {
+      combined.push(
+        ...suggestions.map((item) => ({ ...item, type: "suggestion" }))
+      );
+    }
+
+    return combined;
+  }, [filtredHistory, suggestions]);
+  const renderCombinedItem = ({ item }) => {
+    return renderItem({ item, type: item.type });
+  };
+  // const handleSheetChange = useCallback((index) => {
+  //   if (snapPoints[index] !== "95%") Keyboard.dismiss();
+  // }, []);
 
   const fetchSuggestions = async (input) => {
     if (!input) return setSuggestions([]);
-    setLoading(true);
+    setIsLoading(true);
     try {
       const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
         input
@@ -60,33 +123,21 @@ const AddressBottomSheet = ({
       console.error(err);
       setSuggestions([]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+  const goToAddFavorite = () => {
+    navigation.navigate("AddFavorite");
+  };
 
-  const renderHeader = () => (
-    <View style={styles.inputContainer}>
-      <IconComponent icon="search" library="MaterialIcons" size={20} />
-      <TextInput
-        style={styles.input}
-        placeholder="Entrez une adresse"
-        value={addressInput}
-        onChangeText={handleInputChange}
-        onFocus={() => bottomSheetRef?.current?.expand()}
-      />
-      {loading ? (
-        <ActivityIndicator size={20} />
-      ) : (
-        addressInput.length > 0 && (
-          <IconComponent
-            icon="close"
-            library="MaterialIcons"
-            size={20}
-            onPress={() => setAddressInput("")}
-          />
-        )
-      )}
-    </View>
+  const renderFavoriteItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.favoriteItem}
+      key={item?._id || item.id}
+      onPress={() => handleSelect(item, false)}
+    >
+      <Text>{item.label}</Text>
+    </TouchableOpacity>
   );
 
   const handleInputChange = (text) => {
@@ -96,16 +147,36 @@ const AddressBottomSheet = ({
     setTimeoutId(newId);
   };
 
-  const handleSelect = async (item) => {
+  const fetchMultipleRoutes = async (
+    startCoords,
+    endCoords,
+    maxRoutes,
+    heading
+  ) => {
+    try {
+      const routeOptions = await calculateMultipleRoutes(
+        startCoords,
+        endCoords,
+        maxRoutes,
+        [[heading || 0, 20]]
+      );
+      return routeOptions;
+    } catch (err) {
+      console.error("Erreur lors de la récupération des itinéraires:", err);
+    }
+  };
+
+  const handleSelect = async (item, toHistory = true) => {
+    setIsLoading(true);
     let userLocation = await Location.getLastKnownPositionAsync({
-      maxAge: 10000, // 10 seconds
+      maxAge: 10000,
       requiredAccuracy: Location.Accuracy.High,
     });
     if (!userLocation)
       userLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.BestForNavigation,
       });
-    console.log("User location:", userLocation);
+
     if (!userLocation) return;
     userLocation = {
       latitude: userLocation.coords.latitude,
@@ -113,52 +184,137 @@ const AddressBottomSheet = ({
       heading: userLocation.coords.heading,
     };
     try {
+      // Vérifie si l'item a des coordonnées valides
+
       const endCoords = [
-        item.geometry.coordinates[0],
-        item.geometry.coordinates[1],
+        item?.geometry?.coordinates?.[0] || item.lat,
+        item?.geometry?.coordinates?.[1] || item.lon,
       ];
       const startCoords = [userLocation.longitude, userLocation.latitude];
-      const routeOptions = await calculateMultipleRoutes(
+
+      const routeOptions = await fetchMultipleRoutes(
         startCoords,
         endCoords,
         3,
-        [[userLocation.heading || 0, 20]]
+        userLocation.heading
       );
-      onSelectAddress(item, routeOptions);
+      if (toHistory) await addToHistory(item);
+      setIsLoading(false);
+      onSelectAddress(item?.properties?.label || item?.label, routeOptions);
     } catch (err) {
       console.error("Erreur lors de la récupération des itinéraires:", err);
     }
   };
 
-  const renderItem = ({ item }) => (
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.inputContainer}>
+        <IconComponent
+          icon="search"
+          library="Feather"
+          size={20}
+          style={styles.icon}
+        />
+        <BottomSheetTextInput
+          placeholder="Où allons-nous ?"
+          style={styles.input}
+          placeholderTextColor="#888"
+          onChange={(e) => handleInputChange(e.nativeEvent.text)}
+        />
+      </View>
+
+      <FlatList
+        data={filteredFavorites}
+        horizontal
+        keyExtractor={(item) => item.id}
+        renderItem={renderFavoriteItem}
+        contentContainerStyle={styles.favoritesList}
+        showsHorizontalScrollIndicator={false}
+        ListFooterComponent={() => (
+          <>
+            {!suggestions.length > 0 &&
+              (favoritesAddresses.length <= MAX_VISIBLE ? (
+                <Text
+                  style={[styles.addFavoriteButton, { marginLeft: 8 }]}
+                  onPress={goToAddFavorite}
+                >
+                  + Nouveau
+                </Text>
+              ) : (
+                <Text
+                  style={[styles.addFavoriteButton, { marginLeft: 8 }]}
+                  onPress={() => {
+                    /* ouvrir la liste complète ou modal */
+                  }}
+                >
+                  Afficher plus
+                </Text>
+              ))}
+          </>
+        )}
+      />
+    </View>
+  );
+  const renderItem = ({ item, type }) => (
     <View style={styles.item}>
-      <Text onPress={() => handleSelect(item)}>{item.properties.label}</Text>
+      {type === "history" ? (
+        <IconComponent
+          library={"FontAwesome6"}
+          icon={"clock-rotate-left"}
+          color={"black"}
+          size={18}
+          style={{ marginLeft: 8, marginRight: 8 }}
+        />
+      ) : (
+        <IconComponent
+          library={"Feather"}
+          icon={"map-pin"}
+          color={"black"}
+          size={18}
+          style={{ marginLeft: 8, marginRight: 8 }}
+        />
+      )}
+      <Text onPress={() => handleSelect(item)} style={{ flex: 1 }}>
+        {item.properties.label}
+      </Text>
     </View>
   );
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      index={1}
-      snapPoints={snapPoints}
-      enableDynamicSizing={false}
-      enablePanDownToClose={false}
-      onChange={handleSheetChange}
-      onLayout={(e) => onSheetHeightChange?.(e.nativeEvent.layout.height)}
-      handleComponent={handleHandleComponent}
-    >
-      {renderHeader()}
-      <BottomSheetFlatList
-        data={suggestions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.properties.id}
-        ListEmptyComponent={() =>
-          !loading && addressInput.length > 1 ? (
-            <Text style={styles.emptyText}>Aucun résultat</Text>
-          ) : null
-        }
-      />
-    </BottomSheet>
+    <>
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={0}
+        snapPoints={snapPoints}
+        enableDynamicSizing={false}
+        enablePanDownToClose={false}
+        onLayout={(e) => onSheetHeightChange?.(e.nativeEvent.layout.height)}
+        handleComponent={handleComponent}
+        keyboardBehavior="fillParent"
+        keyboardBlurBehavior="restore"
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          {renderHeader()}
+
+          <BottomSheetFlatList
+            data={combinedData}
+            renderItem={renderCombinedItem}
+            keyExtractor={(item, index) => `${item.properties?.id}-${index}`}
+            ListEmptyComponent={() =>
+              !isLoading && addressInput.length > 1 ? (
+                <Text style={styles.emptyText}>Aucun résultat</Text>
+              ) : null
+            }
+            style={{ marginBottom: 0, paddingBottom: 0 }}
+            contentContainerStyle={{ paddingBottom: 0, marginBottom: 0 }}
+          />
+        </KeyboardAvoidingView>
+      </BottomSheet>
+      {isLoading && <LoadingOverlay></LoadingOverlay>}
+    </>
   );
 };
 
@@ -181,6 +337,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   item: {
+    flexDirection: "row",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
@@ -189,6 +346,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 16,
     color: "gray",
+  },
+  footerContainer: {
+    padding: 16,
+  },
+  addFavoriteButton: {
+    color: "#007AFF",
+    fontSize: 16,
+    textAlign: "center",
+    paddingVertical: 12,
+  },
+  favoritesHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  favoritesTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  favoritesList: {
+    paddingVertical: 8,
+    padding: 16,
+  },
+  favoriteItem: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 10,
   },
 });
 

@@ -21,13 +21,12 @@ const ROUTE_DEVIATION_THRESHOLD = 30; // mètres
 export const useNavigationLogic = ({
   initialRouteOptions,
   isNavigating,
-  screenHeightRatio,
   showManeuver,
   mode,
   isCameraLockedRef,
 }) => {
   const { width, height } = Dimensions.get("window");
-  const SCREEN_RATIO = screenHeightRatio || height / 1920;
+  const SCREEN_RATIO = height / 1920;
   const isUpdatingRef = useRef(false);
 
   const lastCoords = useRef(null);
@@ -58,7 +57,7 @@ export const useNavigationLogic = ({
 
   useEffect(() => {
     //reinitialiser les valeurs si le mode change
-
+console.log("Resetting navigation logic for mode:", mode, isNavigating);
     lastCoords.current = null;
     lastHeading.current = null;
     lastSpeed.current = null;
@@ -369,7 +368,7 @@ export const useNavigationLogic = ({
     // if (lastLocation.current && speed > 0) {
     //   distanceTraveled.current += getDistance(lastLocation.current, curLoc);
     // }
- 
+
     if (showManeuver && isNavigating) {
       // const elapsed = (Date.now() - startTime) / 1000;
       // const routeDistance = routeOptions[0]?.routeDistance || 1;
@@ -455,9 +454,13 @@ export const useNavigationLogic = ({
           duration: 200,
         })
         .start();
-      updateCamera(map, newLocation, isCameraLockedRef, heading);
-      updateSpeed(speedRef.current);
-      getInstruction(closestI, newLocation, hd, speed);
+      console.log("isNavigating:", isNavigating);
+      if (isNavigating) {
+        updateCamera(map, newLocation, isCameraLockedRef, heading);
+        updateSpeed(speedRef.current);
+        getInstruction(closestI, newLocation, hd, speed);
+      }
+
       if (lastLocation.current) {
         distanceTraveled.current += getDistance(
           lastLocation.current,

@@ -62,16 +62,16 @@ const MapContainer = ({
   } = useNavigationLogic({
     initialRouteOptions: initialRouteOptions[selectedRouteIndex],
     isNavigating,
-    screenHeightRatio,
     showManeuver,
     mode,
     isCameraLockedRef,
   });
-  console.log("MapContainer rendered with mode:", mode);
   const windowHeight = Dimensions.get("window").height;
   const animatedPositionRef = useAnimatedPosition();
   const animatedPosition = animatedPositionRef?.current;
-
+  const handleComponent = ({ animatedPosition: ap }) => {
+    animatedPositionRef.current = ap;
+  };
   const speedBubbleAnimatedStyle = useAnimatedStyle(() => {
     if (!animatedPosition) return {};
 
@@ -84,12 +84,7 @@ const MapContainer = ({
         extrapolateRight: "extend",
       }
     );
-    console.log(
-      "SpeedBubble translateY:",
-      translateY,
-      "  animatedPosition.value",
-      animatedPosition.value,
-    );
+
     const zIndex = translateY < -windowHeight / 2 ? 0 : 10;
     const display = translateY < -windowHeight / 2 ? "none" : "flex";
 
@@ -134,6 +129,7 @@ const MapContainer = ({
             accuracy: Location.Accuracy.BestForNavigation,
           },
           (location) => {
+            console.log("Location updated:", mode, mode == "itinerary");
             if (mode == "itinerary") return;
             handleLocationUpdate(location, mapRef.current);
           }
@@ -161,6 +157,7 @@ const MapContainer = ({
       initialRouteOptions.length > 0 &&
       mapRef.current
     ) {
+      console.log("MapContainer useEffect: mode is itinerary");
       // Récupère tous les points de toutes les routes
       const allCoords = initialRouteOptions
         .map((route) => route.coordinates)
@@ -182,7 +179,6 @@ const MapContainer = ({
         style={styleMaps}
         onPanDrag={handleUserPan}
         //onRegionChange={handleUserPan}
-        showsUserLocation={true}
       >
         <MapRoutes
           routes={routesToShow}
@@ -212,30 +208,41 @@ const MapContainer = ({
             remainingTimeInSeconds={remainingTimeInSeconds}
             infoTravelAnimatedStyle={infoTravelAnimatedStyle}
             handleSheetClose={handleSheetClose}
-          />
-          <NavigationBottomSheet
-            bottomSheetRef={bottomSheetRef}
-            currentInstruction={currentInstruction}
-            distance={distance}
-            arrivalTimeStr={arrivalTimeStr}
-            remainingTimeInSeconds={remainingTimeInSeconds}
-            onStop={() => {
-              navigation.navigate("MapScreen", {
-                mode: "address",
-                fromAddress: "",
-                initialRouteOptions: [],
-                userSpeed: 0,
-                currentRegion: null,
-                showManeuver: false,
-                isLoading: false,
-                arrivalTimeStr: "",
-                remainingTimeInSeconds: 0,
-                currentInstruction: null,
-                distance: 0,
-              });
-              // Action pour arrêter la navigation
+          />{" "}
+          <View
+            style={{
+              flex: 1,
+              width: "100%",
+              height: "100%",
+              position: "absolute",
             }}
-          />
+          >
+            <NavigationBottomSheet
+              bottomSheetRef={bottomSheetRef}
+              currentInstruction={currentInstruction}
+              distance={distance}
+              arrivalTimeStr={arrivalTimeStr}
+              remainingTimeInSeconds={remainingTimeInSeconds}
+              handleComponent={handleComponent}
+              onStop={() => {
+                navigation.navigate("MapScreen", {
+                  key: String(Date.now()),
+                  mode: "address",
+                  fromAddress: "",
+                  initialRouteOptions: [],
+                  userSpeed: 0,
+                  currentRegion: null,
+                  showManeuver: false,
+                  isLoading: false,
+                  arrivalTimeStr: "",
+                  remainingTimeInSeconds: 0,
+                  currentInstruction: null,
+                  distance: 0,
+                });
+                // Action pour arrêter la navigation
+              }}
+            />
+          </View>
         </View>
       )}
 

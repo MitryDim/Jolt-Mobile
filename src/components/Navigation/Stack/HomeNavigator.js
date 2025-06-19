@@ -61,6 +61,7 @@ function HomeNavigator() {
           ),
         })}
       />
+      
       <Stack.Screen
         name="Maintains"
         component={MaintainsScreen}

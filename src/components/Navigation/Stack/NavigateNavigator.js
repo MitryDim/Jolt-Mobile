@@ -6,6 +6,7 @@ import { Text, View } from "react-native";
 import IconComponent from "../../Icons";
 import MapScreen from "../../../containers/MapScreen";
 import { HeaderBackButton } from "@react-navigation/elements";
+import AddFavoriteAddressScreen from "../../AddFavoriteAddressScreen";
 const Stack = createNativeStackNavigator();
 
 function NavigateNavigator() {
@@ -66,6 +67,11 @@ function NavigateNavigator() {
           headerBackButtonDisplayMode: "minimal",
           headerTitleAlign: "center",
         })}
+      />
+      <Stack.Screen
+        name="AddFavoriteAddress"
+        component={AddFavoriteAddressScreen}
+        options={{ title: "Nouvelle adresse" }}
       />
       {/* <Stack.Screen
         name="ChoiceItinerary"
