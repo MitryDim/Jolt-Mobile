@@ -1,5 +1,5 @@
 import React, { useRef, useMemo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import BottomSheet, {
   BottomSheetFooter,
   BottomSheetView,
@@ -21,7 +21,7 @@ export default function NavigationBottomSheet({
   bottomSheetRef,
   handleComponent,
 }) {
-  const snapPoints = useMemo(() => [56, "50%", "80%"]);
+  const snapPoints = useMemo(() => [90, "25%", "95%"]);
   const animatedIndex = useSharedValue(1);
 
   const animatedFooterStyle = useAnimatedStyle(() => ({
@@ -74,27 +74,31 @@ export default function NavigationBottomSheet({
   );
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      enableDynamicSizing={false}
-      index={0}
-      onAnimate={(_, toIndex) => {
-        animatedIndex.value = withSpring(toIndex);
-      }}
-      footerComponent={renderFooter}
-      handleComponent={handleComponent}
-    >
-      <BottomSheetView>
-        {renderHeader()}
-        <View style={styles.content}>
-          <Text style={styles.title}>Navigation en cours...</Text>
-          <Text style={styles.subtitle}>
-            Vous pouvez reprendre ou arrêter la navigation.
-          </Text>
-        </View>
-      </BottomSheetView>
-    </BottomSheet>
+    <>
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={snapPoints}
+        enableDynamicSizing={false}
+        enablePanDownToClose={false}
+        index={0}
+        onAnimate={(_, toIndex) => {
+          animatedIndex.value = withSpring(toIndex);
+        }}
+        footerComponent={renderFooter}
+        handleComponent={handleComponent}
+      >
+
+          <BottomSheetView>
+            {/* {renderHeader()} */}
+            <View style={styles.content}>
+              <Text style={styles.title}>Navigation en cours...</Text>
+              <Text style={styles.subtitle}>
+                Vous pouvez reprendre ou arrêter la navigation.
+              </Text>
+            </View>
+          </BottomSheetView>
+      </BottomSheet>
+    </>
   );
 }
 

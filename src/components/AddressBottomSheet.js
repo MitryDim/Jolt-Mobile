@@ -284,7 +284,6 @@ const AddressBottomSheet = ({
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        index={0}
         snapPoints={snapPoints}
         enableDynamicSizing={false}
         enablePanDownToClose={false}
@@ -292,6 +291,8 @@ const AddressBottomSheet = ({
         handleComponent={handleComponent}
         keyboardBehavior="fillParent"
         keyboardBlurBehavior="restore"
+        style={{ marginBottom: 0, paddingBottom: 0 }}
+        contentContainerStyle={{ paddingBottom: 0, marginBottom: 0 }}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}

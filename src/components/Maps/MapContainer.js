@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useFocusEffect } from "@react-navigation/native";
 import NavigationBottomSheet from "./BottomSheet/NavigateBottomSheet";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import { useNavigation } from "@react-navigation/native";
 import SpeedBubble from "./SpeedBubble";
@@ -29,14 +30,14 @@ const MapContainer = ({
   selectedRouteIndex,
   onPolylineSelect,
   currentRegion,
-  isNavigating,
-  screenHeightRatio,
+  isNavigating, 
   showManeuver,
   handleSheetClose,
   sheetOffsetValue,
   bottomSheetRef,
   infoTravelAnimatedStyle,
   mode,
+  handleComponent,
 }) => {
   const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
@@ -67,24 +68,24 @@ const MapContainer = ({
     isCameraLockedRef,
   });
   const windowHeight = Dimensions.get("window").height;
+
+  const tabBarHeight = useBottomTabBarHeight();
   const animatedPositionRef = useAnimatedPosition();
   const animatedPosition = animatedPositionRef?.current;
-  const handleComponent = ({ animatedPosition: ap }) => {
-    animatedPositionRef.current = ap;
-  };
   const speedBubbleAnimatedStyle = useAnimatedStyle(() => {
     if (!animatedPosition) return {};
 
     const translateY = interpolate(
       animatedPosition.value,
-      [windowHeight, 0],
-      [0, -windowHeight],
+      [windowHeight - tabBarHeight, 0],
+      [0, -windowHeight + tabBarHeight],
       {
         extrapolateLeft: "extend",
         extrapolateRight: "extend",
       }
     );
 
+    const bottom = 30;
     const zIndex = translateY < -windowHeight / 2 ? 0 : 10;
     const display = translateY < -windowHeight / 2 ? "none" : "flex";
 
@@ -92,6 +93,7 @@ const MapContainer = ({
       transform: [{ translateY }],
       zIndex,
       display,
+      bottom,
     };
   });
 
@@ -117,31 +119,38 @@ const MapContainer = ({
     if (!isNavigating) return;
     handleSheetClose(isCameraLocked);
   }, [isCameraLocked]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      let subscription;
-      (async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") return;
-        subscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.BestForNavigation,
-          },
-          (location) => {
-            console.log("Location updated:", mode, mode == "itinerary");
-            if (mode == "itinerary") return;
-            handleLocationUpdate(location, mapRef.current);
-          }
-        );
-      })();
-      return () => {
-        subscription?.remove();
-      };
-    }, [mode, initialRouteOptions])
-  );
+  const modeRef = useRef(mode);
 
   useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+useFocusEffect(
+  React.useCallback(() => {
+    let subscription;
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.BestForNavigation,
+        },
+        (location) => {
+          // Utilise la valeur à jour
+          if (modeRef.current === "itinerary") return;
+          console.log("Location updated:", modeRef.current);
+          handleLocationUpdate(location, mapRef.current);
+        }
+      );
+    })();
+    return () => {
+      subscription?.remove();
+    };
+  }, [initialRouteOptions]) // plus besoin de mettre [mode] ici
+);
+
+  useEffect(() => {
+    console.log("MapContainer useEffect: mode changed to", mode);
     // if (
     //   mode === "address" &&
     //   currentRegion &&
@@ -208,58 +217,62 @@ const MapContainer = ({
             remainingTimeInSeconds={remainingTimeInSeconds}
             infoTravelAnimatedStyle={infoTravelAnimatedStyle}
             handleSheetClose={handleSheetClose}
-          />{" "}
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-            }}
-          >
-            <NavigationBottomSheet
-              bottomSheetRef={bottomSheetRef}
-              currentInstruction={currentInstruction}
-              distance={distance}
-              arrivalTimeStr={arrivalTimeStr}
-              remainingTimeInSeconds={remainingTimeInSeconds}
-              handleComponent={handleComponent}
-              onStop={() => {
-                navigation.navigate("MapScreen", {
-                  key: String(Date.now()),
-                  mode: "address",
-                  fromAddress: "",
-                  initialRouteOptions: [],
-                  userSpeed: 0,
-                  currentRegion: null,
-                  showManeuver: false,
-                  isLoading: false,
-                  arrivalTimeStr: "",
-                  remainingTimeInSeconds: 0,
-                  currentInstruction: null,
-                  distance: 0,
-                });
-                // Action pour arrêter la navigation
-              }}
-            />
-          </View>
+          />
         </View>
       )}
 
       {isNavigating && (
         <Animated.View
-          style={[
-            {
-              position: "absolute",
-              bottom: 0,
+          style={
+            ({
+              bottom: 0, // Décale du haut de la TabBar si elle est présente
               left: 0,
+              right: 0,
+              alignItems: "center",
               zIndex: 20,
             },
-            speedBubbleAnimatedStyle,
-          ]}
+            [speedBubbleAnimatedStyle])
+          }
         >
           <SpeedBubble speed={speedValue} />
         </Animated.View>
+      )}
+      {mode == "travel" && (
+        <View
+          style={{
+            flex: 1,
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+          }}
+        >
+          <NavigationBottomSheet
+            bottomSheetRef={bottomSheetRef}
+            currentInstruction={currentInstruction}
+            distance={distance}
+            arrivalTimeStr={arrivalTimeStr}
+            remainingTimeInSeconds={remainingTimeInSeconds}
+            handleComponent={handleComponent}
+            onStop={() => {
+              navigation.navigate("MapScreen", {
+                key: String(Date.now()),
+                mode: "address",
+                fromAddress: "",
+                initialRouteOptions: [],
+                userSpeed: 0,
+                currentRegion: null,
+                showManeuver: false,
+                isLoading: false,
+                arrivalTimeStr: "",
+                remainingTimeInSeconds: 0,
+                currentInstruction: null,
+                distance: 0,
+              });
+
+              // Action pour arrêter la navigation
+            }}
+          />
+        </View>
       )}
 
       {isLoading && (

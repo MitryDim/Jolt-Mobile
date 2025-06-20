@@ -64,24 +64,25 @@ const SpeedBubble = ({ speed }) => {
   });
 
   return (
-    <View style={styles.container}>
-      <Svg width={SIZE} height={SIZE}>
-        <Circle
-          cx={CENTER}
-          cy={CENTER}
-          r={35}
-          fill="rgba(0,0,0,0.85)"
-          stroke="#000"
-          strokeWidth={1}
-        />
-        <G>{ticks}</G>
-      </Svg>
 
-      <View style={styles.labelContainer}>
-        <Text style={styles.speedText}>{Math.round(speed)}</Text>
-        <Text style={styles.unitText}>km/h</Text>
+      <View style={styles.container}>
+        <Svg width={SIZE} height={SIZE}>
+          <Circle
+            cx={CENTER}
+            cy={CENTER}
+            r={35}
+            fill="rgba(0,0,0,0.85)"
+            stroke="#000"
+            strokeWidth={1}
+          />
+          <G>{ticks}</G>
+        </Svg>
+
+        <View style={styles.labelContainer}>
+          <Text style={styles.speedText}>{Math.round(speed)}</Text>
+          <Text style={styles.unitText}>km/h</Text>
+        </View>
       </View>
-    </View>
   );
 };
 

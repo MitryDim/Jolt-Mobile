@@ -29,8 +29,8 @@ const MapScreen = () => {
     currentInstruction,
     distance,
     infoTravelAnimatedStyle,
-    isNavigating=true,
-  } = route.params || {}; 
+    isNavigating = true,
+  } = route.params || {};
   const [userLocation, setUserLocation] = useState(null);
   const [sheetHeight, setSheetHeight] = useState(0);
   const bottomSheetRef = useRef(null);
@@ -45,11 +45,12 @@ const MapScreen = () => {
   };
 
   useEffect(() => {
+    console.log("MapScreen mode changed to:", mode);
     setMode(mode);
   }, [mode]);
   useEffect(() => {
     console.log("MapScreen rendered with mode:", mode);
- 
+
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
@@ -87,12 +88,12 @@ const MapScreen = () => {
       bottomSheetRef.current?.close(); // Ferme le sheet
     }
   };
-  const screenHeightRatio = useMemo(() => {
-    if (!sheetHeight || sheetHeight < 50) {
-      return SCREEN_HEIGHT / BASE_REFERENCE_HEIGHT;
-    }
-    return (SCREEN_HEIGHT - sheetHeight) / SCREEN_HEIGHT;
-  }, [sheetHeight]);
+  // const screenHeightRatio = useMemo(() => {
+  //   if (!sheetHeight || sheetHeight < 50) {
+  //     return SCREEN_HEIGHT / BASE_REFERENCE_HEIGHT;
+  //   }
+  //   return (SCREEN_HEIGHT - sheetHeight) / SCREEN_HEIGHT;
+  // }, [sheetHeight]);
 
   const renderModeSpecificUI = () => {
     if (mode === "address") {
@@ -118,7 +119,7 @@ const MapScreen = () => {
               });
             }}
             handleComponent={handleComponent}
-            onSheetHeightChange={(height) => setSheetHeight(height)}
+            //onSheetHeightChange={(height) => setSheetHeight(height)}
             navigation={navigation}
           />
         </View>
@@ -192,11 +193,12 @@ const MapScreen = () => {
       >
         <View>
           <MapContainer
+            key={mode}
             mode={mode}
             initialRouteOptions={initialRouteOptions}
             selectedRouteIndex={selectedRouteIndex}
             isNavigating={isNavigating}
-            screenHeightRatio={screenHeightRatio}
+           // screenHeightRatio={screenHeightRatio}
             currentRegion={userLocation}
             showManeuver={showManeuver}
             styleMaps={styles.map}
@@ -207,6 +209,7 @@ const MapScreen = () => {
             sheetOffsetValue={sheetHeight}
             bottomSheetRef={bottomSheetRef}
             infoTravelAnimatedStyle={infoTravelAnimatedStyle}
+            handleComponent={handleComponent}
           />
           {renderModeSpecificUI()}
         </View>
