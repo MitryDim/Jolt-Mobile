@@ -1,7 +1,7 @@
 import React from "react";
 import { FlatList, Text, TouchableOpacity, StyleSheet } from "react-native";
-
-const FavoriteList = ({ favorites, onSelect, onAddNew, maxVisible = 3 }) => {
+ 
+const FavoriteList = ({ favorites, onSelect, onAddNew, maxVisible = 3,showMore }) => {
   return (
     <FlatList
       data={favorites}
@@ -23,7 +23,7 @@ const FavoriteList = ({ favorites, onSelect, onAddNew, maxVisible = 3 }) => {
             + Nouveau
           </Text>
         ) : (
-          <Text style={styles.addFavoriteButton} onPress={() => {}}>
+          <Text style={styles.addFavoriteButton} onPress={showMore}>
             Afficher plus
           </Text>
         )

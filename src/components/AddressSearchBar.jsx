@@ -4,6 +4,7 @@ import IconComponent from "./Icons";
 import ActivityIndicator from "./ActivityIndicator";
 
 const AddressSearchBar = ({
+    placeholder = "Où allons-nous ?",
   value,
   onChange,
   loading = false,
@@ -22,7 +23,7 @@ const AddressSearchBar = ({
         style={styles.icon}
       />
       <TextInputComponent
-        placeholder="Où allons-nous ?"
+        placeholder={placeholder}
         style={styles.input}
         placeholderTextColor="#888"
         value={value}

@@ -119,6 +119,9 @@ const AddressBottomSheet = ({
   const goToAddFavorite = () => {
     navigation.navigate("AddFavoriteAddress");
   };
+  const handleShowMoreFavorites = () => {
+    navigation.navigate("FavoriteList");
+  };
 
   const handleInputChange = (text) => {
     setAddressInput(text);
@@ -165,11 +168,11 @@ const AddressBottomSheet = ({
     };
     try {
       // Vérifie si l'item a des coordonnées valides
-
       const endCoords = [
-        item?.geometry?.coordinates?.[0] || item.lat,
-        item?.geometry?.coordinates?.[1] || item.lon,
+        item?.geometry?.coordinates?.[0] || item.lon,
+        item?.geometry?.coordinates?.[1] || item.lat,
       ];
+      console.log("End coordinates:", endCoords);
       const startCoords = [userLocation.longitude, userLocation.latitude];
 
       const routeOptions = await fetchMultipleRoutes(
@@ -199,31 +202,9 @@ const AddressBottomSheet = ({
         favorites={filteredFavorites}
         onSelect={(item) => handleSelect(item, false)}
         onAddNew={goToAddFavorite}
+        showMore={handleShowMoreFavorites}
+        maxVisible={1}
       />
-    </View>
-  );
-  const renderItem = ({ item, type }) => (
-    <View style={styles.item}>
-      {type === "history" ? (
-        <IconComponent
-          library={"FontAwesome6"}
-          icon={"clock-rotate-left"}
-          color={"black"}
-          size={18}
-          style={{ marginLeft: 8, marginRight: 8 }}
-        />
-      ) : (
-        <IconComponent
-          library={"Feather"}
-          icon={"map-pin"}
-          color={"black"}
-          size={18}
-          style={{ marginLeft: 8, marginRight: 8 }}
-        />
-      )}
-      <Text onPress={() => handleSelect(item)} style={{ flex: 1 }}>
-        {item.properties.label}
-      </Text>
     </View>
   );
 
