@@ -30,7 +30,7 @@ const MapContainer = ({
   selectedRouteIndex,
   onPolylineSelect,
   currentRegion,
-  isNavigating, 
+  isNavigating,
   showManeuver,
   handleSheetClose,
   sheetOffsetValue,
@@ -68,7 +68,7 @@ const MapContainer = ({
     isCameraLockedRef,
   });
   const windowHeight = Dimensions.get("window").height;
-
+  const [isMapReady, setIsMapReady] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
   const animatedPositionRef = useAnimatedPosition();
   const animatedPosition = animatedPositionRef?.current;
@@ -125,29 +125,29 @@ const MapContainer = ({
     modeRef.current = mode;
   }, [mode]);
 
-useFocusEffect(
-  React.useCallback(() => {
-    let subscription;
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      subscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.BestForNavigation,
-        },
-        (location) => {
-          // Utilise la valeur à jour
-          if (modeRef.current === "itinerary") return;
-          console.log("Location updated:", modeRef.current);
-          handleLocationUpdate(location, mapRef.current);
-        }
-      );
-    })();
-    return () => {
-      subscription?.remove();
-    };
-  }, [initialRouteOptions]) // plus besoin de mettre [mode] ici
-);
+  useFocusEffect(
+    React.useCallback(() => {
+      let subscription;
+      (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.BestForNavigation,
+          },
+          (location) => {
+            // Utilise la valeur à jour
+            // if (modeRef.current === "itinerary") return;
+            console.log("Location updated:", modeRef.current);
+            handleLocationUpdate(location, mapRef.current);
+          }
+        );
+      })();
+      return () => {
+        subscription?.remove();
+      };
+    }, [initialRouteOptions]) // plus besoin de mettre [mode] ici
+  );
 
   useEffect(() => {
     console.log("MapContainer useEffect: mode changed to", mode);
@@ -171,7 +171,7 @@ useFocusEffect(
       const allCoords = initialRouteOptions
         .map((route) => route.coordinates)
         .flat();
-
+      console.log("All coordinates:", allCoords);
       if (allCoords.length > 0) {
         mapRef.current.fitToCoordinates(allCoords, {
           edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
@@ -179,7 +179,7 @@ useFocusEffect(
         });
       }
     }
-  }, [mode, initialRouteOptions]);
+  }, [mode, initialRouteOptions, isMapReady]);
 
   return (
     <>
@@ -187,6 +187,7 @@ useFocusEffect(
         ref={mapRef}
         style={styleMaps}
         onPanDrag={handleUserPan}
+        onMapReady={() => setIsMapReady(true)}
         //onRegionChange={handleUserPan}
       >
         <MapRoutes
@@ -221,7 +222,7 @@ useFocusEffect(
         </View>
       )}
 
-      {isNavigating && (
+      {isNavigating && animatedPosition && (
         <Animated.View
           style={
             ({

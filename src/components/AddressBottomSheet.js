@@ -127,7 +127,7 @@ const AddressBottomSheet = ({
     }
   };
   const goToAddFavorite = () => {
-    navigation.navigate("AddFavorite");
+    navigation.navigate("AddFavoriteAddress");
   };
 
   const renderFavoriteItem = ({ item }) => (

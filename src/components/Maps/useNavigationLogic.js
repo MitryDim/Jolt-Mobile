@@ -63,7 +63,7 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
     lastSpeed.current = null;
     lastLocation.current = null;
     distanceTraveled.current = 0;
-    coordinates.setValue({ latitude: 0, longitude: 0 });
+   // coordinates.setValue({ latitude: 0, longitude: 0 });
     heading.value = withSpring(0, { damping: 10, stiffness: 100 });
     setCurrentInstruction(null);
     setRouteOptions(initialRouteOptions || []);
