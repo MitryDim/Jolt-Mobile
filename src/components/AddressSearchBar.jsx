@@ -1,8 +1,18 @@
 import React from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import IconComponent from "./Icons";
+import ActivityIndicator from "./ActivityIndicator";
 
-const AddressSearchBar = ({ value, onChange, TextInputComponent = TextInput }) => {
+const AddressSearchBar = ({
+  value,
+  onChange,
+  loading = false,
+  TextInputComponent = TextInput,
+}) => {
+  const clearSearch = () => {
+    onChange("");
+  };
+
   return (
     <View style={styles.inputContainer}>
       <IconComponent
@@ -18,6 +28,21 @@ const AddressSearchBar = ({ value, onChange, TextInputComponent = TextInput }) =
         value={value}
         onChangeText={onChange}
       />
+      {loading && (
+        <ActivityIndicator
+          size={20}
+          testID="activity-indicator"
+        ></ActivityIndicator>
+      )}
+      {!loading && value.length > 0 && (
+        <IconComponent
+          icon="close"
+          library="MaterialIcons"
+          size={20}
+          onPress={clearSearch}
+          className="cursor-pointer hover:bg-white"
+        />
+      )}
     </View>
   );
 };

@@ -1,33 +1,25 @@
-import React, {
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetTextInput,
-  TouchableWithoutFeedback,
 } from "@gorhom/bottom-sheet";
 import IconComponent from "./Icons";
 import { calculateMultipleRoutes } from "../helpers/Api";
 import * as Location from "expo-location";
-import { FlatList } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import { useNavigationMode } from "../context/NavigationModeContext";
 import LoadingOverlay from "./LoadingOverlay";
+import FavoriteList from "./FavoriteList";
+import AddressSearchBar from "./AddressSearchBar";
+import SuggestionHistoryList from "./SuggestionHistoryList";
 
 const AddressBottomSheet = ({
   bottomSheetRef,
@@ -43,7 +35,7 @@ const AddressBottomSheet = ({
   const [suggestions, setSuggestions] = useState([]);
   const [timeoutId, setTimeoutId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const MAX_VISIBLE = 3;
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem("searchHistory").then((data) => {
@@ -58,7 +50,6 @@ const AddressBottomSheet = ({
   );
 
   const addToHistory = async (item) => {
-    // Vérifie si déjà présent (par exemple par id ou label)
     const exists = history.some((h) => h.properties.id === item.properties.id);
     if (!exists) {
       const newHistory = [item, ...history].slice(0, 10); // max 10 éléments
@@ -102,43 +93,32 @@ const AddressBottomSheet = ({
 
     return combined;
   }, [filtredHistory, suggestions]);
-  const renderCombinedItem = ({ item }) => {
-    return renderItem({ item, type: item.type });
-  };
-  // const handleSheetChange = useCallback((index) => {
-  //   if (snapPoints[index] !== "95%") Keyboard.dismiss();
-  // }, []);
 
   const fetchSuggestions = async (input) => {
     if (!input) return setSuggestions([]);
-    setIsLoading(true);
+    setIsLoadingSuggestions(true);
     try {
       const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
         input
       )}&autocomplete=1&limit=5`;
       const res = await fetch(url);
       const json = await res.json();
+      if (!json.features || json.features.length === 0) {
+        setSuggestions([]);
+        return;
+      }
       setSuggestions(json.features);
     } catch (err) {
       console.error(err);
       setSuggestions([]);
     } finally {
-      setIsLoading(false);
+      setIsLoadingSuggestions(false);
     }
   };
+
   const goToAddFavorite = () => {
     navigation.navigate("AddFavoriteAddress");
   };
-
-  const renderFavoriteItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.favoriteItem}
-      key={item?._id || item.id}
-      onPress={() => handleSelect(item, false)}
-    >
-      <Text>{item.label}</Text>
-    </TouchableOpacity>
-  );
 
   const handleInputChange = (text) => {
     setAddressInput(text);
@@ -208,50 +188,17 @@ const AddressBottomSheet = ({
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <View style={styles.inputContainer}>
-        <IconComponent
-          icon="search"
-          library="Feather"
-          size={20}
-          style={styles.icon}
-        />
-        <BottomSheetTextInput
-          placeholder="Où allons-nous ?"
-          style={styles.input}
-          placeholderTextColor="#888"
-          onChange={(e) => handleInputChange(e.nativeEvent.text)}
-        />
-      </View>
+      <AddressSearchBar
+        value={addressInput}
+        onChange={handleInputChange}
+        TextInputComponent={BottomSheetTextInput}
+        loading={isLoadingSuggestions}
+      />
 
-      <FlatList
-        data={filteredFavorites}
-        horizontal
-        keyExtractor={(item) => item.id}
-        renderItem={renderFavoriteItem}
-        contentContainerStyle={styles.favoritesList}
-        showsHorizontalScrollIndicator={false}
-        ListFooterComponent={() => (
-          <>
-            {!suggestions.length > 0 &&
-              (favoritesAddresses.length <= MAX_VISIBLE ? (
-                <Text
-                  style={[styles.addFavoriteButton, { marginLeft: 8 }]}
-                  onPress={goToAddFavorite}
-                >
-                  + Nouveau
-                </Text>
-              ) : (
-                <Text
-                  style={[styles.addFavoriteButton, { marginLeft: 8 }]}
-                  onPress={() => {
-                    /* ouvrir la liste complète ou modal */
-                  }}
-                >
-                  Afficher plus
-                </Text>
-              ))}
-          </>
-        )}
+      <FavoriteList
+        favorites={filteredFavorites}
+        onSelect={(item) => handleSelect(item, false)}
+        onAddNew={goToAddFavorite}
       />
     </View>
   );
@@ -299,18 +246,12 @@ const AddressBottomSheet = ({
           style={{ flex: 1 }}
         >
           {renderHeader()}
-
-          <BottomSheetFlatList
+          <SuggestionHistoryList
             data={combinedData}
-            renderItem={renderCombinedItem}
-            keyExtractor={(item, index) => `${item.properties?.id}-${index}`}
-            ListEmptyComponent={() =>
-              !isLoading && addressInput.length > 1 ? (
-                <Text style={styles.emptyText}>Aucun résultat</Text>
-              ) : null
-            }
-            style={{ marginBottom: 0, paddingBottom: 0 }}
-            contentContainerStyle={{ paddingBottom: 0, marginBottom: 0 }}
+            onSelect={handleSelect}
+            isLoading={isLoading}
+            addressInput={addressInput}
+            FlatListComponent={BottomSheetFlatList}
           />
         </KeyboardAvoidingView>
       </BottomSheet>
@@ -320,64 +261,11 @@ const AddressBottomSheet = ({
 };
 
 const styles = StyleSheet.create({
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-  },
-  input: {
-    flex: 1,
-    marginHorizontal: 8,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 10,
-  },
   item: {
     flexDirection: "row",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-  },
-  emptyText: {
-    textAlign: "center",
-    marginTop: 16,
-    color: "gray",
-  },
-  footerContainer: {
-    padding: 16,
-  },
-  addFavoriteButton: {
-    color: "#007AFF",
-    fontSize: 16,
-    textAlign: "center",
-    paddingVertical: 12,
-  },
-  favoritesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  favoritesTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  favoritesList: {
-    paddingVertical: 8,
-    padding: 16,
-  },
-  favoriteItem: {
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 12,
-    borderRadius: 8,
-    marginRight: 10,
   },
 });
 
