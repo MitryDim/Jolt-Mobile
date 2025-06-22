@@ -1,20 +1,67 @@
 import React, { useCallback, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import DraggableFlatList from "react-native-draggable-flatlist";
+import DraggableFlatList, {
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 import { RectButton } from "react-native-gesture-handler";
 import IconComponent from "./Icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useNavigationMode } from "../context/NavigationModeContext";
-
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 const FavoriteListScreen = () => {
   const navigation = useNavigation();
-  const { favoritesAddresses, setFavorites } = useNavigationMode();
+  const fetchWithAuth = useFetchWithAuth();
+  const { favoritesAddresses, setFavorites, fetchFavorites } =
+    useNavigationMode();
   const [data, setData] = useState(favoritesAddresses);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Récupère les favoris à chaque fois que l'écran est focalisé
+      fetchFavorites().then((favorites) => {
+        setData(favorites);
+      });
+    }, [fetchFavorites])
+  );
 
   // Met à jour la liste globale et locale
   const updateFavorites = (newList) => {
     setData(newList);
-    setFavorites(newList);
+    //  setFavorites(newList);
+  };
+
+  const updateFavoritePosition = async (id, newPosition) => {
+    console.log("Updating position for favorite:", id, newPosition);
+    try {
+      await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/favorite-addresses/${id}/position`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ position: newPosition }),
+        },
+        { protected: true }
+      );
+    } catch (e) {
+      Alert.alert(
+        "Erreur",
+        "Impossible de mettre à jour la position du favori."
+      );
+    }
+  };
+
+  const updatePositionFavorites = async (newList) => {
+    // Recherche le favori dont la position a changé
+    for (let i = 0; i < newList.length; i++) {
+      if (newList[i]._id !== data[i]._id) {
+        // On a trouvé le favori déplacé
+        await updateFavoritePosition(newList[i]._id, i);
+        setData(newList);
+        break;
+      }
+    }
+    setData(newList);
   };
 
   // Suppression d'un favori
@@ -35,33 +82,37 @@ const FavoriteListScreen = () => {
   // Rendu d'un item avec swipe pour supprimer
   const renderItem = useCallback(
     ({ item, drag, isActive }) => (
-      <RectButton
-        style={[
-          styles.item,
-          { backgroundColor: isActive ? "#e6f7ff" : "#fff" },
-        ]}
-        onLongPress={drag}
-      >
-        <IconComponent
-          library="Feather"
-          icon="menu"
-          size={20}
-          color="#888"
-          style={{ marginRight: 12 }}
-        />
-        <Text style={styles.label}>{item.label}</Text>
+      <ScaleDecorator>
         <TouchableOpacity
-          onPress={() => handleDelete(item)}
-          style={styles.deleteButton}
+          onLongPress={drag}
+          disabled={isActive}
+          style={[
+            styles.item,
+            { backgroundColor: isActive ? "#e6f7ff" : "#fff" },
+          ]}
         >
           <IconComponent
             library="Feather"
-            icon="trash-2"
+            icon="menu"
             size={20}
-            color="#e74c3c"
+            color="#888"
+            style={{ marginRight: 12 }}
           />
+
+          <Text style={styles.label}>{item.label}</Text>
+          <TouchableOpacity
+            onPress={() => handleDelete(item)}
+            style={styles.deleteButton}
+          >
+            <IconComponent
+              library="Feather"
+              icon="trash-2"
+              size={20}
+              color="#e74c3c"
+            />
+          </TouchableOpacity>
         </TouchableOpacity>
-      </RectButton>
+      </ScaleDecorator>
     ),
     [data]
   );
@@ -69,7 +120,6 @@ const FavoriteListScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Mes favoris</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate("AddFavoriteAddress")}
@@ -85,11 +135,11 @@ const FavoriteListScreen = () => {
       </View>
       <DraggableFlatList
         data={data}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         renderItem={renderItem}
-        onDragEnd={({ data: newData }) => updateFavorites(newData)}
-        activationDistance={10}
+        onDragEnd={({ data: newData }) => updatePositionFavorites(newData)}
         containerStyle={{ flex: 1 }}
+        activationDistance={0}
       />
     </View>
   );
