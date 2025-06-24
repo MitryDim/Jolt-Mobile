@@ -3,7 +3,6 @@ import { useNavigation } from "@react-navigation/native";
 import {
   Directions,
   GestureHandlerRootView,
- 
 } from "react-native-gesture-handler";
 import { formatDistance } from "../../utils/Utils";
 import IconComponent from "../Icons";
@@ -22,6 +21,20 @@ const TraveledCards = ({
 }) => {
   const navigation = useNavigation();
   const [swiped, setSwiped] = useState(false);
+
+  const points = data.gpxPoints
+    ? data.gpxPoints.map((pt) => ({
+        latitude: pt.lat ?? pt.latitude,
+        longitude: pt.lon ?? pt.longitude,
+      }))
+    : data.positions || [];
+
+  let elapsedTime = 0;
+  if (data.startTime && data.endTime) {
+    elapsedTime =
+      (new Date(data.endTime).getTime() - new Date(data.startTime).getTime()) /
+      1000;
+  }
 
   const handleDeleteItem = async (item) => {
     //TODO FONCTION DE SUPPRESSION
@@ -60,47 +73,21 @@ const TraveledCards = ({
       style={{ width, minHeight: height }}
     >
       <View style={{ flex: 1 }}>
-        {data && data.positions && (
+        {points.length > 0 && (
           <MapView
             style={{ width: "100%", height: height - 40 }}
-            initialRegion={CenterRegion(data.positions)}
+            initialRegion={CenterRegion(points)}
             moveOnMarkerPress={false}
             zoomTapEnabled={false}
             scrollEnabled={false}
             zoomControlEnabled={false}
             zoomEnabled={false}
           >
-            {/* Ajouter un marqueur de départ */}
-            {data.positions.length > 0 && (
-              <Marker
-                coordinate={{
-                  latitude: data.positions[0]?.latitude,
-                  longitude: data.positions[0]?.longitude,
-                }}
-                pinColor="green" // Couleur du marqueur
-              />
-            )}
-
-            {/* Ajouter un marqueur d'arrivée */}
-            {data.positions.length > 0 && (
-              <Marker
-                coordinate={{
-                  latitude: data.positions[data.positions.length - 1]?.latitude,
-                  longitude:
-                    data.positions[data.positions.length - 1]?.longitude,
-                }}
-                pinColor="red" // Couleur du marqueur
-              />
-            )}
-
-            <Polyline
-              coordinates={data.positions.map((pos) => ({
-                latitude: pos.latitude,
-                longitude: pos.longitude,
-              }))}
-              strokeWidth={3}
-              strokeColor="#00F" // Couleur de la ligne du trajet
-            />
+            {/* Marqueur de départ */}
+            <Marker coordinate={points[0]} pinColor="green" />
+            {/* Marqueur d'arrivée */}
+            <Marker coordinate={points[points.length - 1]} pinColor="red" />
+            <Polyline coordinates={points} strokeWidth={3} strokeColor="#00F" />
           </MapView>
         )}
         <LinearGradient
@@ -125,7 +112,9 @@ const TraveledCards = ({
             library="MaterialCommunityIcons"
             size={20}
           />
-          {new Date(data.elapsedTime * 1000).toISOString().substr(11, 8)}
+          {elapsedTime > 0
+            ? new Date(elapsedTime * 1000).toISOString().substr(11, 8)
+            : ""}
         </Text>
         <Text>
           <IconComponent
@@ -133,7 +122,7 @@ const TraveledCards = ({
             library="MaterialCommunityIcons"
             size={20}
           />
-          {formatDistance(data?.distance ? data.distance : 0)}
+          {formatDistance(data?.totalDistance ? data.totalDistance : 0)}
         </Text>
         <IconComponent
           library={"MaterialCommunityIcons"}
@@ -146,7 +135,11 @@ const TraveledCards = ({
   );
 
   if (swipeable) {
-    return <Swipeable renderRightActions={renderLeftActions} {...props}>{CardContent}</Swipeable>;
+    return (
+      <Swipeable renderRightActions={renderLeftActions} {...props}>
+        {CardContent}
+      </Swipeable>
+    );
   }
   return CardContent;
 };

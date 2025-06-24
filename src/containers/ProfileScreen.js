@@ -23,9 +23,7 @@ const ProfileScreen = () => {
       PressClassName: "mt-4",
       textClassName: "text-red-500 underline",
       onPress: async () => {
-        console.log("Supprimer le compte", EXPO_GATEWAY_SERVICE_URL);
-        //fetch
-        // Supprime le compte de l'utilisateur
+ 
         try {
           const response = await fetchWithAuth(
             `${EXPO_GATEWAY_SERVICE_URL}/users/delete`,
@@ -84,7 +82,7 @@ const ProfileScreen = () => {
                 ? button.PressClassName
                 : "bg-white w-60 px-2 py-4 m-4 rounded-lg shadow-md"
             }`}
-            onPress={() => button.onPress()}
+            onPress={() => button?.onPress()}
           >
             <Text
               className={`text-center ${

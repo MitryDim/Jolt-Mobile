@@ -7,7 +7,7 @@ import {
   getGreatCircleBearing,
   computeDestinationPoint,
 } from "geolib";
-
+import * as Speech from "expo-speech";
 import * as api from "../../helpers/Api";
 import { runOnUI, useSharedValue, withSpring } from "react-native-reanimated";
 
@@ -28,11 +28,11 @@ export const useNavigationLogic = ({
   const { width, height } = Dimensions.get("window");
   const SCREEN_RATIO = height / 1920;
   const isUpdatingRef = useRef(false);
-
+  const [gpxPoints, setGpxPoints] = useState([]);
   const lastCoords = useRef(null);
   const lastHeading = useRef(null);
   const lastSpeed = useRef(null);
-
+  const speedTimeoutRef = useRef(null);
   const [currentInstruction, setCurrentInstruction] = useState(null);
   const [routeOptions, setRouteOptions] = useState(initialRouteOptions || []);
   const [distance, setDistance] = useState(0);
@@ -57,13 +57,13 @@ export const useNavigationLogic = ({
 
   useEffect(() => {
     //reinitialiser les valeurs si le mode change
-console.log("Resetting navigation logic for mode:", mode, isNavigating);
+    console.log("Resetting navigation logic for mode:", mode, isNavigating);
     lastCoords.current = null;
     lastHeading.current = null;
     lastSpeed.current = null;
     lastLocation.current = null;
     distanceTraveled.current = 0;
-   // coordinates.setValue({ latitude: 0, longitude: 0 });
+    // coordinates.setValue({ latitude: 0, longitude: 0 });
     heading.value = withSpring(0, { damping: 10, stiffness: 100 });
     setCurrentInstruction(null);
     setRouteOptions(initialRouteOptions || []);
@@ -73,7 +73,14 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
     setSpeedValue(0);
     setIsLoading(false);
     lastUpdateTime.current = Date.now();
+    setGpxPoints([]);
   }, [mode]);
+
+  useEffect(() => {
+    return () => {
+      if (speedTimeoutRef.current) clearTimeout(speedTimeoutRef.current);
+    };
+  }, []);
 
   const mercatorLatitudeToY = (latitude) =>
     Math.round(
@@ -218,7 +225,7 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
   // =============================
 
   const updateCamera = useCallback(
-    (map, coords, isCameraLockedRef, headingValue) => {
+    (map, coords, isCameraLockedRef, headingValue, elapsed) => {
       if (isCameraLockedRef.current) return;
       if (!coords || !map) return;
 
@@ -256,7 +263,7 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
           latitudeDelta,
           longitudeDelta,
         },
-        { duration: 200 }
+        { duration: Math.max(300, Math.min(elapsed, 700)), easing: "linear" }
       );
 
       // lastLocation.current = coords;
@@ -273,7 +280,6 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
           setSpeedValue(computedSpeed);
         }
       }
-      lastUpdateTime.current = now;
       runOnUI((coords, now) => {
         "worklet";
         const alpha = 0.4;
@@ -370,6 +376,27 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
     // }
 
     if (showManeuver && isNavigating) {
+      const thresholds = [500, 200, 50, 5];
+      console.log("Distance restante:", distanceRest, "m");
+      for (const threshold of thresholds) {
+        if (distanceRest < threshold) {
+          // Annonce de la manœuvre
+          const maneuverText = instruction?.closestInstruction?.instruction;
+          console.log("Maneuver text:", maneuverText, instruction);
+          if (maneuverText) {
+            Speech.speak(maneuverText, {
+              rate: 0.9,
+              pitch: 1.2,
+              language: "fr-FR",
+            });
+          }
+          break;
+        }
+       
+      }
+
+      // Annonce de l'instruction
+
       // const elapsed = (Date.now() - startTime) / 1000;
       // const routeDistance = routeOptions[0]?.routeDistance || 1;
 
@@ -388,8 +415,28 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
 
   const handleLocationUpdate = async (location, map) => {
     if (isUpdatingRef.current) return;
+    const now = Date.now();
+    const elapsed = now - (lastUpdateTime.current || now); // en ms
+    const {
+      latitude,
+      longitude,
+      heading: hd,
+      altitude,
+      speed,
+    } = location.coords;
 
-    const { latitude, longitude, heading: hd, speed } = location.coords;
+    if (mode === "travel") {
+      setGpxPoints((prev) => [
+        ...prev,
+        {
+          lat: latitude,
+          lon: longitude,
+          alt: altitude ?? null,
+          time: now,
+          speed: speed != null ? speed * 3.6 : null, // en km/h
+        },
+      ]);
+    }
     const currentCoords = { latitude, longitude };
 
     // 🎯 Seuils de filtrage
@@ -423,6 +470,7 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
       const newLocation = location.coords;
       let closestI = null;
       if (
+        isNavigating &&
         initialRouteOptions?.coordinates &&
         initialRouteOptions?.coordinates.length > 0
       ) {
@@ -451,13 +499,17 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
         .timing({
           latitude: newLocation.latitude,
           longitude: newLocation.longitude,
-          duration: 200,
+          duration: Math.max(300, Math.min(elapsed, 700)),
         })
         .start();
       console.log("isNavigating:", isNavigating);
       if (isNavigating) {
-        updateCamera(map, newLocation, isCameraLockedRef, heading);
+        updateCamera(map, newLocation, isCameraLockedRef, heading, elapsed);
         updateSpeed(speedRef.current);
+        if (speedTimeoutRef.current) clearTimeout(speedTimeoutRef.current);
+        speedTimeoutRef.current = setTimeout(() => {
+          setSpeedValue(0);
+        }, 3000); // 3 secondes sans update => vitesse à 0
         getInstruction(closestI, newLocation, hd, speed);
       }
 
@@ -468,6 +520,8 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
         );
       }
       lastLocation.current = newLocation;
+
+      lastUpdateTime.current = now;
     } finally {
       setTimeout(() => {
         isUpdatingRef.current = false;
@@ -487,5 +541,6 @@ console.log("Resetting navigation logic for mode:", mode, isNavigating);
     updateCamera,
     handleLocationUpdate,
     speedValue,
+    gpxPoints,
   };
 };

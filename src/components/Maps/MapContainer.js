@@ -1,6 +1,14 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import MapView from "react-native-maps";
-import { View, Text, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Dimensions,
+  Modal,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import * as Location from "expo-location";
 import MapRoutes from "./MapRoutes";
 import UserMarker from "./UserMarker";
@@ -24,6 +32,9 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import SpeedBubble from "./SpeedBubble";
 import { useAnimatedPosition } from "../../context/AnimatedPositionContext";
+import { getDistance } from "geolib";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import { useFetchWithAuth } from "../../hooks/useFetchWithAuth";
 const MapContainer = ({
   styleMaps,
   initialRouteOptions,
@@ -39,6 +50,7 @@ const MapContainer = ({
   mode,
   handleComponent,
 }) => {
+  const fetchWithAuth = useFetchWithAuth();
   const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
   const isCameraLockedRef = useRef(false);
@@ -60,6 +72,7 @@ const MapContainer = ({
     remainingTimeInSeconds,
     distance,
     speedValue,
+    gpxPoints,
   } = useNavigationLogic({
     initialRouteOptions: initialRouteOptions[selectedRouteIndex],
     isNavigating,
@@ -97,6 +110,78 @@ const MapContainer = ({
     };
   });
 
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [tripName, setTripName] = useState("");
+  const [pendingTripData, setPendingTripData] = useState(null);
+
+  const handleStop = () => {
+    const endTime = new Date();
+    const startTime = gpxPoints[0]?.time ? new Date(gpxPoints[0].time) : null;
+    const totalDistance = gpxPoints.reduce((acc, point, idx, arr) => {
+      if (idx === 0) return 0;
+      return (
+        acc +
+        getDistance(
+          { latitude: arr[idx - 1].lat, longitude: arr[idx - 1].lon },
+          { latitude: point.lat, longitude: point.lon }
+        )
+      );
+    }, 0);
+    const speedMax = Math.max(...gpxPoints.map((p) => p.speed || 0));
+    const altitude =
+      gpxPoints.reduce((acc, p) => acc + (p.alt || 0), 0) / gpxPoints.length;
+
+    // Stocke les données du trajet en attente
+    setPendingTripData({
+      startTime,
+      endTime,
+      totalDistance,
+      speedMax,
+      altitude,
+      gpxPoints,
+    });
+    setTripName(`trajet du ${new Date().toLocaleDateString()}`);
+    setShowSaveModal(true);
+  };
+
+  const saveTrip = async () => {
+    if (!tripName.trim()) return;
+    try { 
+      await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: tripName,
+            ...pendingTripData,
+          }),
+        },
+        { protected: true }
+      );
+      setShowNameModal(false);
+      setPendingTripData(null);
+      // Navigation ou reset ici si besoin
+      navigation.navigate("MapScreen", {
+        key: String(Date.now()),
+        mode: "address",
+        fromAddress: "",
+        initialRouteOptions: [],
+        userSpeed: 0,
+        currentRegion: null,
+        showManeuver: false,
+        isLoading: false,
+        arrivalTimeStr: "",
+        remainingTimeInSeconds: 0,
+        currentInstruction: null,
+        distance: 0,
+      });
+    } catch (e) {
+      alert("Erreur lors de l'enregistrement du trajet.");
+    }
+  };
+
   const handleUserPan = () => {
     if (isNavigating) {
       console.log("User panned the map, locking camera.");
@@ -133,7 +218,9 @@ const MapContainer = ({
         if (status !== "granted") return;
         subscription = await Location.watchPositionAsync(
           {
+            timeInterval: 1200, // Met à jour toutes les  2 secondes
             accuracy: Location.Accuracy.BestForNavigation,
+            distanceInterval: 3, // Met à jour si le déplacement est supérieur à 1 mètre
           },
           (location) => {
             // Utilise la valeur à jour
@@ -206,7 +293,7 @@ const MapContainer = ({
         )}
       </MapView>
 
-      {isNavigating && showManeuver && currentInstruction && (
+      {isNavigating && showManeuver && currentInstruction && !showSaveModal && (
         <View
           className="absolute top-0 left-0 right-0 z-10 h-full"
           pointerEvents="box-none"
@@ -238,7 +325,7 @@ const MapContainer = ({
           <SpeedBubble speed={speedValue} />
         </Animated.View>
       )}
-      {mode == "travel" && (
+      {mode == "travel" && !showSaveModal && !showNameModal && (
         <View
           style={{
             flex: 1,
@@ -255,20 +342,7 @@ const MapContainer = ({
             remainingTimeInSeconds={remainingTimeInSeconds}
             handleComponent={handleComponent}
             onStop={() => {
-              navigation.navigate("MapScreen", {
-                key: String(Date.now()),
-                mode: "address",
-                fromAddress: "",
-                initialRouteOptions: [],
-                userSpeed: 0,
-                currentRegion: null,
-                showManeuver: false,
-                isLoading: false,
-                arrivalTimeStr: "",
-                remainingTimeInSeconds: 0,
-                currentInstruction: null,
-                distance: 0,
-              });
+              handleStop();
 
               // Action pour arrêter la navigation
             }}
@@ -295,8 +369,131 @@ const MapContainer = ({
           remainingTimeInSeconds={remainingTimeInSeconds}
         ></OptionBottomSheet>
       )}
+      {showSaveModal && (
+        <View style={{ flex: 1, padding: 24 }}>
+          <Modal animationType="fade" transparent visible={showSaveModal}>
+            <View style={modalStyles.overlay}>
+              <View style={modalStyles.content}>
+                <Text style={{ fontSize: 18, marginBottom: 16 }}>
+                  Voulez-vous enregistrer ce trajet ?
+                </Text>
+                <View style={{ flexDirection: "row" }}>
+                  <TouchableOpacity
+                    style={[modalStyles.button, { backgroundColor: "#007aff" }]}
+                    onPress={() => {
+                      setShowSaveModal(false);
+                      setShowNameModal(true);
+                    }}
+                  >
+                    <Text style={{ color: "#fff" }}>Oui</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[modalStyles.button, { backgroundColor: "#eee" }]}
+                    onPress={() => {
+                      setShowSaveModal(false);
+                      setPendingTripData(null);
+                      // Navigation ou reset ici si besoin
+                      navigation.navigate("MapScreen", {
+                        key: String(Date.now()),
+                        mode: "address",
+                        fromAddress: "",
+                        initialRouteOptions: [],
+                        userSpeed: 0,
+                        currentRegion: null,
+                        showManeuver: false,
+                        isLoading: false,
+                        arrivalTimeStr: "",
+                        remainingTimeInSeconds: 0,
+                        currentInstruction: null,
+                        distance: 0,
+                      });
+                    }}
+                  >
+                    <Text style={{ color: "#333" }}>Non</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      )}
+
+      {showNameModal && (
+        <View style={{ flex: 1, padding: 24 }}>
+          <Modal transparent visible animationType="fade">
+            <View style={modalStyles.overlay}>
+              <View style={modalStyles.content}>
+                <Text style={{ fontSize: 18, marginBottom: 16 }}>
+                  Nom du trajet
+                </Text>
+                <TextInput
+                  style={modalStyles.input}
+                  value={tripName}
+                  onChangeText={setTripName}
+                  placeholder="Nom du trajet"
+                />
+                <TouchableOpacity
+                  style={[
+                    modalStyles.button,
+                    { backgroundColor: "#007aff", width: "100%" },
+                  ]}
+                  onPress={saveTrip}
+                >
+                  <Text style={{ color: "#fff" }}>Enregistrer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    modalStyles.button,
+                    { backgroundColor: "#eee", width: "100%" },
+                  ]}
+                  onPress={() => setShowNameModal(false)}
+                >
+                  <Text style={{ color: "#333" }}>Annuler</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
+      )}
     </>
   );
 };
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+
+    zIndex: 1000,
+  },
+  content: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    width: "85%",
+    alignItems: "center",
+    elevation: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 20,
+    color: "#333",
+    width: "100%",
+  },
+  button: {
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 8,
+    marginBottom: 8,
+    minWidth: 80,
+  },
+});
 
 export default MapContainer;

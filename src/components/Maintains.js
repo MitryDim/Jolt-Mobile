@@ -1,8 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useEffect, useState, useContext, useCallback } from "react";
 import Card from "./Cards";
-import { useFocusEffect, useNavigation } from "@react-navigation/native"; 
-import { useFetchWithAuth } from "../hooks/useFetchWithAuth"; 
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import WearBar from "./WearBar";
 import { useVehicleData } from "../context/VehicleDataContext";
@@ -18,7 +18,7 @@ const Maintains = ({ vehicle }) => {
   const fetchMaintains = async () => {
     if (!vehicle?.id) return;
     setLoading(true);
-    const { data,status } = await fetchWithAuth(
+    const { data, status } = await fetchWithAuth(
       `${EXPO_GATEWAY_SERVICE_URL}/maintain?vehicleId=${vehicle.id}`,
       { method: "GET" },
       { protected: true }
@@ -41,8 +41,6 @@ const Maintains = ({ vehicle }) => {
   const maintainsIncoming = maintains.filter(
     (m) => Math.round(m.wearPercentage) < 100
   );
-
- 
 
   return (
     <ScrollView className="flex ">

@@ -203,7 +203,7 @@ const AddressBottomSheet = ({
         onSelect={(item) => handleSelect(item, false)}
         onAddNew={goToAddFavorite}
         showMore={handleShowMoreFavorites}
-        maxVisible={1}
+        maxVisible={3}
       />
     </View>
   );

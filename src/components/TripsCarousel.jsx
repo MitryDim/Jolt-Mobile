@@ -34,7 +34,7 @@ const CommunityTripsCarousel = ({
   return (
     <FlatList
       data={trips}
-      keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+      keyExtractor={(item, index) => item._id?.toString() || index.toString()}
       horizontal
       showsHorizontalScrollIndicator={false}
       snapToInterval={CARD_WIDTH + 2 * SPACING_FOR_CARD_INSET}

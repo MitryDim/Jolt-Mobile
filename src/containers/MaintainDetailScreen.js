@@ -8,9 +8,9 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import {EXPO_GATEWAY_SERVICE_URL} from "@env";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
-import WearBar from "../components/WearBar"; 
+import WearBar from "../components/WearBar";
 
 const MaintainDetailScreen = ({ route, navigation }) => {
   const { maintain, vehicle } = route.params;
@@ -33,6 +33,18 @@ const MaintainDetailScreen = ({ route, navigation }) => {
       },
       { protected: true }
     );
+
+    await fetchWithAuth(
+      `${EXPO_GATEWAY_SERVICE_URL}/vehicle/${vehicle.id}/updateMileage`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mileage: Number(mileage) }),
+      },
+      { protected: true }
+    );
+
+    vehicle.mileage = Number(mileage);
     setLoading(false);
     if (error) {
       Alert.alert("Erreur", error);

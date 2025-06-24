@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import DraggableFlatList, {
   ScaleDecorator,
@@ -19,16 +19,16 @@ const FavoriteListScreen = () => {
   useFocusEffect(
     useCallback(() => {
       // Récupère les favoris à chaque fois que l'écran est focalisé
-      fetchFavorites().then((favorites) => {
-        setData(favorites);
-      });
-    }, [fetchFavorites])
+      fetchFavorites();
+    }, [])
   );
 
+  useEffect(() => {
+    setData(favoritesAddresses);
+  }, [favoritesAddresses]);
   // Met à jour la liste globale et locale
   const updateFavorites = (newList) => {
-    setData(newList);
-    //  setFavorites(newList);
+    fetchFavorites();
   };
 
   const updateFavoritePosition = async (id, newPosition) => {
@@ -61,7 +61,23 @@ const FavoriteListScreen = () => {
         break;
       }
     }
-    setData(newList);
+    fetchFavorites();
+  };
+
+  const deleteFavorite = async (id) => {
+    try {
+      await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/favorite-addresses/${id}`,
+        {
+          method: "DELETE",
+        },
+        { protected: true }
+      );
+      // Met à jour la liste des favoris après suppression
+      fetchFavorites();
+    } catch (e) {
+      Alert.alert("Erreur", "Impossible de supprimer le favori.");
+    }
   };
 
   // Suppression d'un favori
@@ -72,8 +88,7 @@ const FavoriteListScreen = () => {
         text: "Supprimer",
         style: "destructive",
         onPress: () => {
-          const newList = data.filter((fav) => fav.id !== item.id);
-          updateFavorites(newList);
+          deleteFavorite(item._id);
         },
       },
     ]);
