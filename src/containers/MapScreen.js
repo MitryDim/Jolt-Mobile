@@ -133,7 +133,7 @@ const MapScreen = () => {
             flex: 1,
             width: "100%",
             height: "100%",
-            position: "absolute",
+            position: "absolute", 
           }}
         >
           <ItineraryBottomSheet
@@ -186,34 +186,30 @@ const MapScreen = () => {
 
   return (
     <AnimatedPositionContext.Provider value={animatedPositionRef}>
-      <SafeAreaView
+      <View
         className={`flex ${
           mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
         }`}
       >
-        <View>
-          <MapContainer
-            key={mode}
-            mode={mode}
-            initialRouteOptions={initialRouteOptions}
-            selectedRouteIndex={selectedRouteIndex}
-            isNavigating={isNavigating}
-           // screenHeightRatio={screenHeightRatio}
-            currentRegion={userLocation}
-            showManeuver={showManeuver}
-            styleMaps={styles.map}
-            onPolylineSelect={(index) =>
-              console.log("Polyline selected:", index)
-            }
-            handleSheetClose={handleSheetChange}
-            sheetOffsetValue={sheetHeight}
-            bottomSheetRef={bottomSheetRef}
-            infoTravelAnimatedStyle={infoTravelAnimatedStyle}
-            handleComponent={handleComponent}
-          />
-          {renderModeSpecificUI()}
-        </View>
-      </SafeAreaView>
+        <MapContainer
+          key={mode}
+          mode={mode}
+          initialRouteOptions={initialRouteOptions}
+          selectedRouteIndex={selectedRouteIndex}
+          isNavigating={isNavigating}
+          // screenHeightRatio={screenHeightRatio}
+          currentRegion={userLocation}
+          showManeuver={showManeuver}
+          styleMaps={styles.map}
+          onPolylineSelect={(index) => console.log("Polyline selected:", index)}
+          handleSheetClose={handleSheetChange}
+          sheetOffsetValue={sheetHeight}
+          bottomSheetRef={bottomSheetRef}
+          infoTravelAnimatedStyle={infoTravelAnimatedStyle}
+          handleComponent={handleComponent}
+        />
+        {renderModeSpecificUI()}
+      </View>
     </AnimatedPositionContext.Provider>
   );
 };

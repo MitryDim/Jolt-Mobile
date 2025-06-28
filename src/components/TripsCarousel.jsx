@@ -1,16 +1,9 @@
 import React, { useRef, useState } from "react";
-import {
-  ScrollView,
-  View,
-  Text,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { ScrollView, View, Dimensions } from "react-native";
 import TraveledCards from "./RouteTraveled/TraveledCards";
-import { FlatList } from "react-native-gesture-handler";
 
-const CARD_WIDTH = Dimensions.get("window").width * 0.7;
-const CARD_HEIGHT = 250;
+const CARD_WIDTH = Dimensions.get("window").width * 0.9;
+const CARD_HEIGHT = Dimensions.get("window").height * 0.3;
 const SPACING_FOR_CARD_INSET = 5;
 
 const CommunityTripsCarousel = ({
@@ -31,17 +24,49 @@ const CommunityTripsCarousel = ({
     setCurrentScrollIndex(index);
   };
 
+  if (trips.length === 1) {
+    return (
+      <View
+        style={{
+          height: CARD_HEIGHT,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <TraveledCards
+          data={trips[0]}
+          navigation={navigation}
+          width={CARD_WIDTH}
+          height={CARD_HEIGHT}
+          swipeable={false}
+          index={0}
+        />
+      </View>
+    );
+  }
+
   return (
-    <FlatList
-      data={trips}
-      keyExtractor={(item, index) => item._id?.toString() || index.toString()}
+    <ScrollView
+      ref={scrollRef}
       horizontal
+      nestedScrollEnabled={true}
       showsHorizontalScrollIndicator={false}
       snapToInterval={CARD_WIDTH + 2 * SPACING_FOR_CARD_INSET}
       decelerationRate="fast"
-      contentContainerStyle={{ height: CARD_HEIGHT }}
-      renderItem={({ item }) => (
+      snapToAlignment="center"
+      pagingEnabled={true}
+      contentContainerStyle={{
+        height: CARD_HEIGHT,
+        alignItems: "center",
+      }}
+      style={{ marginHorizontal: SPACING_FOR_CARD_INSET }}
+      onMomentumScrollEnd={onMomentumScrollEnd}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
+      {trips.map((item, index) => (
         <View
+          key={item._id?.toString() || index.toString()}
           style={{
             width: CARD_WIDTH,
             marginHorizontal: SPACING_FOR_CARD_INSET,
@@ -52,11 +77,12 @@ const CommunityTripsCarousel = ({
             navigation={navigation}
             width={CARD_WIDTH}
             height={CARD_HEIGHT}
-            swipeable={false} // désactive le swipe pour éviter les conflits
+            swipeable={false}
+            index={index}
           />
         </View>
-      )}
-    />
+      ))}
+    </ScrollView>
   );
 };
 

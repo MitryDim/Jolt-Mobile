@@ -1,5 +1,12 @@
 import React, { useRef, useMemo } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import BottomSheet, {
   BottomSheetFooter,
   BottomSheetView,
@@ -21,7 +28,7 @@ export default function NavigationBottomSheet({
   bottomSheetRef,
   handleComponent,
 }) {
-  const snapPoints = useMemo(() => [90, "25%", "95%"]);
+  const snapPoints = useMemo(() => [90, "25%", "55%"]);
   const animatedIndex = useSharedValue(1);
 
   const animatedFooterStyle = useAnimatedStyle(() => ({
@@ -32,7 +39,7 @@ export default function NavigationBottomSheet({
       Extrapolate.CLAMP
     ),
     transform: [
-      {
+      { 
         translateY: interpolate(
           animatedIndex.value,
           [0, 1, 2, 3],
@@ -87,16 +94,15 @@ export default function NavigationBottomSheet({
         footerComponent={renderFooter}
         handleComponent={handleComponent}
       >
-
-          <BottomSheetView>
-            {/* {renderHeader()} */}
-            <View style={styles.content}>
+        <BottomSheetView>
+          {renderHeader()}
+          {/* <View style={styles.content}>
               <Text style={styles.title}>Navigation en cours...</Text>
               <Text style={styles.subtitle}>
                 Vous pouvez reprendre ou arrêter la navigation.
               </Text>
-            </View>
-          </BottomSheetView>
+            </View> */}
+        </BottomSheetView>
       </BottomSheet>
     </>
   );

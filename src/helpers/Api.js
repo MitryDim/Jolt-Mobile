@@ -67,13 +67,53 @@ export const directions = async (
   endCoords,
   preference,
   maxNBRoute = 3,
-  bearing = [[]]
-) => { 
+  bearing = [[]],
+  allCoords = null,
+  continue_straight = null
+) => {
   let alternative_routes = { target_count: 3 };
-
-  if (maxNBRoute < 2) alternative_routes = {};
+  console.log("Calculating route with maxNBRoute:", maxNBRoute);
 
   try {
+    const coordinates = allCoords || [startCoords, endCoords]; // <-- utilise tous les points si fournis
+
+    const body = {
+      coordinates: coordinates,
+      extra_info: [
+        "green",
+        "traildifficulty",
+        "waytype",
+        "waycategory",
+        "surface",
+        "steepness",
+      ],
+      geometry_simplify: "false",
+      instructions: "true",
+      instructions_format: "html",
+      language: "fr-fr",
+      maneuvers: "true",
+      preference: preference, // "fastest", "shortest", "recommended"
+      attributes: ["avgspeed", "percentage"],
+      roundabout_exits: "true",
+      elevation: "true",
+      geometry: "true",
+    };
+
+    if (continue_straight) {
+      body.continue_straight = continue_straight;
+    }
+    //"Parameter 'alternative_routes' is incompatible with parameter '(number of waypoints > 2)'."
+    if (maxNBRoute > 1) {
+      body.alternative_routes = alternative_routes;
+    }
+
+    if (bearing && bearing.length > 0) {
+      console.log("Bearing provided:", bearing);
+      body.bearings = bearing;
+    }
+
+    console.log("Calculating route with body:", body);
+
     const response = await fetch(
       `${openRouteServiceURL}/v2/directions/cycling-regular/geojson`,
       {
@@ -82,33 +122,15 @@ export const directions = async (
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          coordinates: [startCoords, endCoords],
-          extra_info: [
-            "green",
-            "traildifficulty",
-            "waytype",
-            "waycategory",
-            "surface",
-            "steepness",
-          ],
-          geometry_simplify: "false",
-          instructions: "true",
-          instructions_format: "html",
-          language: "fr-fr",
-          maneuvers: "true",
-          preference: preference,
-          alternative_routes: alternative_routes,
-          attributes: ["avgspeed", "percentage"],
-          roundabout_exits: "true",
-          elevation: "true",
-          bearings: bearing,
-          geometry: "true",
-        }),
+        body: JSON.stringify(body),
       }
     );
 
     if (!response.ok) {
+      console.error(
+        "Erreur lors de la récupération des directions :",
+        response
+      );
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -127,9 +149,9 @@ export const calculateMultipleRoutes = async (
   bearing = [[]]
 ) => {
   try {
-    const preferences = ["fastest", "shortest", "recommended"]; // Ajoutez ici d'autres préférences si nécessaire
+    const preferences = ["fastest", "shortest", "recommended"];
 
-    const uniqueRoutes = new Set(); // Set to store unique route coordinates
+    const uniqueRoutes = new Set();
 
     const routeOptions = await calculateRoute(
       startCoords,
@@ -138,7 +160,7 @@ export const calculateMultipleRoutes = async (
       maxNBRoute,
       bearing
     );
- 
+
     return routeOptions;
   } catch (error) {
     console.error("Erreur lors de la récupération des itinéraires :", error);
@@ -150,7 +172,9 @@ export const calculateRoute = async (
   endCoords,
   preferences,
   maxNBRoute = 3,
-  bearing
+  bearing,
+  allCoords = null,
+  continue_straight = null
 ) => {
   try {
     const preferencesSelected = preferences || ["recommended"];
@@ -166,7 +190,9 @@ export const calculateRoute = async (
         endCoords,
         preference,
         maxNBRoute,
-        bearing
+        bearing,
+        allCoords,
+        continue_straight
       );
 
       const routeCoordinates = routeData.features[0].geometry.coordinates;
@@ -196,6 +222,7 @@ export const calculateRoute = async (
           instructions: instructions,
           routeDistance: totalDistanceMeter,
           duration: durationMeter,
+          segments: routeData.features[0].properties.segments,
         });
       }
     }

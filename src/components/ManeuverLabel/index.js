@@ -51,41 +51,66 @@ export default class ManeuverLabel extends Component {
     function stripHtml(html) {
       return html.replace(/<[^>]*>?/gm, "");
     }
-    const thresholds = [500, 200, 50, 5];
-    const instructionHtml = this.props.instructions; // ou autre source
+    const thresholds = [5, 50, 200, 500]; // ordre croissant
+    const instructionHtml = this.props.instructions;
     const instructionText = stripHtml(instructionHtml);
 
-    if (this.lastInstruction !== instructionHtml) {
+    if (this.lastInstructionText !== instructionText) {
       this.announcedDistances = [];
-      this.lastInstruction = instructionHtml;
+      this.lastInstructionText = instructionText;
     }
 
-    if (instructionText || instructionText.trim() !== "") {
+    if (instructionText && instructionText.trim() !== "") {
+      let thresholdToAnnounce = null;
+      const margin = 10; // marge pour éviter d'annoncer un seuil trop éloigné
+
       for (const threshold of thresholds) {
         if (
           this.props.distanceRest <= threshold &&
           !this.announcedDistances.includes(threshold)
         ) {
-          let message = "";
-
-          if (threshold === 5) {
-            message = `${instructionText}`;
-          } else {
-            message = `Dans ${threshold} mètres, ${instructionText}`;
+          if (
+            threshold <= this.props.distanceRest + margin ||
+            threshold === 5
+          ) {
+            thresholdToAnnounce = threshold;
+            break;
           }
-
-          //   setCurrentInstruction(message);
-          Speech.speak(message, {
-            rate: 1.0,
-            pitch:1.0, 
-            language: "fr-FR",
-          });
-
-          this.announcedDistances.push(threshold);
-          break;
         }
       }
+
+      if (thresholdToAnnounce !== null) {
+        let message = "";
+        if (thresholdToAnnounce === 5) {
+          message = instructionText;
+        } else {
+          message = `Dans ${thresholdToAnnounce} mètres, ${instructionText}`;
+        }
+
+        Speech.speak(message, {
+          rate: 1.0,
+          pitch: 1.0,
+          language: "fr-FR",
+        });
+
+        this.announcedDistances.push(thresholdToAnnounce);
+      }
+
+      if (
+        this.props.distanceRest <= 10 &&
+        !this.announcedDistances.includes(5)
+      ) {
+        Speech.speak(instructionText, {
+          rate: 1.0,
+          pitch: 1.0,
+          language: "fr-FR",
+        });
+        this.announcedDistances.push(5);
+      }
     }
+    
+
+
     return (
       <View style={styles.maneuverLabel}>
         <Text style={{ fontWeight: "bold" }}>

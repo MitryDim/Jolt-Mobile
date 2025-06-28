@@ -14,13 +14,13 @@ import * as Location from "expo-location";
 import * as ExpoSplashScreen from "expo-splash-screen";
 
 import PermissionScreen from "./PermissionLocationScreen";
-ExpoSplashScreen.preventAutoHideAsync(); 
+ExpoSplashScreen.preventAutoHideAsync();
 const messages = require("../../assets/SplashScreen/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);
 
-const SplashScreen = ({ navigation }) => {
+const SplashScreen = ({ navigation, onAnimationFinish }) => {
   const opacityAnimationLoading = useAnimatedValue(0);
   const opacityAnimationSplash1 = useAnimatedValue(1);
   const opacityAnimationSplash2 = useAnimatedValue(0);
@@ -129,7 +129,9 @@ const SplashScreen = ({ navigation }) => {
           style={[styles.animation, { opacity: opacityAnimationSplash2 }]}
           loop={false}
           onAnimationFinish={() => {
-            navigation.replace("HomeScreen");
+            onAnimationFinish();
+            // navigation.replace("HomeScreen");
+
             // onEnd();
           }}
         />

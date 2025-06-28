@@ -38,7 +38,7 @@ const CustomTabBarButton = ({ children, onPress }) => (
 const Tabs = () => {
   const { mode } = useNavigationMode();
   const { user } = useContext(UserContext);
-  const { pendingCount } = useVehicleData();
+  const { pendingCount, vehicles } = useVehicleData();
   const insets = useSafeAreaInsets();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -87,7 +87,7 @@ const Tabs = () => {
         navigationBarColor: "#FFFFFF",
         tabBarStyle: ((route) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-          if (routeName === "") {
+          if (routeName === "TrackingDetailsScreen" || mode === "travel") {
             return { display: "none" };
           }
           return tabBarStyle;
@@ -95,7 +95,7 @@ const Tabs = () => {
       }),
     },
     {
-      name: "Trajet Effectués",
+      name: "RouteTraveledNavigator",
       component: RouteTraveledNavigator,
       icon: (focused, size) => (
         <IconComponent
@@ -119,7 +119,7 @@ const Tabs = () => {
   ];
 
   // Si user connecté, ajoute Maintains avant Profile/Auth
-  if (user) {
+  if (user && vehicles && vehicles.length > 0) {
     baseTabs.push({
       name: "maintains",
       component: MaintainsNavigator,

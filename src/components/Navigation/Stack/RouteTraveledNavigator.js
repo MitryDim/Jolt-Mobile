@@ -1,32 +1,40 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RouteTraveledScreen from "../../../containers/RouteTraveledScreen";
 import TrackingDetailsScreen from "../../RouteTraveled/testmap";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { cardStyleInterpolator } from "@react-navigation/stack";
-import { useNavigation } from "@react-navigation/native";
+import { HeaderBackButton } from "@react-navigation/elements";
 const Stack = createNativeStackNavigator();
 
-function RouteTraveledNavigator() {
+function RouteTraveledNavigator({ navigation }) {
   return (
     <Stack.Navigator initialRouteName="TravelScreen">
       <Stack.Screen
         name="TravelScreen"
-        component={RouteTraveledScreen}
         options={{
           headerShown: false,
+          animation: "slide_from_right",
+          presentation: "card",
+          navigationBarColor: "#FFFFFF",
+ 
         }}
+        component={RouteTraveledScreen}
       />
       <Stack.Screen
         name="TrackingDetailsScreen"
         component={TrackingDetailsScreen}
         options={({ navigation }) => ({
           headerLeft: () => (
-            <View>
-              <Text onPress={() => navigation.goBack()}>Fermer</Text>
-            </View>
+            <HeaderBackButton
+              title="Fermer"
+              onPress={() => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                }
+              }}
+            />
           ),
           headerTitleAlign: "center",
           headerShown: true,
+          title: "Détails du trajet",
           animation: "slide_from_bottom",
           presentation: "fullScreenModal",
           navigationBarColor: "#FFFFFF",

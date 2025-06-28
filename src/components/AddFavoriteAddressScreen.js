@@ -9,7 +9,7 @@ import {
   Modal,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import AddressSearchBar from "./AddressSearchBar";
+import AddressSearchBar from "./SearchBar";
 import SuggestionHistoryList from "./SuggestionHistoryList";
 import { useNavigationMode } from "../context/NavigationModeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";

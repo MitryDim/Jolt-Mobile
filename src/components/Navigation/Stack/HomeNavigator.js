@@ -1,12 +1,11 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import HomeScreen from "../../../containers/HomeScreen";
-import SplashScreen from "../../../containers/SplashScreen";
 import MaintainsScreen from "../../../containers/MaintainsScreen";
-import { Button } from "react-native";
 import AddScooterForm from "../../AddScooter";
 import { HeaderBackButton } from "@react-navigation/elements";
 import TrackingDetailsScreen from "../../RouteTraveled/testmap";
+import VehicleDetailScreen from "../../../containers/VehicleDetailScreen";
 const Stack = createNativeStackNavigator();
 
 function HomeNavigator() {
@@ -23,20 +22,18 @@ function HomeNavigator() {
   };
 
   return (
-    <Stack.Navigator initialRouteName="SplashScreen">
-      <Stack.Screen
-        name="SplashScreen"
-        component={SplashScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+    <Stack.Navigator
+      initialRouteName="HomeScreen"
+      options={{ navigationBarColor: "#FFFFFF", navigationBarHidden: true }}
+    >
       <Stack.Screen
         name="HomeScreen"
         component={HomeScreen}
         options={{
-          navigationBarColor: "#FFFFFF",
           headerShown: false,
+          animation: "slide_from_right",
+          presentation: "card",
+          navigationBarColor: "#FFFFFF", 
         }}
       />
       <Stack.Screen
@@ -49,6 +46,7 @@ function HomeNavigator() {
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: false,
           presentation: "fullScreenModal",
+ 
           headerLeft: (props) => (
             <HeaderBackButton
               title="Fermer"
@@ -61,17 +59,17 @@ function HomeNavigator() {
           ),
         })}
       />
-      
+
       <Stack.Screen
         name="Maintains"
         component={MaintainsScreen}
         options={({ navigation }) => ({
           navigationBarColor: "#FFFFFF",
           headerShown: true,
-          headerTitle: "Mes Entretients",
+          headerTitle: "Mes Entretiens",
           headerBackButtonDisplayMode: "minimal",
           headerTransparent: false,
-          presentation: "fullScreenModal",
+          presentation: "card", 
           headerLeft: () => (
             <HeaderBackButton
               title="Fermer"
@@ -102,9 +100,10 @@ function HomeNavigator() {
           headerShown: true,
           animation: "slide_from_bottom",
           presentation: "fullScreenModal",
-          navigationBarColor: "#FFFFFF",
+          navigationBarColor: "#FFFFFF", 
         })}
       />
+      <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
     </Stack.Navigator>
   );
 }

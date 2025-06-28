@@ -29,7 +29,10 @@ import items from "../Data/traveled"; // Importez vos données de véhicules ici
 import TripsCarousel from "../components/TripsCarousel";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+
 const HomeScreen = ({ navigation }) => {
+  const tabBarHeight = useBottomTabBarHeight();
   const scrollRef = useRef(null);
   const fetchWithAuth = useFetchWithAuth();
   const {
@@ -41,22 +44,47 @@ const HomeScreen = ({ navigation }) => {
     useVehicleData();
   const { user } = useContext(UserContext);
   const [lastTrips, setLastTrips] = useState([]);
+  const [tripsShared, setTripsShared] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
       console.log("HomeScreen focus effect");
-      fetchAndUpdateVehicles();
-      fetchLastTrips();
+      if (user && user.id) {
+        fetchAndUpdateVehicles();
+        fetchLastTrips();
+      }
+      fetchTripsShared();
     }, [user])
   );
+
+  const fetchTripsShared = async () => {
+    try {
+      const { data, status } = await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate?limit=5&excludeSelf=true`,
+        { method: "GET" }
+      );
+      if (status === 200 && data?.data?.navigations) {
+        console.log("Trajets partagés récupérés:", data.data.navigations);
+        setTripsShared(data?.data?.navigations || []);
+      } else {
+        setTripsShared([]);
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des trajets partagés:",
+        error
+      );
+      setTripsShared([]);
+    }
+  };
 
   const fetchLastTrips = async () => {
     try {
       const { data, status } = await fetchWithAuth(
-        `${EXPO_GATEWAY_SERVICE_URL}/navigate?limit=5`,
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate?limit=5&owner=${user?.id}`,
         { method: "GET" },
         { protected: true }
-      ); 
+      );
       if (status === 200 && data?.data?.navigations) {
         console.log("Derniers trajets récupérés:", data.data.navigations);
         setLastTrips(data?.data?.navigations || []);
@@ -64,10 +92,6 @@ const HomeScreen = ({ navigation }) => {
         setLastTrips([]);
       }
     } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des derniers trajets:",
-        error
-      );
       setLastTrips([]);
     }
   };
@@ -80,43 +104,9 @@ const HomeScreen = ({ navigation }) => {
       changeVehicle(item);
     }
   };
-  return (
-    <SafeAreaView className="flex mb-[60px]">
-      <ScrollView>
-        {user && (
-          <>
-            <Text className="mt-4 text-xl text-center font-bold">
-              Ton équipement
-            </Text>
-            <Separator />
-            <VehicleCarousel
-              items={vehicles}
-              onCardPress={(item) => {
-                // logique pour afficher le détail du scooter
-              }}
-              onAddPress={() => navigation.navigate("AddVehicle")}
-              onMomentumScrollEnd={handleScrollEnd}
-              styles={styles}
-              navigation={navigation}
-              onFavoriteChange={fetchAndUpdateVehicles}
-              showAddCard={true}
-            />
 
-            <Text className="mt-4 text-xl text-center font-bold">
-              T'es dernier trajets
-            </Text>
-            <Separator />
-            <TripsCarousel trips={lastTrips} navigation={navigation} />
-          </>
-        )}
-        <View className="px-4 py-8">
-          <Text className="mt-4 text-xl text-center font-bold">
-            Trajets partagés par la communauté
-          </Text>
-          <Separator />
-          <TripsCarousel trips={items} navigation={navigation} />
-        </View>
-        {/* <View style={{ margin: 16 }}>
+          {
+            /* <View style={{ margin: 16 }}>
         <Text style={{ fontWeight: "bold" }}>Expo Push Token :</Text>
         <Text selectable numberOfLines={1} style={{ fontSize: 12 }}>
           {expoPushToken || "Aucun token"}
@@ -129,7 +119,54 @@ const HomeScreen = ({ navigation }) => {
             ? JSON.stringify(notification.request.content, null, 2)
             : "Aucune notification reçue"}
         </Text>
-      </View> */}
+      </View> */
+          }
+  return (
+    <SafeAreaView className={`flex mb-[${tabBarHeight}px]`}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 65 }}>
+        {user && (
+          <>
+            <Text className="mt-4 text-xl text-center font-bold">
+              Ton équipement
+            </Text>
+            <Separator />
+            <VehicleCarousel
+              items={vehicles}
+              onCardPress={(item) =>
+                navigation.navigate("VehicleDetail", { vehicle: item })
+              }
+              onAddPress={() => navigation.navigate("AddVehicle")}
+              onMomentumScrollEnd={handleScrollEnd}
+              styles={styles}
+              navigation={navigation}
+              onFavoriteChange={fetchAndUpdateVehicles}
+              showAddCard={true}
+            />
+
+            <Text className="mt-4 text-xl text-center font-bold">
+              Tes derniers trajets
+            </Text>
+            <Separator />
+            {lastTrips.length === 0 ? (
+              <Text className="text-center text-gray-500">
+                Tu n'as pas encore enregistré de trajet 😕
+              </Text>
+            ) : (
+              <TripsCarousel trips={lastTrips} navigation={navigation} />
+            )}
+          </>
+        )}
+        <Text className="mt-4 text-xl text-center font-bold">
+          Trajets partagés par la communauté
+        </Text>
+        <Separator />
+        {tripsShared.length !== 0 ? (
+          <TripsCarousel trips={tripsShared} navigation={navigation} />
+        ) : (
+          <Text className="text-center text-gray-500">
+            Aucun trajet partagé pour le moment 😕
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -5,7 +5,6 @@ import * as Location from "expo-location";
 import * as Speech from "expo-speech";
 import * as FileSystem from "expo-file-system";
 import { getDistance, getDistanceFromLine, findNearest } from "geolib";
-import * as api from "./../helpers/Api";
 import { GeolibGeoJSONPoint } from "geolib/es/types";
 
 type Coord = { latitude: number; longitude: number };

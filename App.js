@@ -20,6 +20,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaintainProvider } from "./src/context/MaintainContext";
 import { VehicleDataProvider } from "./src/context/VehicleDataContext";
 import { NavigationModeProvider } from "./src/context/NavigationModeContext";
+import { navigationRef } from "./src/components/Navigation/NavigationService";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import SplashScreen from "./src/containers/SplashScreen";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -44,6 +47,48 @@ function NetworkBanner() {
 
 export default function App() {
   // ExpoSplashScreen.setOptions( { fade:true, duration: 6000 });
+
+  const Stack = createNativeStackNavigator();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const RootNavigator = () => {
+    const onAnimationFinish = () => {
+      setIsLoading(false);
+    };
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 6000); // Simule un chargement de 6 secondes
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isLoading ? (
+          <Stack.Screen
+            name="SplashScreen"
+            options={{
+              navigationBarHidden: true,
+            }}
+            // Passe la prop ici
+            children={() => (
+              <SplashScreen onAnimationFinish={onAnimationFinish} />
+            )}
+          />
+        ) : (
+          <Stack.Screen
+            name="MainApp"
+            component={Tabs}
+            options={{
+              navigationBarHidden: true,
+            }}
+          />
+        )}
+      </Stack.Navigator>
+    );
+  };
+
   const [isLoaded] = useFonts({
     Navigation: require("./assets/fonts/Navigation.ttf"),
   });
@@ -86,10 +131,10 @@ export default function App() {
           <VehicleDataProvider>
             <SafeAreaProvider>
               <NavigationModeProvider>
-                <NavigationContainer>
+                <NavigationContainer ref={navigationRef}>
                   <GestureHandlerRootView style={{ flex: 1 }}>
                     <StatusBar />
-                    <Tabs />
+                    <RootNavigator />
                   </GestureHandlerRootView>
                 </NavigationContainer>
               </NavigationModeProvider>

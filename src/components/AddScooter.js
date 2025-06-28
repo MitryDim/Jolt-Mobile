@@ -8,14 +8,19 @@ import {
   Alert,
   Image,
   TouchableOpacity,
+  KeyboardAvoidingView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
-const AddScooterForm = ({ onAdd }) => {
+import { Keyboard } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useNavigation } from "@react-navigation/native";
+const AddScooterForm = ({ onAdd, navigation: navigationProp }) => {
+  const navigation = navigationProp || useNavigation();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
@@ -27,14 +32,53 @@ const AddScooterForm = ({ onAdd }) => {
 
   // Fonction pour choisir une image
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      quality: 0.7,
-    });
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
+    Alert.alert("Ajouter une image", "Choisissez une option", [
+      {
+        text: "Prendre une photo",
+        onPress: async () => {
+          // Demande la permission caméra AVANT d'ouvrir la caméra
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert(
+              "Permission refusée",
+              "La permission d'accéder à la caméra est requise."
+            );
+            return;
+          }
+          let result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "Choisir dans la galerie",
+        onPress: async () => {
+          // Demande la permission galerie AVANT d'ouvrir la galerie
+          const { status } =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert(
+              "Permission refusée",
+              "La permission d'accéder à la galerie est requise."
+            );
+            return;
+          }
+          let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaType.IMAGE,
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled) {
+            setImageUri(result.assets[0].uri);
+          }
+        },
+      },
+      { text: "Annuler", style: "cancel" },
+    ]);
   };
 
   // Fonction utilitaire pour afficher la date en français
@@ -76,93 +120,114 @@ const AddScooterForm = ({ onAdd }) => {
     if (error) {
       Alert.alert("Erreur", error);
     } else {
-      Alert.alert("Succès", "Scooter ajouté !");
-      setBrand("");
-      setModel("");
-      setpurchaseDate("");
-      setMileage("");
-      setImageUri("");
-      if (onAdd) onAdd(); // Pour rafraîchir la liste si besoin
+ 
+
+      if (onAdd) onAdd();
+
+      Alert.alert("Succès", "Scooter ajouté !", [
+        {
+          text: "OK",
+          onPress: () => {
+            navigation.goBack();
+          },
+        },
+      ]);
     }
   };
 
   return (
-    <View style={styles.formContainer}>
-      <Text style={styles.title}>Ajouter un scooter</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Marque"
-        value={brand}
-        onChangeText={setBrand}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Modèle"
-        value={model}
-        onChangeText={setModel}
-      />
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => {
-          console.log("Ouverture du DatePicker");
-          setShowDatePicker(true);
-        }}
-        activeOpacity={0.7}
-      >
-        <Text style={{ color: purchaseDate ? "#000" : "#888" }}>
-          {purchaseDate
-            ? formatDateFR(purchaseDate)
-            : "Date d'achat (JJ/MM/AAAA)"}
-        </Text>
-      </TouchableOpacity>
-      <TextInput
-        style={styles.input}
-        placeholder="Kilométrage"
-        value={mileage}
-        onChangeText={setMileage}
-        keyboardType="numeric"
-      />
-      <Pressable style={styles.button} onPress={pickImage}>
-        <Text style={styles.buttonText}>
-          {imageUri ? "Changer l'image" : "Choisir une image"}
-        </Text>
-      </Pressable>
-      {imageUri ? (
-        <Image
-          source={{ uri: imageUri }}
-          style={{
-            width: 100,
-            height: 100,
-            marginVertical: 10,
-            alignSelf: "center",
-          }}
+    <KeyboardAvoidingView>
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Marque"
+          value={brand}
+          onChangeText={setBrand}
         />
-      ) : null}
-      <Pressable
-        style={[styles.button, loading && { backgroundColor: "#ccc" }]}
-        onPress={handleSubmit}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>
-          {loading ? "Ajout..." : "Ajouter"}
-        </Text>
-      </Pressable>
-      {showDatePicker && (
-        <DateTimePicker
-          value={purchaseDate ? new Date(purchaseDate) : new Date()}
+        <TextInput
+          style={styles.input}
+          placeholder="Modèle"
+          value={model}
+          onChangeText={setModel}
+        />
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => {
+            Keyboard.dismiss();
+            setDatePickerVisibility(true);
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={{ color: purchaseDate ? "#000" : "#888" }}>
+            {purchaseDate
+              ? formatDateFR(purchaseDate)
+              : "Date d'achat (JJ/MM/AAAA)"}
+          </Text>
+        </TouchableOpacity>
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
           mode="date"
-          display="default"
           locale="fr-FR"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
+          date={purchaseDate ? new Date(purchaseDate) : new Date()}
+          onConfirm={(selectedDate) => {
+            setDatePickerVisibility(false);
             if (selectedDate) {
               const iso = selectedDate.toISOString().split("T")[0];
               setPurchaseDate(iso);
             }
           }}
+          onCancel={() => setDatePickerVisibility(false)}
         />
-      )}
-    </View>
+        <TextInput
+          style={styles.input}
+          placeholder="Kilométrage"
+          value={mileage}
+          onChangeText={setMileage}
+          keyboardType="numeric"
+        />
+        <Pressable style={styles.button} onPress={pickImage}>
+          <Text style={styles.buttonText}>
+            {imageUri ? "Changer l'image" : "Choisir une image"}
+          </Text>
+        </Pressable>
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={{
+              width: 100,
+              height: 100,
+              marginVertical: 10,
+              alignSelf: "center",
+            }}
+          />
+        ) : null}
+        <Pressable
+          style={[styles.button, loading && { backgroundColor: "#ccc" }]}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Ajout..." : "Ajouter"}
+          </Text>
+        </Pressable>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={purchaseDate ? new Date(purchaseDate) : new Date()}
+            mode="date"
+            display="default"
+            locale="fr-FR"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) {
+                const iso = selectedDate.toISOString().split("T")[0];
+                setPurchaseDate(iso);
+              }
+            }}
+          />
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -192,6 +257,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
+    margin: 5,
   },
   buttonText: {
     color: "#fff",

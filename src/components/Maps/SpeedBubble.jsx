@@ -28,12 +28,6 @@ const SpeedBubble = ({ speed }) => {
     animatedTickCount.value = withTiming(targetTickCount, { duration: 400 });
   }, [targetTickCount]);
 
-  const getColor = () => {
-    const ratio = speed / speedLimit;
-    if (ratio < 0.5) return "#70E575";
-    if (ratio < 0.8) return "#F1C40F";
-    return "#E74C3C";
-  };
 
   const ticks = Array.from({ length: TICK_COUNT }).map((_, i) => {
     const angle = (i * 360) / TICK_COUNT;
@@ -64,7 +58,6 @@ const SpeedBubble = ({ speed }) => {
   });
 
   return (
-
       <View style={styles.container}>
         <Svg width={SIZE} height={SIZE}>
           <Circle
@@ -87,9 +80,7 @@ const SpeedBubble = ({ speed }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: 130,
-    height: 0,
+  container: { 
     justifyContent: "center",
     alignItems: "center", 
   },

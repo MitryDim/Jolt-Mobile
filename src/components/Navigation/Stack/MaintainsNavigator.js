@@ -3,6 +3,7 @@ const Stack = createNativeStackNavigator();
 import MaintainsScreen from "../../../containers/MaintainsScreen";
 import MaintainDetailScreen from "../../../containers/MaintainDetailScreen";
 import MaintainHistoryScreen from "../../../containers/MaintainHistoryScreen";
+import VehicleDetailScreen from "../../../containers/VehicleDetailScreen";
 
 function StackNavigator() {
   return (
@@ -18,12 +19,13 @@ function StackNavigator() {
         name="MaintainDetail"
         component={MaintainDetailScreen}
         options={{ title: "Détail entretien" }}
-      /> 
+      />
       <Stack.Screen
         name="MaintainHistory"
         component={MaintainHistoryScreen}
         options={{ title: "Historique" }}
       />
+      <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
     </Stack.Navigator>
   );
 }

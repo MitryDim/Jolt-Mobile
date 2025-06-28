@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import MapView from "react-native-maps";
+import React, { useRef, useState, useEffect, useCallback, use } from "react";
+import MapView, { AnimatedRegion, MarkerAnimated } from "react-native-maps";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from "react-native";
 import * as Location from "expo-location";
 import MapRoutes from "./MapRoutes";
@@ -24,17 +25,23 @@ import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
   useDerivedValue,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useFocusEffect } from "@react-navigation/native";
 import NavigationBottomSheet from "./BottomSheet/NavigateBottomSheet";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-
 import { useNavigation } from "@react-navigation/native";
 import SpeedBubble from "./SpeedBubble";
 import { useAnimatedPosition } from "../../context/AnimatedPositionContext";
 import { getDistance } from "geolib";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import { useFetchWithAuth } from "../../hooks/useFetchWithAuth";
+import Svg, { Circle } from "react-native-svg";
+import { useTripSocket } from "../../hooks/useSocketTrip";
+import { UserContext } from "../../context/AuthContext";
+import { AnimatedMapView } from "react-native-maps/lib/MapView";
+import { useNetwork } from "../../context/networkContext";
 const MapContainer = ({
   styleMaps,
   initialRouteOptions,
@@ -49,24 +56,97 @@ const MapContainer = ({
   infoTravelAnimatedStyle,
   mode,
   handleComponent,
+  socketId,
 }) => {
   const fetchWithAuth = useFetchWithAuth();
+  const { isConnected } = useNetwork();
+  const { user } = React.useContext(UserContext);
+  const [otherUsersPosition, setOtherUsersPosition] = useState({});
+  const [otherUsersAnimated, setOtherUsersAnimated] = useState({});
+  const [userProfiles, setUserProfiles] = useState({});
+
   const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
   const isCameraLockedRef = useRef(false);
   const cameraTimeoutRef = useRef(null);
   const mapRef = useRef(null);
   const isTravel = mode === "travel";
-  const routesToShow = isTravel
-    ? [initialRouteOptions[selectedRouteIndex]]
-    : initialRouteOptions;
+  const [routesToShow, setRoutesToShow] = useState(
+    isTravel ? [initialRouteOptions[selectedRouteIndex]] : initialRouteOptions
+  );
+  const locationRef = useRef();
+
+  let sendPosition = () => {};
+  if (true) {
+    mode === "travel" &&
+      isConnected &&
+      ({ sendPosition } = useTripSocket(
+        socketId,
+        user.id,
+        async (userId, position) => {
+          setOtherUsersPosition((prev) => ({ ...prev, [userId]: position }));
+
+          // Si on n'a pas encore le profil de cet utilisateur, on le fetch
+          if (!userProfiles[userId]) {
+            try {
+              const { data, error } = await fetchWithAuth(
+                `${EXPO_GATEWAY_SERVICE_URL}/users/get?query=${userId}`,
+                {
+                  method: "GET",
+                }
+              );
+              if (data) {
+                const { profilePicture } = data.data;
+                setUserProfiles((prev) => ({
+                  ...prev,
+                  [userId]: profilePicture, // ou { profilePicture: data.profilePicture }
+                }));
+              }
+            } catch (e) {
+              console.warn("Erreur lors de la récupération du profile :", e);
+            }
+          }
+        }
+      ));
+  }
+
+  useEffect(() => {
+    Object.entries(otherUsersPosition).forEach(([id, pos]) => {
+      if (!otherUsersAnimated[id]) {
+        // Première position : création de l'AnimatedRegion
+        setOtherUsersAnimated((prev) => ({
+          ...prev,
+          [id]: new AnimatedRegion({
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+            latitudeDelta: 0.001,
+            longitudeDelta: 0.001,
+          }),
+        }));
+      } else {
+        // Animation vers la nouvelle position
+        otherUsersAnimated[id]
+          .timing({
+            latitude: pos.latitude,
+            longitude: pos.longitude,
+            duration: 1000,
+            useNativeDriver: false,
+          })
+          .start();
+      }
+    });
+  }, [otherUsersPosition]);
+
+  const handleRouteOptionsChange = (newOptions) => {
+    console.log("Nouvel itinéraire reçu :", newOptions);
+    setRoutesToShow([newOptions]);
+  };
   const {
     coordinates,
     heading,
     currentInstruction,
     updateCamera,
     handleLocationUpdate,
-    routeOptions,
     isLoading,
     arrivalTimeStr,
     remainingTimeInSeconds,
@@ -79,34 +159,98 @@ const MapContainer = ({
     showManeuver,
     mode,
     isCameraLockedRef,
+    handleRouteOptionsChange,
   });
   const windowHeight = Dimensions.get("window").height;
   const [isMapReady, setIsMapReady] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
   const animatedPositionRef = useAnimatedPosition();
   const animatedPosition = animatedPositionRef?.current;
+  const speedBubbleX = useSharedValue(0);
+  const recenterIconX = useSharedValue(-80); // hors écran à gauche
+
+  useEffect(() => {
+    if (locationRef.current && !isCameraLocked) {
+      updateCamera(
+        mapRef.current,
+        locationRef.current?.coords,
+        isCameraLockedRef,
+        locationRef.current?.coords?.heading
+      );
+    }
+
+    if (isCameraLocked) {
+      speedBubbleX.value = withTiming(-120); // slide out
+      recenterIconX.value = withTiming(0); // slide in
+    } else {
+      speedBubbleX.value = withTiming(0); // slide in
+      recenterIconX.value = withTiming(-120); // slide out
+    }
+    console.log(!isNavigating && mode !== "travel");
+    if (!isNavigating || mode !== "travel") return;
+    handleSheetClose(isCameraLocked);
+  }, [isCameraLocked]);
+
   const speedBubbleAnimatedStyle = useAnimatedStyle(() => {
     if (!animatedPosition) return {};
 
     const translateY = interpolate(
       animatedPosition.value,
-      [windowHeight - tabBarHeight, 0],
-      [0, -windowHeight + tabBarHeight],
+      [windowHeight, 0],
+      [0, -windowHeight],
       {
         extrapolateLeft: "extend",
         extrapolateRight: "extend",
       }
     );
 
-    const bottom = 30;
+    const translateX = speedBubbleX.value;
+    let bottom = 0;
+    if (mode === "travel") {
+      bottom = 60;
+    }
     const zIndex = translateY < -windowHeight / 2 ? 0 : 10;
     const display = translateY < -windowHeight / 2 ? "none" : "flex";
 
     return {
-      transform: [{ translateY }],
+      transform: [{ translateY }, { translateX }],
       zIndex,
       display,
       bottom,
+      position: "absolute",
+      left: 5,
+    };
+  });
+
+  const recenterIconAnimatedStyle = useAnimatedStyle(() => {
+    if (!animatedPosition) return {};
+
+    const translateY = interpolate(
+      animatedPosition.value,
+      [windowHeight, 0],
+      [0, -windowHeight],
+      {
+        extrapolateLeft: "extend",
+        extrapolateRight: "extend",
+      }
+    );
+
+    const translateX = recenterIconX.value;
+
+    let bottom = 0;
+    if (mode === "travel") {
+      bottom = 60;
+    }
+    const zIndex = translateY < -windowHeight / 2 ? 0 : 10;
+    const display = translateY < -windowHeight / 2 ? "none" : "flex";
+
+    return {
+      transform: [{ translateY }, { translateX }],
+      zIndex,
+      display,
+      bottom,
+      position: "absolute",
+      left: 5,
     };
   });
 
@@ -147,7 +291,7 @@ const MapContainer = ({
 
   const saveTrip = async () => {
     if (!tripName.trim()) return;
-    try { 
+    try {
       await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/navigate`,
         {
@@ -184,7 +328,7 @@ const MapContainer = ({
 
   const handleUserPan = () => {
     if (isNavigating) {
-      console.log("User panned the map, locking camera.");
+      if (isCameraLocked) return; // Ignore les mouvements de la carte si la caméra est verrouillée
       setIsCameraLocked(true);
       isCameraLockedRef.current = true;
       // setIsCameraLocked(true);
@@ -200,10 +344,6 @@ const MapContainer = ({
     }
   };
 
-  useEffect(() => {
-    if (!isNavigating) return;
-    handleSheetClose(isCameraLocked);
-  }, [isCameraLocked]);
   const modeRef = useRef(mode);
 
   useEffect(() => {
@@ -218,14 +358,18 @@ const MapContainer = ({
         if (status !== "granted") return;
         subscription = await Location.watchPositionAsync(
           {
-            timeInterval: 1200, // Met à jour toutes les  2 secondes
-            accuracy: Location.Accuracy.BestForNavigation,
-            distanceInterval: 3, // Met à jour si le déplacement est supérieur à 1 mètre
+            timeInterval: 1200,
+            accuracy: Location.Accuracy.Highest,
+            distanceInterval: 3,
           },
           (location) => {
-            // Utilise la valeur à jour
-            // if (modeRef.current === "itinerary") return;
-            console.log("Location updated:", modeRef.current);
+            locationRef.current = location;
+            if (!location || !location.coords) return;
+            console.log("Location updated:", location);
+            sendPosition({
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            });
             handleLocationUpdate(location, mapRef.current);
           }
         );
@@ -233,20 +377,12 @@ const MapContainer = ({
       return () => {
         subscription?.remove();
       };
-    }, [initialRouteOptions]) // plus besoin de mettre [mode] ici
+    }, [initialRouteOptions])
   );
 
   useEffect(() => {
     console.log("MapContainer useEffect: mode changed to", mode);
-    // if (
-    //   mode === "address" &&
-    //   currentRegion &&
-    //   mapRef.current &&
-    //   typeof handleLocationUpdate === "function"
-    // ) {
-    //   updateCamera(mapRef.current, currentRegion, currentRegion.heading);
-    // }
-    // Si on est en mode itinerary (choix d'itinéraire) et qu'on a des routes
+
     if (
       mode === "itinerary" &&
       initialRouteOptions &&
@@ -254,11 +390,16 @@ const MapContainer = ({
       mapRef.current
     ) {
       console.log("MapContainer useEffect: mode is itinerary");
+      console.log(
+        "MapContainer useEffect: mode changed to",
+        mode,
+        initialRouteOptions
+      );
+
       // Récupère tous les points de toutes les routes
       const allCoords = initialRouteOptions
         .map((route) => route.coordinates)
         .flat();
-      console.log("All coordinates:", allCoords);
       if (allCoords.length > 0) {
         mapRef.current.fitToCoordinates(allCoords, {
           edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
@@ -270,7 +411,7 @@ const MapContainer = ({
 
   return (
     <>
-      <MapView
+      <AnimatedMapView
         ref={mapRef}
         style={styleMaps}
         onPanDrag={handleUserPan}
@@ -291,7 +432,49 @@ const MapContainer = ({
         ) : (
           <NavigationMarker coordinates={coordinates} heading={heading} />
         )}
-      </MapView>
+
+        {Object.entries(otherUsersAnimated).map(([id, animatedRegion]) => {
+          console.log("Other user position:", id, userProfiles[id]);
+          return (
+            <MarkerAnimated
+              key={id}
+              coordinate={animatedRegion}
+              zIndex={1000}
+              className={"w-[44px] h-[44px]"}
+            >
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#fff",
+                    borderRadius: 22,
+                    padding: 2,
+                    borderWidth: 2,
+                    borderColor: "#FFA500",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Image
+                    source={
+                      userProfiles?.[id]
+                        ? { uri: userProfiles[id] }
+                        : require("../../../assets/avatar.png")
+                    }
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      resizeMode: "cover",
+                    }}
+                  />
+                </View>
+              </View>
+            </MarkerAnimated>
+          );
+        })}
+      </AnimatedMapView>
 
       {isNavigating && showManeuver && currentInstruction && !showSaveModal && (
         <View
@@ -310,20 +493,61 @@ const MapContainer = ({
       )}
 
       {isNavigating && animatedPosition && (
-        <Animated.View
-          style={
-            ({
-              bottom: 0, // Décale du haut de la TabBar si elle est présente
-              left: 0,
-              right: 0,
-              alignItems: "center",
-              zIndex: 20,
-            },
-            [speedBubbleAnimatedStyle])
-          }
-        >
-          <SpeedBubble speed={speedValue} />
-        </Animated.View>
+        <>
+          <Animated.View style={[speedBubbleAnimatedStyle]}>
+            {<SpeedBubble speed={speedValue} />}
+          </Animated.View>
+
+          <Animated.View style={recenterIconAnimatedStyle}>
+            <TouchableOpacity
+              className="justify-center items-center"
+              onPress={() => {
+                isCameraLockedRef.current = false;
+                setIsCameraLocked(false);
+              }}
+            >
+              <Svg width={120} height={120}>
+                <Circle
+                  cx={60}
+                  cy={60}
+                  r={35}
+                  fill="rgba(0,0,0,0.85)"
+                  stroke="#000"
+                  strokeWidth={1}
+                />
+              </Svg>
+              <View className="justify-center items-center absolute">
+                <IconComponent
+                  icon="gps-fixed"
+                  library="MaterialIcons"
+                  size={32}
+                  color="white"
+                />
+              </View>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
+              onPress={() => {
+                setIsCameraLocked(false);
+              }}
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 30,
+                width: 60,
+                height: 60,
+                alignItems: "center",
+                justifyContent: "center",
+                elevation: 4,
+              }}
+            >
+              <IconComponent
+                icon="gps-fixed"
+                library="MaterialIcons"
+                size={32}
+                color="#007aff"
+              />
+            </TouchableOpacity> */}
+          </Animated.View>
+        </>
       )}
       {mode == "travel" && !showSaveModal && !showNameModal && (
         <View
@@ -358,7 +582,7 @@ const MapContainer = ({
         </LoadingOverlay>
       )}
 
-      {isNavigating && isCameraLocked && (
+      {/* {isNavigating && isCameraLocked && (
         <OptionBottomSheet
           visible={isCameraLocked}
           onRecenterPress={() => {
@@ -368,7 +592,7 @@ const MapContainer = ({
           }}
           remainingTimeInSeconds={remainingTimeInSeconds}
         ></OptionBottomSheet>
-      )}
+      )} */}
       {showSaveModal && (
         <View style={{ flex: 1, padding: 24 }}>
           <Modal animationType="fade" transparent visible={showSaveModal}>

@@ -3,14 +3,15 @@ import { View, TextInput, StyleSheet } from "react-native";
 import IconComponent from "./Icons";
 import ActivityIndicator from "./ActivityIndicator";
 
-const AddressSearchBar = ({
-    placeholder = "Où allons-nous ?",
-  value,
-  onChange,
+const SearchBar = ({
+  placeholder = "Où allons-nous ?",
+  value = "",
+  onChange = () => {},
   loading = false,
   TextInputComponent = TextInput,
 }) => {
   const clearSearch = () => {
+    console.log("Clear search");
     onChange("");
   };
 
@@ -22,6 +23,7 @@ const AddressSearchBar = ({
         size={20}
         style={styles.icon}
       />
+
       <TextInputComponent
         placeholder={placeholder}
         style={styles.input}
@@ -29,43 +31,48 @@ const AddressSearchBar = ({
         value={value}
         onChangeText={onChange}
       />
-      {loading && (
+
+      {/* Icône ou loader à droite du champ */}
+      {loading ? (
         <ActivityIndicator
           size={20}
           testID="activity-indicator"
-        ></ActivityIndicator>
-      )}
-      {!loading && value.length > 0 && (
+          style={{ marginLeft: 8 }}
+        />
+      ) : value.length > 0 ? (
         <IconComponent
           icon="close"
           library="MaterialIcons"
           size={20}
           onPress={clearSearch}
-          className="cursor-pointer hover:bg-white"
+          style={{ marginLeft: 8 }}
         />
-      )}
+      ) : null}
     </View>
   );
 };
 
-export default AddressSearchBar;
+export default SearchBar;
 
 const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 4,
     borderBottomWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    borderWidth: 1,
     borderColor: "#ccc",
   },
   input: {
     flex: 1,
-    marginHorizontal: 8,
+    height: "100%",
+    paddingHorizontal: 15,
     height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 10,
+  },
+  icon: {
+    marginRight: 8,
   },
 });

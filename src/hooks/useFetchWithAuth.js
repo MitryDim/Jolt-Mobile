@@ -34,18 +34,31 @@ export function useFetchWithAuth() {
         headers["Content-Type"] = "application/json";
       }
 
-      if (opts.protected && user?.accessToken) {
+      if (user?.accessToken) {
         headers.Authorization = `Bearer ${user.accessToken}`;
       }
 
       // Première requête
       let response = await fetch(url, { ...options, headers });
 
+      console.log(
+        "Requête envoyée à:",
+        url,
+        "avec options:",
+        options,
+        "opts",
+        opts,
+        "headers:",
+        headers,
+        "responseStatus:",
+        response.status
+      );
       // Si token invalide et route protégée, tente refresh
       if (
-        opts.protected &&
+        (opts.protected || user?.accessToken) &&
         (response.status === 401 || response.status === 403)
       ) {
+        console.warn("Token invalide, tentative de rafraîchissement");
         const userData = await SecureStore.getItemAsync("user");
         const storedUser = userData ? JSON.parse(userData) : null;
         headers.Authorization = `Bearer ${storedUser?.refreshToken}`;
@@ -78,6 +91,7 @@ export function useFetchWithAuth() {
           console.log("headers:", headers);
           response = await fetch(url, { ...options, headers });
         } else {
+          console.warn("Échec du rafraîchissement du token, déconnexion");
           await logout();
           return {
             data: null,
@@ -106,7 +120,7 @@ export function useFetchWithAuth() {
 
       return { data, error: null, status: response.status };
     } catch (err) {
-      // Erreur réseau ou autre 
+      // Erreur réseau ou autre
       return {
         data: null,
         error: err.message || "Erreur inconnue",

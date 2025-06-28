@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, View, StyleSheet, FlatList } from "react-native";
-import IconComponent from "./Icons"; 
+import IconComponent from "./Icons";
 
 const SuggestionHistoryList = ({
   data,
@@ -18,9 +18,12 @@ const SuggestionHistoryList = ({
         size={18}
         style={{ marginLeft: 8, marginRight: 8 }}
       />
-      <Text onPress={() => onSelect(item)} style={{ flex: 1 }}>
-        {item.properties.label}
-      </Text>
+      <View className="flex-1 flex-row items-center justify-between">
+        <Text onPress={() => onSelect(item)} style={{ flex: 1 }}>
+          {item.properties.label}
+        </Text>
+        {item.distance && <Text>{item.distance?.toFixed(1)} km</Text>}
+      </View>
     </View>
   );
 

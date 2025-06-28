@@ -54,7 +54,7 @@ const SlideItem = ({ item }) => {
               <Text>{"compteur"}</Text>
             </View>
             <View style={styles.column}>
-              <Text style={styles.smallText}>{"Entretient"}</Text>
+              <Text style={styles.smallText}>{"Entretien"}</Text>
               <Text>7 à faire</Text>
             </View>
           </View>

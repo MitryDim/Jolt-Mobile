@@ -51,17 +51,14 @@ const MaintainsScreen = ({ navigation }) => {
       <ScrollView>
         <VehicleCarousel
           items={vehicles}
-          onCardPress={(item) => {
-            // logique pour afficher le détail du scooter
-          }}
+          onCardPress={(item) =>
+            navigation.navigate("VehicleDetail", { vehicle: item })
+          }
           onAddPress={() => navigation.navigate("AddVehicle")}
           onMomentumScrollEnd={handleScrollEnd}
           styles={styles}
           navigation={navigation}
           onFavoriteChange={fetchAndUpdateVehicles}
-          scrollToIndex={vehicles.findIndex(
-            (v) => v.id === vehicleSelected?.id
-          )}
         />
         <TouchableOpacity
           style={{

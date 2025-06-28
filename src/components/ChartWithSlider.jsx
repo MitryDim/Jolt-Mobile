@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text,Dimensions, PanResponder } from "react-native";
+import { View, Text, Dimensions, PanResponder } from "react-native";
 import { LineChart } from "react-native-svg-charts-updated-peers";
 import * as shape from "d3-shape";
 import { Path, Circle, G, Rect, Text as SVGText } from "react-native-svg";
@@ -88,7 +88,7 @@ const ChartWithSlider = ({ data, label, color, unit }) => {
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
         const relativeX = Math.min(
-          Math.max(0, gestureState.moveX - 24), 
+          Math.max(0, gestureState.moveX - 24),
           chartWidth
         );
         const index = Math.round((relativeX / chartWidth) * (data.length - 1));
@@ -139,6 +139,9 @@ const ChartWithSlider = ({ data, label, color, unit }) => {
       style={{ margin: 10, backgroundColor: "#fff" }}
       {...panResponder.panHandlers}
     >
+      <Text style={{ textAlign: "center", fontSize: 18, fontWeight: "bold" }}>
+         {label}
+      </Text>
       <LineChart
         style={{ height: 200, width: screenWidth - 48 }}
         data={data}
@@ -152,7 +155,6 @@ const ChartWithSlider = ({ data, label, color, unit }) => {
       </LineChart>
 
       <Text style={{ marginTop: 12, textAlign: "center", fontSize: 16 }}>
-        Point {selectedIndex + 1}/{data.length} :{" "}
         <Text style={{ fontWeight: "bold", color: color }}>
           {data[selectedIndex]?.toFixed(1)} {unit}
         </Text>

@@ -14,7 +14,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { LineChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 import Ripple from "../../Ripple";
-
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 const screenWidth = Dimensions.get("window").width;
 
 const chartConfig = {
@@ -34,7 +34,8 @@ const RouteOptions = ({
   altitudeChartVisible,
   toggleAltitudeChart,
 }) => (
-  <BottomSheetScrollView>
+  // Taille du Footer mb-[50px]
+  <BottomSheetScrollView className={"mb-[80px]"}>
     {routeOptions.map((route, index) => (
       <TouchableOpacity
         style={[
@@ -68,6 +69,7 @@ const RouteOptions = ({
         </TouchableOpacity>
         {altitudeChartVisible[index] && (
           <LineChart
+            pointerEvents="none"
             data={{
               labels: [],
               datasets: [
@@ -192,6 +194,12 @@ const ItineraryBottomSheet = ({
       footerComponent={(footerProps) =>
         renderFooter({ ...footerProps, stopAnimation, handleGoButtonPress })
       }
+      onAnimate={(fromIndex, toIndex) => {
+        console.log("BottomSheet animated from", fromIndex, "to", toIndex);
+        if (toIndex == 2) {
+          setStopAnimation(true);
+        }
+      }}
     >
       <RouteOptions
         routeOptions={routes}
