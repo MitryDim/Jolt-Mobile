@@ -1,69 +1,85 @@
-# Jolt Mobile
+<h1 align="center">
+  <img src="https://img.icons8.com/color/96/000000/electric-scooter.png" width="48" alt="Jolt Logo"/>
+  <br>
+  Jolt Mobile
+</h1>
 
-Jolt Mobile est une application mobile développée en React Native (Expo) dans le cadre du projet 4LABO à SupInfo. Elle permet aux utilisateurs de suivre, partager et explorer des trajets en mobilité douce (trottinette, vélo, etc.), de gérer leur équipement, de consulter les entretiens, d’ajouter des adresses favorites et de profiter de nombreuses fonctionnalités communautaires.
+<p align="center">
+  <strong>La mobilité douce, connectée et communautaire.</strong><br>
+  Suivez, partagez et explorez vos trajets en trottinette, vélo, et plus encore !
+</p>
+
+<p align="center">
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" />
+  </a>
+  <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android-green" alt="iOS | Android" />
+  <img src="https://img.shields.io/badge/expo-%5E53.0.13-blueviolet" alt="Expo" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs welcome!" />
+</p>
+
+<h3 align="center">
+  <a href="#-fonctionnalités">Fonctionnalités</a>
+  <span> · </span>
+  <a href="#-installation">Installation</a>
+  <span> · </span>
+  <a href="#-configuration">Configuration</a>
+  <span> · </span>
+  <a href="#-contribution">Contribution</a>
+</h3>
 
 ---
 
-## Sommaire
-
-- [Fonctionnalités](#fonctionnalités)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Structure du projet](#structure-du-projet)
-- [Technologies utilisées](#technologies-utilisées)
-- [Contribution](#contribution)
-- [Auteurs](#auteurs)
-- [Licence](#licence)
+Jolt Mobile apporte la puissance de React Native à la mobilité douce :  
+- **Déclaratif** : Une interface fluide et prévisible, facile à maintenir.
+- **Basé sur les composants** : Chaque fonctionnalité est encapsulée dans des composants réutilisables.
+- **Expérience utilisateur moderne** : Animations, navigation intuitive, notifications push, gestion du mode hors-ligne.
+- **Portabilité** : Fonctionne sur iOS et Android, avec un code partagé.
 
 ---
 
-## Fonctionnalités
+## 📦 Fonctionnalités
 
 - **Authentification sécurisée** : Inscription, connexion, gestion du profil utilisateur.
-- **Accueil personnalisé** : Accès rapide à son équipement, ses derniers trajets, les trajets partagés et les rides à venir proches de soi.
+- **Accueil personnalisé** : Vue synthétique de l’équipement, des trajets, des rides à venir.
 - **Gestion des trajets** :
-  - Visualisation de ses propres trajets ("Mes trajets").
-  - Accès aux trajets partagés par la communauté.
-  - Découverte des rides organisés à proximité, filtrables par localisation.
+  - Historique personnel ("Mes trajets")
+  - Trajets partagés par la communauté
+  - Rides organisés à proximité, filtrables par localisation
 - **Filtrage avancé** :
-  - Recherche par ville ou autour de soi (géolocalisation).
-  - Filtrage par rayon autour d’une position.
+  - Recherche par ville ou autour de soi (géolocalisation)
+  - Filtrage par rayon autour d’une position
 - **Gestion de l’équipement** :
-  - Ajout, modification et suppression de véhicules.
-  - Suivi des entretiens à faire et à venir.
+  - Ajout, modification, suppression de véhicules
+  - Suivi des entretiens à faire et à venir
 - **Favoris** :
-  - Ajout et gestion d’adresses favorites.
+  - Ajout et gestion d’adresses favorites
 - **Cartographie interactive** :
-  - Visualisation des trajets sur une carte.
-  - Navigation étape par étape avec instructions.
-  - Instruction vocal
-  
+  - Visualisation des trajets sur une carte
+  - Navigation étape par étape avec instructions vocales
 - **Notifications** :
-  - Réception de notifications push pour les événements importants.
-- **Expérience utilisateur fluide** :
-  - Interface moderne, animations, gestion du mode hors-ligne, etc.
+  - Notifications push pour les événements importants
 
 ---
 
-## Prérequis
+## 📋 Prérequis
 
 - Node.js >= 18.x
 - npm ou yarn
 - Android Studio ou Xcode (pour l’émulation)
 - Expo CLI (recommandé)
-- Accès à une API Gateway compatible (voir configuration)
+- Accès à une API Gateway compatible (voir [Configuration](#-configuration))
 
 ---
 
-## Installation
+## 🚀 Installation
 
 1. **Cloner le dépôt** :
     ```bash
     git clone <url-du-repo>
     cd <nom-du-repo>
     ```
-2. **Configurer les variables d’environnement** (voir [Configuration](#configuration))
+2. **Configurer les variables d’environnement** (voir [Configuration](#-configuration))
 3. **Installer les dépendances** :
     ```bash
     npm install
@@ -77,7 +93,7 @@ Jolt Mobile est une application mobile développée en React Native (Expo) dans 
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 Avant de lancer l’application, créez un fichier `.env` à la racine du projet avec le contenu suivant :
 
@@ -85,7 +101,7 @@ Avant de lancer l’application, créez un fichier `.env` à la racine du projet
 EXPO_GATEWAY_SERVICE_URL=http://<adresse-ip-ou-domaine>:<port>
 ```
 
-Exemple :
+**Exemple** :
 
 ```env
 EXPO_GATEWAY_SERVICE_URL=http://192.168.1.88:5000
@@ -95,35 +111,36 @@ Assurez-vous que l’API Gateway soit accessible depuis votre appareil ou émula
 
 ---
 
-## Structure du projet
+## 🗂 Structure du projet
 
 - `src/components` : Composants réutilisables (cartes, modals, bottom sheets, carrousels, etc.)
-- `src/containers` : Écrans principaux de l’application (Accueil, Profil, Trajets, Carte, Authentification, etc.)
-- `src/context` : Contextes React pour la gestion globale (authentification, véhicules, notifications…)
+- `src/containers` : Écrans principaux (Accueil, Profil, Trajets, Carte, Authentification, etc.)
+- `src/context` : Contextes React (authentification, véhicules, notifications…)
 - `src/hooks` : Hooks personnalisés (API, navigation, etc.)
 - `src/constants` : Constantes globales (icônes, couleurs…)
 - `src/utils` : Fonctions utilitaires (API, helpers, sockets, etc.)
 - `src/providers` : Providers globaux (React Query, etc.)
-- `src/queries` : Fonctions de requêtes pour les données distante
+- `src/queries` : Fonctions de requêtes pour les données distantes
+
 ---
 
-## Technologies utilisées
+## 🛠 Technologies utilisées
 
 - **React Native** (Expo)
-- **React Navigation** (navigation entre les écrans)
-- **@gorhom/bottom-sheet** (bottom sheets interactifs)
-- **react-native-maps** (cartographie)
-- **expo-location** (géolocalisation)
-- **expo-notifications** (notifications push)
-- **Context API** (gestion globale de l’état)
-- **React Query** (gestion du cache et des requêtes API)
-- **Lottie** (animations)
-- **fetch** (requêtes API Gateway)
-- **Socket.io** (communication temps réel pour certains modules)
+- **React Navigation**
+- **@gorhom/bottom-sheet**
+- **react-native-maps**
+- **expo-location**
+- **expo-notifications**
+- **Context API**
+- **React Query**
+- **Lottie**
+- **Socket.io**
+- **fetch**
 
 ---
 
-## Contribution
+## 🤝 Contribution
 
 1. Forkez le dépôt.
 2. Créez une branche pour votre fonctionnalité ou correction.
@@ -135,12 +152,12 @@ Merci de respecter la structure du projet et les conventions de nommage.
 
 ---
 
-## Auteurs
+## 👨‍💻 Auteurs
 
 Jolt Team — SupInfo 4LABO
 
 ---
 
-## Licence
+## 📄 Licence
 
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](./LICENSE) pour plus d’informations.
