@@ -1,67 +1,105 @@
 # Jolt Mobile
 
-This code represents the implementation of a React Native mobile app. It serves as a guide for developers to understand the structure and functionality of the app.
-
-## Usage
-
-- Clone the repository.
-- Install the required dependencies using the package manager of your choice (e.g., npm or yarn).
-- Run the app on a simulator or physical device using the appropriate command (e.g., `npm run android` or `yarn ios`).
-
-## Features
-
-- [Feature 1]: Describe the feature and its functionality.
-- [Feature 2]: Describe the feature and its functionality.
-- [Feature 3]: Describe the feature and its functionality.
-
-## Dependencies
-
-- [Dependency 1]: List the required dependencies and their versions.
-- [Dependency 2]: List the required dependencies and their versions.
-- [Dependency 3]: List the required dependencies and their versions.
-
-## Contributing
-
-- Fork the repository.
-- Create a new branch for your feature or bug fix.
-- Make the necessary changes and commit them.
-- Push your changes to your forked repository.
-- Open a pull request to the original repository.
-
-## License
-
-This project is licensed under the [License Name]. See the [LICENSE](link-to-license-file) file for more details.
+Jolt Mobile est une application mobile développée en React Native dans le cadre du projet 4LABO à SupInfo. Elle permet aux utilisateurs de suivre, partager et explorer des trajets en mobilité douce (trottinette, vélo, etc.), de gérer leur équipement, de consulter des entretiens, d’ajouter des adresses favorites et de profiter de nombreuses fonctionnalités communautaires.
 
 ---
 
-This React Native mobile app is a sample project that demonstrates the basic structure and features of a mobile application built using React Native framework.
+## Fonctionnalités principales
 
-### Features
+- **Authentification sécurisée** : Inscription, connexion, gestion du profil utilisateur.
+- **Accueil personnalisé** : Accès rapide à son équipement, ses derniers trajets, les trajets partagés et les rides à venir proches de soi.
+- **Gestion des trajets** :
+  - Visualisation de ses propres trajets ("Mes trajets").
+  - Accès aux trajets partagés par la communauté.
+  - Découverte des rides organisés à proximité, filtrables par localisation.
+- **Filtrage avancé** :
+  - Recherche par ville ou autour de soi (géolocalisation).
+  - Filtrage par rayon autour d’une position.
+- **Gestion de l’équipement** :
+  - Ajout, modification et suppression de véhicules.
+  - Suivi des entretiens à faire et à venir.
+- **Favoris** :
+  - Ajout et gestion d’adresses favorites.
+- **Cartographie interactive** :
+  - Visualisation des trajets sur une carte.
+  - Navigation étape par étape avec instructions.
+- **Notifications** :
+  - Réception de notifications push pour les événements importants.
+- **Expérience utilisateur fluide** :
+  - Interface moderne, animations, gestion du mode hors-ligne, etc.
 
-- Login screen: Allows users to log in to the app using their credentials.
-- Home screen: Displays a list of items fetched from an API and allows users to interact with them.
-- Detail screen: Shows detailed information about a selected item.
+---
 
-### Usage
+## Prérequis
 
-1. Clone the repository from GitHub.
-2. Install the required dependencies using npm or yarn.
-3. Run the app on a simulator or a physical device using the React Native CLI.
+- Node.js >= 18.x
+- npm ou yarn
+- Android Studio ou Xcode (pour l’émulation)
+- Expo CLI (recommandé)
 
-### Dependencies
+---
 
-- React Native: The main framework for building the mobile app.
-- React Navigation: Handles navigation between screens.
-- Axios: Makes HTTP requests to fetch data from an API.
+## Installation
 
-### Author
+1. **Cloner le dépôt** :
+    ```bash
+    git clone <url-du-repo>
+    cd <nom-du-repo>
+    ```
+2. **Installer les dépendances** :
+    ```bash
+    npm install
+    # ou
+    yarn install
+    ```
+3. **Lancer l’application** :
+    - Android : `npm run android` ou `yarn android`
+    - iOS : `npm run ios` ou `yarn ios`
+    - Expo Go : `npx expo start` puis scanner le QR code
 
-Jolt Team
+---
 
-### Version
+## Structure du projet
 
-1.0.0
+- `src/components` : Composants réutilisables (cartes, modals, bottom sheets, etc.)
+- `src/containers` : Écrans principaux de l’application (Accueil, Profil, Trajets, etc.)
+- `src/context` : Contextes React pour la gestion globale (auth, véhicules, notifications…)
+- `src/hooks` : Hooks personnalisés (API, navigation, etc.)
+- `src/Data` : Données statiques ou de test
+- `src/utils` : Fonctions utilitaires
 
-### License
+---
 
-[License Name]
+## Technologies utilisées
+
+- **React Native** (Expo)
+- **React Navigation** (navigation entre les écrans)
+- **@gorhom/bottom-sheet** (bottom sheets interactifs)
+- **react-native-maps** (cartographie)
+- **expo-location** (géolocalisation)
+- **expo-notifications** (notifications push)
+- **Context API** (gestion globale de l’état)
+- **Lottie** (animations)
+- **Axios ou fetch** (requêtes API)
+
+---
+
+## Contribution
+
+1. Forkez le dépôt.
+2. Créez une branche pour votre fonctionnalité ou correction.
+3. Commitez vos modifications.
+4. Poussez sur votre fork.
+5. Ouvrez une pull request.
+
+---
+
+## Auteurs
+
+Jolt Team — SupInfo 4LABO
+
+---
+
+## Licence
+
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](./LICENSE) pour plus d’informations.

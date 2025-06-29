@@ -17,31 +17,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const MaintainsScreen = ({ navigation }) => {
   const [vehicleSelected, setVehicleSelected] = useState();
-  const { vehicles, updateVehicles, fetchAndUpdateVehicles, setPendingCount } =
-    useVehicleData();
+  const { vehicles, updateVehicles, fetchAndUpdateVehicles } = useVehicleData();
   useFocusEffect(
     useCallback(() => {
       fetchAndUpdateVehicles();
     }, [])
   );
-  useFocusEffect(
-    useCallback(() => {
-      if (vehicles.length === 0) return;
-      // Si le véhicule sélectionné n'existe plus, on prend le premier
-      const findVehicle = vehicles.find((v) => v.id === vehicleSelected?.id);
-      if (!vehicleSelected || !findVehicle) {
-        console.log("Vehicle not found, selecting first vehicle");
-        setVehicleSelected(vehicles[0]);
-      } else {
-        setVehicleSelected(findVehicle);
-      }
-    }, [vehicles])
-  );
+  useEffect(() => {
+    if (vehicles.length === 0) return;
+    // Si le véhicule sélectionné n'existe plus, on prend le premier
+    const findVehicle = vehicles.find((v) => v.id === vehicleSelected?.id);
+    if (!vehicleSelected || !findVehicle) {
+      setVehicleSelected(vehicles[0]);
+    }
+  }, [vehicles]);
 
   useEffect(() => {
     if (vehicles.length > 0 && vehicleSelected) {
       console.log("Vehicle selected:", vehicleSelected);
-     // setPendingCount(vehicleSelected?.maintains || 0);
+      // setPendingCount(vehicleSelected?.maintains || 0);
     }
   }, [vehicleSelected]);
 
@@ -53,7 +47,7 @@ const MaintainsScreen = ({ navigation }) => {
     if (item && !item.add) {
       setVehicleSelected(item);
       console.log("Vehicle selected:", item);
-    //  setPendingCount(item.maintains || 0);
+      //  setPendingCount(item.maintains || 0);
     }
   };
 

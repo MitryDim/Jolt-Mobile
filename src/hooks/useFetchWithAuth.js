@@ -28,9 +28,6 @@ export function useFetchWithAuth() {
 
       // Ajoute Content-Type seulement si ce n'est pas du FormData
       if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
-        console.warn(
-          "Content-Type non spécifié, ajout de 'application/json' par défaut"
-        );
         headers["Content-Type"] = "application/json";
       }
 
@@ -41,18 +38,6 @@ export function useFetchWithAuth() {
       // Première requête
       let response = await fetch(url, { ...options, headers });
 
-      console.log(
-        "Requête envoyée à:",
-        url,
-        "avec options:",
-        options,
-        "opts",
-        opts,
-        "headers:",
-        headers,
-        "responseStatus:",
-        response.status
-      );
       // Si token invalide et route protégée, tente refresh
       if (
         (opts.protected || user?.accessToken) &&
@@ -118,7 +103,12 @@ export function useFetchWithAuth() {
         };
       }
 
-      return { data, error: null, status: response.status };
+      return {
+        data,
+        error: null,
+        status: response.status,
+        rawResponse: response,
+      };
     } catch (err) {
       // Erreur réseau ou autre
       return {

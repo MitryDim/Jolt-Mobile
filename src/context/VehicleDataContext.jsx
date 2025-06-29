@@ -81,7 +81,7 @@ export const VehicleDataProvider = ({ children }) => {
       // });
     };
 
-    restoreVehicle();
+    //restoreVehicle();
     // setupSocket();
 
     return () => {

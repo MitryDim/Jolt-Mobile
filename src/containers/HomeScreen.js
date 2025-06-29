@@ -30,7 +30,7 @@ import TripsCarousel from "../components/TripsCarousel";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-
+import * as Location from "expo-location";
 const HomeScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
   const scrollRef = useRef(null);
@@ -45,6 +45,8 @@ const HomeScreen = ({ navigation }) => {
   const { user } = useContext(UserContext);
   const [lastTrips, setLastTrips] = useState([]);
   const [tripsShared, setTripsShared] = useState([]);
+  const [nearbyRides, setNearbyRides] = useState([]);
+  const [location, setLocation] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -54,13 +56,44 @@ const HomeScreen = ({ navigation }) => {
         fetchLastTrips();
       }
       fetchTripsShared();
+      fetchNearbyRides();
     }, [user])
   );
+
+  const fetchNearbyRides = async () => {
+    try {
+      // Demande la permission et récupère la position
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setNearbyRides([]);
+        return;
+      }
+      let loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+
+      // Appel API avec lat, lon, radius
+      const { data, status: apiStatus } = await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate?lat=${loc.coords.latitude}&lon=${
+          loc.coords.longitude
+        }&radius=10&limit=5&excludeSelf=true&isGroup=true&startTime=${new Date().toISOString()}`,
+        { method: "GET" }
+      );
+
+      if (apiStatus === 200 && data?.data?.navigations) {
+        setNearbyRides(data.data.navigations || []);
+      } else {
+        setNearbyRides([]);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des rides proches:", error);
+      setNearbyRides([]);
+    }
+  };
 
   const fetchTripsShared = async () => {
     try {
       const { data, status } = await fetchWithAuth(
-        `${EXPO_GATEWAY_SERVICE_URL}/navigate?limit=5&excludeSelf=true`,
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate?limit=5&excludeSelf=true&isGroup=false`,
         { method: "GET" }
       );
       if (status === 200 && data?.data?.navigations) {
@@ -105,8 +138,8 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-          {
-            /* <View style={{ margin: 16 }}>
+  {
+    /* <View style={{ margin: 16 }}>
         <Text style={{ fontWeight: "bold" }}>Expo Push Token :</Text>
         <Text selectable numberOfLines={1} style={{ fontSize: 12 }}>
           {expoPushToken || "Aucun token"}
@@ -120,7 +153,7 @@ const HomeScreen = ({ navigation }) => {
             : "Aucune notification reçue"}
         </Text>
       </View> */
-          }
+  }
   return (
     <SafeAreaView className={`flex mb-[${tabBarHeight}px]`}>
       <ScrollView contentContainerStyle={{ paddingBottom: 65 }}>
@@ -165,6 +198,18 @@ const HomeScreen = ({ navigation }) => {
         ) : (
           <Text className="text-center text-gray-500">
             Aucun trajet partagé pour le moment 😕
+          </Text>
+        )}
+
+        <Text className="mt-4 text-xl text-center font-bold">
+          Rides proches de toi à venir
+        </Text>
+        <Separator />
+        {nearbyRides.length !== 0 ? (
+          <TripsCarousel trips={nearbyRides} navigation={navigation} />
+        ) : (
+          <Text className="text-center text-gray-500">
+            Aucun ride à venir proche de toi pour le moment 😕
           </Text>
         )}
       </ScrollView>

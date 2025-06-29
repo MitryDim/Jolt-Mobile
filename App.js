@@ -125,27 +125,27 @@ export default function App() {
   });
 
   return (
-    <NotificationProvider>
-      <NetworkProvider>
-        <NetworkBanner />
-        <AppQueryProvider>
-        <UserProvider>
-          <VehicleDataProvider>
-            <SafeAreaProvider>
-              <NavigationModeProvider>
-                <NavigationContainer ref={navigationRef}>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <StatusBar />
-                    <RootNavigator />
-                  </GestureHandlerRootView>
-                </NavigationContainer>
-              </NavigationModeProvider>
-            </SafeAreaProvider>
-          </VehicleDataProvider>
-        </UserProvider>
-        </AppQueryProvider>
-        <FlashMessage position="top" />
-      </NetworkProvider>
-    </NotificationProvider>
+    <SafeAreaProvider>
+      <NotificationProvider>
+        <NetworkProvider>
+          <NetworkBanner />
+          <AppQueryProvider>
+            <UserProvider>
+              <VehicleDataProvider>
+                <NavigationModeProvider>
+                  <NavigationContainer ref={navigationRef}>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <StatusBar />
+                      <RootNavigator />
+                    </GestureHandlerRootView>
+                  </NavigationContainer>
+                </NavigationModeProvider>
+              </VehicleDataProvider>
+            </UserProvider>
+          </AppQueryProvider>
+          <FlashMessage position="top" />
+        </NetworkProvider>
+      </NotificationProvider>
+    </SafeAreaProvider>
   );
 }

@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import Slider from "@react-native-community/slider";
@@ -6,53 +12,118 @@ import AddressSearchBar from "./SearchBar";
 import SuggestionHistoryList from "./SuggestionHistoryList";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const COLORS = {
+  primary: "#007bff",
+  lightGray: "#f1f5f9",
+  gray: "#888",
+  white: "#fff",
+};
+
 export default function FilterBottomSheet({
   onApply,
   initialRadius = 10,
   initialSelectedFilter = null,
   bottomSheetRef,
   handleCloseBottomSheet = () => {},
+  defaultLocation = false,
 }) {
-  const snapPoints = useMemo(() => ["100%"]);
+  const snapPoints = useMemo(() => ["100%"], []);
   const [radius, setRadius] = useState(initialRadius);
   const [selectedFilter, setSelectedFilter] = useState(initialSelectedFilter);
   const [suggestions, setSuggestions] = useState([]);
-  const [timeoutId, setTimeoutId] = useState(null);
   const [searchInput, setSearchInput] = useState("");
-  const [searchisLoading, setSearchIsLoading] = useState(false);
+  const [searchIsLoading, setSearchIsLoading] = useState(false);
+  const timeoutRef = useRef(null);
 
-  // Remettre à zéro quand on ouvre le filtre
+  // Centralisation de la géolocalisation
+  const fetchCurrentLocation = useCallback(async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") return null;
+
+    let location = await Location.getLastKnownPositionAsync({
+      accuracy: Location.Accuracy.High,
+      timeInterval: 10000,
+      distanceInterval: 10,
+    });
+    if (!location) {
+      location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+    }
+    let [place] = await Location.reverseGeocodeAsync(location.coords);
+    return { location, place };
+  }, []);
+
   useEffect(() => {
     setRadius(initialRadius);
     setSelectedFilter(initialSelectedFilter);
     setSearchInput("");
     setSuggestions([]);
-  }, [initialRadius, initialSelectedFilter]);
 
-  // Gestion du changement de recherche
+    if (defaultLocation && !initialSelectedFilter) {
+      (async () => {
+        const result = await fetchCurrentLocation();
+        if (result) {
+          const { location, place } = result;
+          setSelectedFilter({
+            type: "geo",
+            city: "Autour de moi",
+            postalCode: place?.postalCode || "",
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            radius: initialRadius,
+          });
+        }
+      })();
+    }
+  }, [
+    initialRadius,
+    initialSelectedFilter,
+    defaultLocation,
+    fetchCurrentLocation,
+  ]);
+
   const handleSearchChange = (text) => {
     setSearchInput(text);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
     if (text.trim() === "") {
       setSuggestions([]);
       setSearchIsLoading(false);
-      if (timeoutId) clearTimeout(timeoutId);
-      // Si on efface, on retire le filtre ville
-      if (selectedFilter?.type === "city") setSelectedFilter(null);
+      if (defaultLocation) {
+        (async () => {
+          const result = await fetchCurrentLocation();
+          if (result) {
+            const { location, place } = result;
+            setSelectedFilter({
+              type: "geo",
+              city: "Autour de moi",
+              postalCode: place?.postalCode || "",
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              radius,
+            });
+          } else setSelectedFilter(null);
+        })();
+      } else if (selectedFilter?.type === "city") {
+        setSelectedFilter(null);
+      }
       return;
     }
-    // Si on tape, on retire le filtre "autour de moi"
+
     if (selectedFilter?.type === "geo") setSelectedFilter(null);
-    if (timeoutId) clearTimeout(timeoutId);
-    const newId = setTimeout(() => {
+
+    timeoutRef.current = setTimeout(() => {
       setSearchIsLoading(true);
       fetchSuggestions(text);
     }, 500);
-    setTimeoutId(newId);
   };
 
-  // Suggestions API
   const fetchSuggestions = async (input) => {
     if (!input) return setSuggestions([]);
+
     try {
       const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
         input
@@ -60,14 +131,13 @@ export default function FilterBottomSheet({
       const res = await fetch(url);
       const json = await res.json();
       setSuggestions(json.features || []);
-    } catch (err) {
+    } catch {
       setSuggestions([]);
     } finally {
       setSearchIsLoading(false);
     }
   };
 
-  // Sélection d'une suggestion ville
   const handleSelectSuggestion = (item) => {
     setSelectedFilter({
       type: "city",
@@ -81,100 +151,59 @@ export default function FilterBottomSheet({
     setSuggestions([]);
   };
 
-  const handleApply = () => {
-    onApply({
-      selectedFilter,
-      radius,
-    });
-    handleCloseBottomSheet();
-  };
-
-  const handleReset = () => {
-    setRadius(initialRadius);
-    setSelectedFilter(initialSelectedFilter);
-    setSearchInput("");
-    setSuggestions([]);
-    //  onReset();
-    handleCloseBottomSheet();
-  };
-
-  const getCurrentPosition = async () => {
-    console.log("Fetching current position...");
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.error("Permission to access location was denied");
-      return;
-    }
-    let location = await Location.getCurrentPositionAsync({});
-
-    let [place] = await Location.reverseGeocodeAsync(location.coords);
-
-    if (place && place.city) {
+  const handleAroundMe = async () => {
+    const result = await fetchCurrentLocation();
+    if (result) {
+      const { location, place } = result;
       setSelectedFilter({
         type: "geo",
         city: "Autour de moi",
-        postalCode: place.postalCode || "",
+        postalCode: place?.postalCode || "",
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         radius,
       });
-    } else {
-      setSelectedFilter({ radius });
-      console.warn("No city found for current location");
+      setSearchInput("");
+      setSuggestions([]);
     }
   };
 
-  // Sélection "Autour de moi"
-  const handleAroundMe = async () => {
-    //  await onGetCurrentPosition();
-    await getCurrentPosition();
-    setSearchInput("");
-    setSuggestions([]);
-  };
-
-  // Suppression du filtre actif
   const handleRemoveFilter = () => {
-    setSelectedFilter(null);
     setSearchInput("");
     setSuggestions([]);
+    if (defaultLocation) {
+      handleAroundMe();
+    } else {
+      setSelectedFilter(null);
+    }
   };
 
-  // Validation
-  const handleValidate = () => {
-    onValidate(radius);
+  const handleApply = () => {
+    onApply({ selectedFilter, radius });
     handleCloseBottomSheet();
   };
 
-  // Affichage du chip filtre actif
   const renderActiveFilter = () => {
     if (!selectedFilter) return null;
-    let label = "";
-    if (selectedFilter.type === "geo") {
-      label = `Autour de moi (${radius} km)`;
-    } else if (selectedFilter.type === "city") {
-      label = `${selectedFilter.city} (${selectedFilter.postalCode}) - ${radius} km`;
-    }
+
+    const label =
+      selectedFilter.type === "geo"
+        ? `Autour de moi (${radius} km)`
+        : `${selectedFilter.city} (${selectedFilter.postalCode}) - ${radius} km`;
+
     return (
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          alignSelf: "flex-start",
-          backgroundColor: "#f1f5f9",
-          borderRadius: 20,
-          paddingHorizontal: 12,
-          paddingVertical: 6,
-          marginTop: 8,
-          marginLeft: 8,
-        }}
-      >
-        <Text style={{ color: "#007bff", fontWeight: "bold" }}>{label}</Text>
-        <TouchableOpacity
-          onPress={handleRemoveFilter}
-          style={{ marginLeft: 8 }}
-        >
-          <Text style={{ fontSize: 18, color: "#888" }}>×</Text>
-        </TouchableOpacity>
+      <View style={styles.filterChip}>
+        <Text style={{ color: COLORS.primary, fontWeight: "bold" }}>
+          {label}
+        </Text>
+        {(!defaultLocation || selectedFilter.type === "city") && (
+          <TouchableOpacity
+            onPress={handleRemoveFilter}
+            style={{ marginLeft: 8 }}
+          >
+            <Text style={{ fontSize: 18, color: COLORS.gray }}>×</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -184,19 +213,13 @@ export default function FilterBottomSheet({
       ref={bottomSheetRef}
       index={-1}
       snapPoints={snapPoints}
-      enableDynamicSizing={false}
       enablePanDownToClose={false}
       handleComponent={null}
     >
       <BottomSheetView>
-        <SafeAreaView edges={["top"]} style={{ backgroundColor: "white" }}>
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-2 bg-white border-b border-gray-200 max-h-16">
-            <View className="flex-1 items-center">
-              <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                Filtrer les résultats
-              </Text>
-            </View>
+        <SafeAreaView edges={["top"]} style={{ backgroundColor: COLORS.white }}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Filtrer les résultats</Text>
             <TouchableOpacity
               onPress={handleCloseBottomSheet}
               style={{ padding: 8 }}
@@ -206,7 +229,6 @@ export default function FilterBottomSheet({
           </View>
         </SafeAreaView>
 
-        {/* SearchBar */}
         <View
           style={{ padding: 3, flexDirection: "row", alignItems: "center" }}
         >
@@ -214,28 +236,14 @@ export default function FilterBottomSheet({
             placeholder="On passe par où ?"
             value={searchInput}
             onChange={handleSearchChange}
-            loading={searchisLoading}
+            loading={searchIsLoading}
           />
         </View>
 
-        {/* Chip filtre actif */}
         {renderActiveFilter()}
 
-        {/* Suggestions */}
         {!selectedFilter && suggestions.length > 0 && (
-          <View
-            style={{
-              backgroundColor: "white",
-              marginTop: 2,
-              marginBottom: 8,
-              borderRadius: 12,
-              shadowColor: "#000",
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 5,
-              zIndex: 10,
-            }}
-          >
+          <View style={styles.suggestionsBox}>
             <SuggestionHistoryList
               data={suggestions}
               onSelect={handleSelectSuggestion}
@@ -244,27 +252,17 @@ export default function FilterBottomSheet({
           </View>
         )}
 
-        {/* Bouton Autour de moi */}
         {!selectedFilter && (
           <TouchableOpacity
             onPress={handleAroundMe}
-            style={{
-              marginTop: 10,
-              marginBottom: 10,
-              padding: 12,
-              backgroundColor: "#007bff",
-              borderRadius: 8,
-              alignSelf: "center",
-              width: "90%",
-            }}
+            style={styles.aroundMeButton}
           >
-            <Text style={{ color: "white", textAlign: "center" }}>
+            <Text style={{ color: COLORS.white, textAlign: "center" }}>
               📍 Autour de moi
             </Text>
           </TouchableOpacity>
         )}
 
-        {/* Slider */}
         <Text style={{ marginBottom: 8, marginLeft: 8 }}>
           Dans un Rayon de {radius} km
         </Text>
@@ -274,49 +272,79 @@ export default function FilterBottomSheet({
           step={1}
           value={radius}
           onValueChange={setRadius}
-          minimumTrackTintColor="#007bff"
+          minimumTrackTintColor={COLORS.primary}
           maximumTrackTintColor="#ccc"
         />
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 20,
-            width: "90%",
-            alignSelf: "center",
-          }}
-        >
-          <TouchableOpacity
-            onPress={handleReset}
+        <TouchableOpacity onPress={handleApply} style={styles.validateButton}>
+          <Text
             style={{
-              padding: 12,
-              backgroundColor: "#e5e7eb",
-              borderRadius: 8,
-              flex: 1,
-              marginRight: 8,
+              color: COLORS.white,
+              fontWeight: "bold",
+              textAlign: "center",
             }}
           >
-            <Text style={{ color: "#111", textAlign: "center" }}>
-              Réinitialiser
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleApply}
-            style={{
-              padding: 12,
-              backgroundColor: "green",
-              borderRadius: 8,
-              flex: 1,
-              marginLeft: 8,
-            }}
-          >
-            <Text style={{ color: "white", textAlign: "center" }}>
-              Appliquer
-            </Text>
-          </TouchableOpacity>
-        </View>
+            Appliquer
+          </Text>
+        </TouchableOpacity>
       </BottomSheetView>
     </BottomSheet>
   );
 }
+
+const styles = {
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: COLORS.lightGray,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 8,
+    marginLeft: 8,
+  },
+  suggestionsBox: {
+    backgroundColor: COLORS.white,
+    marginTop: 2,
+    marginBottom: 8,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 10,
+  },
+  aroundMeButton: {
+    marginTop: 10,
+    marginBottom: 10,
+    padding: 12,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    alignSelf: "center",
+    width: "90%",
+  },
+  validateButton: {
+    marginTop: 12,
+    marginBottom: 24,
+    padding: 14,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    alignSelf: "center",
+    width: "90%",
+  },
+};

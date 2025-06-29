@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RouteTraveledScreen from "../../../containers/RouteTraveledScreen";
 import TrackingDetailsScreen from "../../RouteTraveled/testmap";
 import { HeaderBackButton } from "@react-navigation/elements";
+import MyTripsScreen from "../../../containers/MyTripsScreen";
 const Stack = createNativeStackNavigator();
 
 function RouteTraveledNavigator({ navigation }) {
@@ -14,9 +15,19 @@ function RouteTraveledNavigator({ navigation }) {
           animation: "slide_from_right",
           presentation: "card",
           navigationBarColor: "#FFFFFF",
- 
         }}
         component={RouteTraveledScreen}
+      />
+
+      <Stack.Screen
+        name="MyTrips"
+        component={MyTripsScreen}
+        options={{
+          headerShown: false,
+          animation: "slide_from_right",
+          presentation: "card",
+          navigationBarColor: "#FFFFFF",
+        }}
       />
       <Stack.Screen
         name="TrackingDetailsScreen"
