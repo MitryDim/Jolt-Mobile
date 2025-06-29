@@ -17,8 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const CARD_WIDTH = Dimensions.get("window").width * 0.7;
 const MaintainsScreen = ({ navigation }) => {
   const [vehicleSelected, setVehicleSelected] = useState();
-  const { vehicles, updateVehicles, fetchAndUpdateVehicles } = useVehicleData();
-
+  const { vehicles, updateVehicles, fetchAndUpdateVehicles, setPendingCount } =
+    useVehicleData();
   useFocusEffect(
     useCallback(() => {
       fetchAndUpdateVehicles();
@@ -28,21 +28,32 @@ const MaintainsScreen = ({ navigation }) => {
     useCallback(() => {
       if (vehicles.length === 0) return;
       // Si le véhicule sélectionné n'existe plus, on prend le premier
-      if (
-        !vehicleSelected ||
-        !vehicles.find((v) => v.id === vehicleSelected.id)
-      ) {
+      const findVehicle = vehicles.find((v) => v.id === vehicleSelected?.id);
+      if (!vehicleSelected || !findVehicle) {
+        console.log("Vehicle not found, selecting first vehicle");
         setVehicleSelected(vehicles[0]);
+      } else {
+        setVehicleSelected(findVehicle);
       }
     }, [vehicles])
   );
+
+  useEffect(() => {
+    if (vehicles.length > 0 && vehicleSelected) {
+      console.log("Vehicle selected:", vehicleSelected);
+     // setPendingCount(vehicleSelected?.maintains || 0);
+    }
+  }, [vehicleSelected]);
 
   const handleScrollEnd = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / CARD_WIDTH);
     const item = vehicles[index];
+    console.log("handleScrollEnd", index, item);
     if (item && !item.add) {
       setVehicleSelected(item);
+      console.log("Vehicle selected:", item);
+    //  setPendingCount(item.maintains || 0);
     }
   };
 

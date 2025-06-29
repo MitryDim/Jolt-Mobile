@@ -1,35 +1,24 @@
-import { useState, useCallback } from "react";
-import { useFetchWithAuth } from "./useFetchWithAuth";
+import { useQuery } from "@tanstack/react-query";
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 
-export function useVehicles() {
+export const useVehicles = () => {
   const fetchWithAuth = useFetchWithAuth();
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchVehicles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  return useQuery({
+    queryKey: ["vehicles"],
+    queryFn: async () => {
       // 1. Récupère les véhicules
       const { data, error, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
         { method: "GET" },
         { protected: true }
       );
-      // Si 304, on ne fait rien, on garde la liste actuelle
-      if (status === 0) {
-        setLoading(false);
-        return;
+
+      if (error || status !== 200) {
+        throw new Error(error || "Erreur lors du chargement des véhicules");
       }
 
-      if (error) {
-        setError(error);
-        // setVehicles([]);
-        setLoading(false);
-        return;
-      }
       const vehiclesList =
         data?.data?.map((item) => ({
           id: item._id,
@@ -42,9 +31,9 @@ export function useVehicles() {
           isFavorite: item.isFavorite || false,
         })) || [];
 
-      // 2. Récupère le nombre de maintenances pour chaque véhicule
+      // 2. Récupère les maintenances associées
       const vehicleIds = vehiclesList.map((v) => v.id);
-      const { data: maintData } = await fetchWithAuth(
+      const { data: maintData, error: maintError } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/maintain/count`,
         {
           method: "POST",
@@ -54,7 +43,11 @@ export function useVehicles() {
         { protected: true }
       );
 
-      // 3. Associe le nombre de maintenances à chaque véhicule
+      if (maintError) {
+        throw new Error(maintError);
+      }
+
+      // 3. Associe les maintenances
       const vehiclesWithMaint = vehiclesList.map((vehicle) => {
         const found = maintData?.find((m) => m.vehicleId === vehicle.id);
         return {
@@ -62,18 +55,14 @@ export function useVehicles() {
           maintains: found ? found.pendingMaintenances : 0,
         };
       });
-      // Trie pour mettre le favori en premier
+
+      // Trie pour mettre les favoris en premier
       vehiclesWithMaint.sort(
         (a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0)
       );
 
-      setVehicles(vehiclesWithMaint);
-    } catch (e) {
-      setError(e);
-      // setVehicles([]);
-    }
-    setLoading(false);
-  }, [fetchWithAuth]);
-
-  return { vehicles, loading, error, fetchVehicles };
-}
+      return vehiclesWithMaint;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};

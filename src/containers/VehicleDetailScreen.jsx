@@ -127,10 +127,10 @@ const VehicleDetailScreen = ({ route, navigation }) => {
       const { error } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle/${vehicle.id}`,
         {
-          method: "PUT",
+          method: "PATCH",
           body: formData,
         },
-        { protected: true }
+        { protected: true } 
       );
       if (error) {
         console.error("Erreur lors de la mise à jour :", error);

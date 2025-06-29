@@ -79,7 +79,7 @@ export const MaintainProvider = ({ children }) => {
       });
     };
     restoreVehicle();
-    setupSocket();
+    //setupSocket();
 
     return () => {
       if (socketRef.current) {

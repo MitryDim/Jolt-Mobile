@@ -23,6 +23,7 @@ import { NavigationModeProvider } from "./src/context/NavigationModeContext";
 import { navigationRef } from "./src/components/Navigation/NavigationService";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SplashScreen from "./src/containers/SplashScreen";
+import AppQueryProvider from "./src/providers/QueryClientProvider";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -127,6 +128,7 @@ export default function App() {
     <NotificationProvider>
       <NetworkProvider>
         <NetworkBanner />
+        <AppQueryProvider>
         <UserProvider>
           <VehicleDataProvider>
             <SafeAreaProvider>
@@ -141,6 +143,7 @@ export default function App() {
             </SafeAreaProvider>
           </VehicleDataProvider>
         </UserProvider>
+        </AppQueryProvider>
         <FlashMessage position="top" />
       </NetworkProvider>
     </NotificationProvider>
