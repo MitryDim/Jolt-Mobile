@@ -76,8 +76,8 @@ Jolt Mobile apporte la puissance de React Native à la mobilité douce :
 
 1. **Cloner le dépôt** :
     ```bash
-    git clone <url-du-repo>
-    cd <nom-du-repo>
+    git clone https://github.com/MitryDim/Jolt-Mobile
+    cd Jolt-Mobile
     ```
 2. **Configurer les variables d’environnement** (voir [Configuration](#-configuration))
 3. **Installer les dépendances** :
