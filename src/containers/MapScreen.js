@@ -15,7 +15,7 @@ const BASE_REFERENCE_HEIGHT = 1920; // référence pour un écran complet sans b
 const MapScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const snapPoints = useMemo(() => ["10%", "25%", "95%"], []);
+  const [sheetIndex, setSheetIndex] = useState(0);
   const {
     mode = "address",
     fromAddress = "",
@@ -31,6 +31,7 @@ const MapScreen = () => {
     infoTravelAnimatedStyle,
     isNavigating = true,
   } = route.params || {};
+  const mapRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
   const [sheetHeight, setSheetHeight] = useState(0);
   const bottomSheetRef = useRef(null);
@@ -94,35 +95,64 @@ const MapScreen = () => {
   //   }
   //   return (SCREEN_HEIGHT - sheetHeight) / SCREEN_HEIGHT;
   // }, [sheetHeight]);
+  const onSheetChange = (index) => {
+    setSheetIndex(index);
+    const windowHeight = Dimensions.get("window").height;
 
+    // Padding dynamique selon la position du BottomSheet
+    let bottomPadding = 80;
+    let topPadding = 100;
+
+    if (index === 1) {
+      // 50%
+      bottomPadding = windowHeight * 0.25;
+      topPadding = 60;
+    }
+    if (index === 2) {
+      // 95%
+      bottomPadding = windowHeight * 0.50;
+      topPadding = 20;
+    }
+
+    if (mapRef.current && initialRouteOptions.length > 0) {
+      const allCoords = initialRouteOptions.map((r) => r.coordinates).flat();
+      mapRef.current.fitToCoordinates(allCoords, {
+        edgePadding: {
+          top: topPadding,
+          right: 80,
+          bottom: bottomPadding,
+          left: 80,
+        },
+        animated: true,
+      });
+    }
+  };
+  // Fonction utilitaire pour convertir un décalage en pixels en latitude
+  function getOffsetLatitude(latitude, offsetY, windowHeight) {
+    // 1° de latitude ≈ 111km, donc 1px ≈ (region.latitudeDelta / windowHeight) degrés
+    // On décale vers le nord (haut) donc on ajoute
+    const latitudeDeltaPerPixel = 0.01 / windowHeight;
+    return latitude + latitudeDeltaPerPixel * offsetY;
+  }
   const renderModeSpecificUI = () => {
     if (mode === "address") {
       return (
-        <View
-          style={{
-            flex: 1,
-            width: "100%",
-            height: "100%",
-            position: "absolute",
+        <AddressBottomSheet
+          userLocation={userLocation}
+          bottomSheetRef={bottomSheetRef}
+          onSelectAddress={(routeLabel, routeOptions) => {
+            navigation.navigate("MapScreen", {
+              key: String(Date.now()),
+              mode: "itinerary",
+              initialRouteOptions: routeOptions,
+              fromAddress: routeLabel,
+              isNavigating: false,
+            });
           }}
-        >
-          <AddressBottomSheet
-            userLocation={userLocation}
-            bottomSheetRef={bottomSheetRef}
-            onSelectAddress={(routeLabel, routeOptions) => {
-              navigation.navigate("MapScreen", {
-                key: String(Date.now()),
-                mode: "itinerary",
-                initialRouteOptions: routeOptions,
-                fromAddress: routeLabel,
-                isNavigating: false,
-              });
-            }}
-            handleComponent={handleComponent}
-            //onSheetHeightChange={(height) => setSheetHeight(height)}
-            navigation={navigation}
-          />
-        </View>
+          handleComponent={handleComponent}
+          //onSheetHeightChange={(height) => setSheetHeight(height)}
+          navigation={navigation}
+        />
       );
     }
 
@@ -133,7 +163,7 @@ const MapScreen = () => {
             flex: 1,
             width: "100%",
             height: "100%",
-            position: "absolute", 
+            position: "absolute",
           }}
         >
           <ItineraryBottomSheet
@@ -153,6 +183,7 @@ const MapScreen = () => {
                 // Ajoute ici d'autres paramètres si besoin
               });
             }}
+            onChange={onSheetChange}
           />
         </View>
       );
@@ -185,32 +216,37 @@ const MapScreen = () => {
   };
 
   return (
-    <AnimatedPositionContext.Provider value={animatedPositionRef}>
-      <View
-        className={`flex ${
-          mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
-        }`}
-      >
-        <MapContainer
-          key={mode}
-          mode={mode}
-          initialRouteOptions={initialRouteOptions}
-          selectedRouteIndex={selectedRouteIndex}
-          isNavigating={isNavigating}
-          // screenHeightRatio={screenHeightRatio}
-          currentRegion={userLocation}
-          showManeuver={showManeuver}
-          styleMaps={styles.map}
-          onPolylineSelect={(index) => console.log("Polyline selected:", index)}
-          handleSheetClose={handleSheetChange}
-          sheetOffsetValue={sheetHeight}
-          bottomSheetRef={bottomSheetRef}
-          infoTravelAnimatedStyle={infoTravelAnimatedStyle}
-          handleComponent={handleComponent}
-        />
-        {renderModeSpecificUI()}
-      </View>
-    </AnimatedPositionContext.Provider>
+    <SafeAreaView edges={["bottom"]} className="flex-1 bg-white">
+      <AnimatedPositionContext.Provider value={animatedPositionRef}>
+        <View
+          className={`flex ${
+            mode == "itinerary" || mode == "travel" ? "" : "mb-[60px]"
+          }`}
+        >
+          <MapContainer
+            ref={mapRef}
+            key={mode}
+            mode={mode}
+            initialRouteOptions={initialRouteOptions}
+            selectedRouteIndex={selectedRouteIndex}
+            isNavigating={isNavigating}
+            // screenHeightRatio={screenHeightRatio}
+            currentRegion={userLocation}
+            showManeuver={showManeuver}
+            styleMaps={styles.map}
+            onPolylineSelect={(index) =>
+              console.log("Polyline selected:", index)
+            }
+            handleSheetClose={handleSheetChange}
+            sheetOffsetValue={sheetHeight}
+            bottomSheetRef={bottomSheetRef}
+            infoTravelAnimatedStyle={infoTravelAnimatedStyle}
+            handleComponent={handleComponent}
+          />
+          {renderModeSpecificUI()}
+        </View>
+      </AnimatedPositionContext.Provider>
+    </SafeAreaView>
   );
 };
 

@@ -43,6 +43,7 @@ import { UserContext } from "../../context/AuthContext";
 import { AnimatedMapView } from "react-native-maps/lib/MapView";
 import { useNetwork } from "../../context/networkContext";
 const MapContainer = ({
+  ref: mapRef,
   styleMaps,
   initialRouteOptions,
   selectedRouteIndex,
@@ -68,8 +69,7 @@ const MapContainer = ({
   const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
   const isCameraLockedRef = useRef(false);
-  const cameraTimeoutRef = useRef(null);
-  const mapRef = useRef(null);
+  const cameraTimeoutRef = useRef(null); 
   const isTravel = mode === "travel";
   const [routesToShow, setRoutesToShow] = useState(
     isTravel ? [initialRouteOptions[selectedRouteIndex]] : initialRouteOptions
@@ -175,7 +175,7 @@ const MapContainer = ({
         mapRef.current,
         locationRef.current?.coords,
         isCameraLockedRef,
-        locationRef.current?.coords?.heading
+        locationRef.current?.coords?.heading,
       );
     }
 

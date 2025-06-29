@@ -13,7 +13,7 @@ export default function FilterBottomSheet({
   bottomSheetRef,
   handleCloseBottomSheet = () => {},
 }) {
-  const snapPoints = useMemo(() => ["95%"]);
+  const snapPoints = useMemo(() => ["100%"]);
   const [radius, setRadius] = useState(initialRadius);
   const [selectedFilter, setSelectedFilter] = useState(initialSelectedFilter);
   const [suggestions, setSuggestions] = useState([]);
@@ -179,16 +179,17 @@ export default function FilterBottomSheet({
     );
   };
 
-  return ( 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        enableDynamicSizing={false}
-        enablePanDownToClose={false}
-        handleComponent={null}
-      >
-        <BottomSheetView>
+  return (
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={-1}
+      snapPoints={snapPoints}
+      enableDynamicSizing={false}
+      enablePanDownToClose={false}
+      handleComponent={null}
+    >
+      <BottomSheetView>
+        <SafeAreaView edges={["top"]} style={{ backgroundColor: "white" }}>
           {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-2 bg-white border-b border-gray-200 max-h-16">
             <View className="flex-1 items-center">
@@ -203,118 +204,119 @@ export default function FilterBottomSheet({
               <Text style={{ fontSize: 24, color: "black" }}>×</Text>
             </TouchableOpacity>
           </View>
+        </SafeAreaView>
 
-          {/* SearchBar */}
-          <View
-            style={{ padding: 3, flexDirection: "row", alignItems: "center" }}
-          >
-            <AddressSearchBar
-              placeholder="On passe par où ?"
-              value={searchInput}
-              onChange={handleSearchChange}
-              loading={searchisLoading}
-            />
-          </View>
-
-          {/* Chip filtre actif */}
-          {renderActiveFilter()}
-
-          {/* Suggestions */}
-          {!selectedFilter && suggestions.length > 0 && (
-            <View
-              style={{
-                backgroundColor: "white",
-                marginTop: 2,
-                marginBottom: 8,
-                borderRadius: 12,
-                shadowColor: "#000",
-                shadowOpacity: 0.1,
-                shadowRadius: 8,
-                elevation: 5,
-                zIndex: 10,
-              }}
-            >
-              <SuggestionHistoryList
-                data={suggestions}
-                onSelect={handleSelectSuggestion}
-                addressInput={searchInput}
-              />
-            </View>
-          )}
-
-          {/* Bouton Autour de moi */}
-          {!selectedFilter && (
-            <TouchableOpacity
-              onPress={handleAroundMe}
-              style={{
-                marginTop: 10,
-                marginBottom: 10,
-                padding: 12,
-                backgroundColor: "#007bff",
-                borderRadius: 8,
-                alignSelf: "center",
-                width: "90%",
-              }}
-            >
-              <Text style={{ color: "white", textAlign: "center" }}>
-                📍 Autour de moi
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Slider */}
-          <Text style={{ marginBottom: 8, marginLeft: 8 }}>
-            Dans un Rayon de {radius} km
-          </Text>
-          <Slider
-            minimumValue={1}
-            maximumValue={25}
-            step={1}
-            value={radius}
-            onValueChange={setRadius}
-            minimumTrackTintColor="#007bff"
-            maximumTrackTintColor="#ccc"
+        {/* SearchBar */}
+        <View
+          style={{ padding: 3, flexDirection: "row", alignItems: "center" }}
+        >
+          <AddressSearchBar
+            placeholder="On passe par où ?"
+            value={searchInput}
+            onChange={handleSearchChange}
+            loading={searchisLoading}
           />
+        </View>
 
+        {/* Chip filtre actif */}
+        {renderActiveFilter()}
+
+        {/* Suggestions */}
+        {!selectedFilter && suggestions.length > 0 && (
           <View
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginTop: 20,
-              width: "90%",
-              alignSelf: "center",
+              backgroundColor: "white",
+              marginTop: 2,
+              marginBottom: 8,
+              borderRadius: 12,
+              shadowColor: "#000",
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 5,
+              zIndex: 10,
             }}
           >
-            <TouchableOpacity
-              onPress={handleReset}
-              style={{
-                padding: 12,
-                backgroundColor: "#e5e7eb",
-                borderRadius: 8,
-                flex: 1,
-                marginRight: 8,
-              }}
-            >
-              <Text style={{ color: "#111", textAlign: "center" }}>
-                Réinitialiser
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleApply}
-              style={{
-                padding: 12,
-                backgroundColor: "green",
-                borderRadius: 8,
-                flex: 1,
-                marginLeft: 8,
-              }}
-            >
-              <Text style={{ color: "white", textAlign: "center" }}>
-                Appliquer
-              </Text>
-            </TouchableOpacity>
+            <SuggestionHistoryList
+              data={suggestions}
+              onSelect={handleSelectSuggestion}
+              addressInput={searchInput}
+            />
           </View>
-        </BottomSheetView>
-      </BottomSheet> 
+        )}
+
+        {/* Bouton Autour de moi */}
+        {!selectedFilter && (
+          <TouchableOpacity
+            onPress={handleAroundMe}
+            style={{
+              marginTop: 10,
+              marginBottom: 10,
+              padding: 12,
+              backgroundColor: "#007bff",
+              borderRadius: 8,
+              alignSelf: "center",
+              width: "90%",
+            }}
+          >
+            <Text style={{ color: "white", textAlign: "center" }}>
+              📍 Autour de moi
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Slider */}
+        <Text style={{ marginBottom: 8, marginLeft: 8 }}>
+          Dans un Rayon de {radius} km
+        </Text>
+        <Slider
+          minimumValue={1}
+          maximumValue={25}
+          step={1}
+          value={radius}
+          onValueChange={setRadius}
+          minimumTrackTintColor="#007bff"
+          maximumTrackTintColor="#ccc"
+        />
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 20,
+            width: "90%",
+            alignSelf: "center",
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleReset}
+            style={{
+              padding: 12,
+              backgroundColor: "#e5e7eb",
+              borderRadius: 8,
+              flex: 1,
+              marginRight: 8,
+            }}
+          >
+            <Text style={{ color: "#111", textAlign: "center" }}>
+              Réinitialiser
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleApply}
+            style={{
+              padding: 12,
+              backgroundColor: "green",
+              borderRadius: 8,
+              flex: 1,
+              marginLeft: 8,
+            }}
+          >
+            <Text style={{ color: "white", textAlign: "center" }}>
+              Appliquer
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetView>
+    </BottomSheet>
   );
 }

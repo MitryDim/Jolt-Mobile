@@ -351,19 +351,11 @@ export const useNavigationLogic = ({
     (map, coords, isCameraLockedRef, headingValue, elapsed = 0) => {
       if (isCameraLockedRef.current) return;
       if (!coords || !map) return;
-
-      let location = coords;
+       let location = coords;
 
       if (location.latitude === 0 && location.longitude === 0) return;
 
-      console.log(
-        "Updating camera with coords:",
-        location,
-        width,
-        height,
-        zoomLevel,
-        SCREEN_RATIO
-      );
+ 
       const zoomLevel = Platform.OS === "ios" ? 1 : 19;
       const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
         location.latitude,
@@ -701,7 +693,7 @@ export const useNavigationLogic = ({
           useNativeDriver: false,
         })
         .start();
-
+console.log("isNavigating", isNavigating);
       if (isNavigating) {
         updateCamera(map, newLocation, isCameraLockedRef, heading, elapsed);
         updateSpeed(speedRef.current);

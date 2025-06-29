@@ -20,6 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { formatElapsedTime, formatDistance } from "../../../utils/Utils";
 
+
 export default function NavigationBottomSheet({
   remainingTimeInSeconds,
   arrivalTimeStr,
@@ -39,7 +40,7 @@ export default function NavigationBottomSheet({
       Extrapolate.CLAMP
     ),
     transform: [
-      { 
+      {
         translateY: interpolate(
           animatedIndex.value,
           [0, 1, 2, 3],
@@ -50,20 +51,20 @@ export default function NavigationBottomSheet({
     ],
   }));
   const renderHeader = () => (
-    <View className="flex-row items-center justify-between px-4 py-2 bg-white border-b border-gray-200 max-h-16">
-      <View className="flex-1 items-center">
-        <Text className="text-2xl font-bold">{arrivalTimeStr}</Text>
-        <View className="flex-row items-center mt-1">
-          <Text className="text-sm text-gray-600">
-            {formatElapsedTime(remainingTimeInSeconds)}
-          </Text>
-          <Text className="text-sm text-gray-600 mx-2">•</Text>
-          <Text className="text-sm text-gray-600">
-            {formatDistance(distance)}
-          </Text>
+      <View className="flex-row items-center justify-between px-4 py-2 bg-white border-b border-gray-200 max-h-16">
+        <View className="flex-1 items-center">
+          <Text className="text-2xl font-bold">{arrivalTimeStr}</Text>
+          <View className="flex-row items-center mt-1">
+            <Text className="text-sm text-gray-600">
+              {formatElapsedTime(remainingTimeInSeconds)}
+            </Text>
+            <Text className="text-sm text-gray-600 mx-2">•</Text>
+            <Text className="text-sm text-gray-600">
+              {formatDistance(distance)}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
   );
   // Footer fixe en bas du BottomSheet via footerComponent
   const renderFooter = (footerProps) => (

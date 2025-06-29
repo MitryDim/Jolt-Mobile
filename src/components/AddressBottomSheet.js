@@ -22,6 +22,7 @@ import FavoriteList from "./FavoriteList";
 import AddressSearchBar from "./SearchBar";
 import SuggestionHistoryList from "./SuggestionHistoryList";
 import { getDistance } from "../utils/Utils";
+import { SafeAreaView } from "react-native-safe-area-context";
 const AddressBottomSheet = ({
   bottomSheetRef,
   onSelectAddress,
@@ -29,9 +30,10 @@ const AddressBottomSheet = ({
   handleComponent,
   navigation,
 }) => {
+  const [sheetIndex, setSheetIndex] = useState(1);
   const [history, setHistory] = useState([]);
   const { favoritesAddresses, fetchFavorites } = useNavigationMode();
-  const snapPoints = useMemo(() => [90, "25%", "95%"], []);
+  const snapPoints = useMemo(() => [90, "25%", "95%"]);
   const [addressInput, setAddressInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [timeoutId, setTimeoutId] = useState(null);
@@ -49,7 +51,7 @@ const AddressBottomSheet = ({
     const loadHistory = async () => {
       const data = await AsyncStorage.getItem("searchHistory");
       if (data) {
-        const parsedHistory = JSON.parse(data); 
+        const parsedHistory = JSON.parse(data);
         let userLocation = await Location.getLastKnownPositionAsync({
           maxAge: 10000,
           requiredAccuracy: Location.Accuracy.High,
@@ -59,9 +61,10 @@ const AddressBottomSheet = ({
             accuracy: Location.Accuracy.BestForNavigation,
           });
 
-        if (!userLocation)
-        {
-          console.warn("No user location available, cannot calculate distances.");
+        if (!userLocation) {
+          console.warn(
+            "No user location available, cannot calculate distances."
+          );
           setHistory(parsedHistory);
           return;
         }
@@ -70,15 +73,10 @@ const AddressBottomSheet = ({
 
         const historyWithDistance = parsedHistory.map((item) => {
           const [lon, lat] = item.geometry?.coordinates || [item.lon, item.lat];
-          const distance = getDistance(
-            latitude,
-            longitude,
-            lat,
-            lon
-          ) / 1000; // Convertit en km
+          const distance = getDistance(latitude, longitude, lat, lon) / 1000; // Convertit en km
           return { ...item, distance };
         });
-console.log("History with distance:", historyWithDistance);
+        console.log("History with distance:", historyWithDistance);
         setHistory(historyWithDistance);
       }
     };
@@ -390,7 +388,7 @@ console.log("History with distance:", historyWithDistance);
   };
 
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={{ padding: 3, flexDirection: "row", alignItems: "center" }}>
       <AddressSearchBar
         value={addressInput}
         onChange={handleInputChange}
@@ -418,10 +416,11 @@ console.log("History with distance:", historyWithDistance);
         enablePanDownToClose={false}
         onLayout={(e) => onSheetHeightChange?.(e.nativeEvent.layout.height)}
         handleComponent={handleComponent}
-        keyboardBehavior="fillParent"
+        keyboardBehavior="extend"
         keyboardBlurBehavior="restore"
         style={{ marginBottom: 0, paddingBottom: 0 }}
         contentContainerStyle={{ paddingBottom: 0, marginBottom: 0 }}
+        onChange={setSheetIndex}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -453,6 +452,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
   modalContent: {
     backgroundColor: "white",

@@ -169,6 +169,7 @@ const ItineraryBottomSheet = ({
   bottomSheetRef,
   snapPoints = ["25%", "50%"],
   handleGoButtonPress,
+  onChange = () => {},
 }) => {
   const [stopAnimation, setStopAnimation] = useState(false);
   const scrollViewRef = useRef(null);
@@ -194,6 +195,7 @@ const ItineraryBottomSheet = ({
       footerComponent={(footerProps) =>
         renderFooter({ ...footerProps, stopAnimation, handleGoButtonPress })
       }
+      onChange={onChange}
       onAnimate={(fromIndex, toIndex) => {
         console.log("BottomSheet animated from", fromIndex, "to", toIndex);
         if (toIndex == 2) {

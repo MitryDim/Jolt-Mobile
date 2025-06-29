@@ -192,48 +192,49 @@ const RouteTraveledScreen = ({ navigation }) => {
   // };
 
   return (
-    <SafeAreaView className="flex-1  mb-[60px]">
+    <>
       {/* Header avec le titre et le bouton pour aller aux trajets persos */}
-
-      <View className="flex items-center justify-center flex-row p-4  border-b border-gray-200 shadow-sm">
-        <Text className="font-bold text-2xl">RoadBooks</Text>
-      </View>
-
-      <TouchableOpacity
-        className="p-4 bg-blue-500 rounded-lg m-4"
-        onPress={() => {
-          bottomSheetRef.current?.expand();
-        }}
-      >
-        <Text>Filtrer</Text>
-      </TouchableOpacity>
-
-      {/* Le reste du contenu */}
-      <View style={{ flex: 1 }}>
-        <View className="p-6 flex items-center">
-          <Text className="text-2xl font-bold">Trajets partagés </Text>
+      <SafeAreaView className="flex-1 bg-white mb-[60px]">
+        <View className="flex items-center justify-center flex-row p-4  border-b border-gray-200 shadow-sm">
+          <Text className="font-bold text-2xl">RoadBooks</Text>
         </View>
-        <Separator />
-        <FlatList
-          contentContainerStyle={{ padding: 12 }}
-          keyExtractor={(item, index) =>
-            item._id?.toString() || index.toString()
-          }
-          data={tripsShared}
-          renderItem={({ item, index }) => (
-            <TraveledCards width={"100%"} data={item} index={index} />
-          )}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isLoadingMore ? (
-              <View className="my-4 items-center ">
-                <ActivityIndicator size="large" color="#007bff" />
-              </View>
-            ) : null
-          }
-        />
-      </View>
+
+        <TouchableOpacity
+          className="p-4 bg-blue-500 rounded-lg m-4"
+          onPress={() => {
+            bottomSheetRef.current?.expand();
+          }}
+        >
+          <Text>Filtrer</Text>
+        </TouchableOpacity>
+
+        {/* Le reste du contenu */}
+        <View style={{ flex: 1 }}>
+          <View className="p-6 flex items-center">
+            <Text className="text-2xl font-bold">Trajets partagés </Text>
+          </View>
+          <Separator />
+          <FlatList
+            contentContainerStyle={{ padding: 12 }}
+            keyExtractor={(item, index) =>
+              item._id?.toString() || index.toString()
+            }
+            data={tripsShared}
+            renderItem={({ item, index }) => (
+              <TraveledCards width={"100%"} data={item} index={index} />
+            )}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <View className="my-4 items-center ">
+                  <ActivityIndicator size="large" color="#007bff" />
+                </View>
+              ) : null
+            }
+          />
+        </View>
+      </SafeAreaView>
 
       <FilterBottomSheet
         bottomSheetRef={bottomSheetRef}
@@ -243,7 +244,7 @@ const RouteTraveledScreen = ({ navigation }) => {
         currentCity={currentCity}
         handleCloseBottomSheet={handleCloseBottomSheet}
       />
-    </SafeAreaView>
+    </>
   );
 };
 

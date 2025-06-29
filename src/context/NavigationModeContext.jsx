@@ -2,15 +2,13 @@ import React, { createContext, useContext, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
-import { Text, View } from "react-native";
-import LoadingOverlay from "../components/LoadingOverlay";
 export const NavigationModeContext = createContext();
 export const useNavigationMode = () => useContext(NavigationModeContext);
 
 export const NavigationModeProvider = ({ children }) => {
   const fetchWithAuth = useFetchWithAuth();
   const [mode, setMode] = useState("address");
-  const [favoritesAddresses, setFavorites] = useState([]); 
+  const [favoritesAddresses, setFavorites] = useState([]);
   // Fetch favoris avec gestion du cache local
   const fetchFavorites = async () => {
     try {
@@ -58,14 +56,13 @@ export const NavigationModeProvider = ({ children }) => {
     <NavigationModeContext.Provider
       value={{
         mode,
-        favoritesAddresses, 
+        favoritesAddresses,
         setMode,
         fetchFavorites,
-        addFavorite, 
+        addFavorite,
       }}
     >
       {children}
-
     </NavigationModeContext.Provider>
   );
 };
