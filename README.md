@@ -104,10 +104,7 @@ Assurez-vous que l’API Gateway soit accessible depuis votre appareil ou émula
 - `src/constants` : Constantes globales (icônes, couleurs…)
 - `src/utils` : Fonctions utilitaires (API, helpers, sockets, etc.)
 - `src/providers` : Providers globaux (React Query, etc.)
-- `src/queries` : Fonctions de requêtes pour les données distantes
-
-> **Remarque :** Toutes les données sont désormais récupérées dynamiquement via l’API, il n’y a plus de données statiques dans `/Data`.
-
+- `src/queries` : Fonctions de requêtes pour les données distante
 ---
 
 ## Technologies utilisées
