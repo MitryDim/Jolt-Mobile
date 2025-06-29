@@ -98,16 +98,25 @@ Jolt Mobile apporte la puissance de React Native à la mobilité douce :
 Avant de lancer l’application, créez un fichier `.env` à la racine du projet avec le contenu suivant :
 
 ```env
+# URL de votre API Gateway (backend)
 EXPO_GATEWAY_SERVICE_URL=http://<adresse-ip-ou-domaine>:<port>
+
+# Clé API pour OpenRouteService (obtenue sur https://openrouteservice.org/sign-up/)
+EXPO_API_KEY_OPENROUTESERVICE=YOUR_OPENROUTESERVICE_API_KEY
+
+# URL du service OpenRouteService (laisser par défaut sauf si vous hébergez votre propre instance)
+EXPO_OPENROUTESERVICE_URL=https://api.openrouteservice.org
 ```
 
-**Exemple** :
+**Exemple :**
 
 ```env
 EXPO_GATEWAY_SERVICE_URL=http://192.168.1.88:5000
+EXPO_API_KEY_OPENROUTESERVICE=abcdef1234567890
+EXPO_OPENROUTESERVICE_URL=https://api.openrouteservice.org
 ```
 
-Assurez-vous que l’API Gateway soit accessible depuis votre appareil ou émulateur.
+> ⚠️ **Assurez-vous que l’API Gateway et OpenRouteService soient accessibles depuis votre appareil ou émulateur.**
 
 ---
 
