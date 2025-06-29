@@ -1,10 +1,24 @@
 # Jolt Mobile
 
-Jolt Mobile est une application mobile développée en React Native dans le cadre du projet 4LABO à SupInfo. Elle permet aux utilisateurs de suivre, partager et explorer des trajets en mobilité douce (trottinette, vélo, etc.), de gérer leur équipement, de consulter des entretiens, d’ajouter des adresses favorites et de profiter de nombreuses fonctionnalités communautaires.
+Jolt Mobile est une application mobile développée en React Native (Expo) dans le cadre du projet 4LABO à SupInfo. Elle permet aux utilisateurs de suivre, partager et explorer des trajets en mobilité douce (trottinette, vélo, etc.), de gérer leur équipement, de consulter les entretiens, d’ajouter des adresses favorites et de profiter de nombreuses fonctionnalités communautaires.
 
 ---
 
-## Fonctionnalités principales
+## Sommaire
+
+- [Fonctionnalités](#fonctionnalités)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Structure du projet](#structure-du-projet)
+- [Technologies utilisées](#technologies-utilisées)
+- [Contribution](#contribution)
+- [Auteurs](#auteurs)
+- [Licence](#licence)
+
+---
+
+## Fonctionnalités
 
 - **Authentification sécurisée** : Inscription, connexion, gestion du profil utilisateur.
 - **Accueil personnalisé** : Accès rapide à son équipement, ses derniers trajets, les trajets partagés et les rides à venir proches de soi.
@@ -36,6 +50,7 @@ Jolt Mobile est une application mobile développée en React Native dans le cadr
 - npm ou yarn
 - Android Studio ou Xcode (pour l’émulation)
 - Expo CLI (recommandé)
+- Accès à une API Gateway compatible (voir configuration)
 
 ---
 
@@ -46,27 +61,50 @@ Jolt Mobile est une application mobile développée en React Native dans le cadr
     git clone <url-du-repo>
     cd <nom-du-repo>
     ```
-2. **Installer les dépendances** :
+2. **Configurer les variables d’environnement** (voir [Configuration](#configuration))
+3. **Installer les dépendances** :
     ```bash
     npm install
     # ou
     yarn install
     ```
-3. **Lancer l’application** :
+4. **Lancer l’application** :
     - Android : `npm run android` ou `yarn android`
     - iOS : `npm run ios` ou `yarn ios`
     - Expo Go : `npx expo start` puis scanner le QR code
 
 ---
 
+## Configuration
+
+Avant de lancer l’application, créez un fichier `.env` à la racine du projet avec le contenu suivant :
+
+```env
+EXPO_GATEWAY_SERVICE_URL=http://<adresse-ip-ou-domaine>:<port>
+```
+
+Exemple :
+
+```env
+EXPO_GATEWAY_SERVICE_URL=http://192.168.1.88:5000
+```
+
+Assurez-vous que l’API Gateway soit accessible depuis votre appareil ou émulateur.
+
+---
+
 ## Structure du projet
 
-- `src/components` : Composants réutilisables (cartes, modals, bottom sheets, etc.)
-- `src/containers` : Écrans principaux de l’application (Accueil, Profil, Trajets, etc.)
-- `src/context` : Contextes React pour la gestion globale (auth, véhicules, notifications…)
+- `src/components` : Composants réutilisables (cartes, modals, bottom sheets, carrousels, etc.)
+- `src/containers` : Écrans principaux de l’application (Accueil, Profil, Trajets, Carte, Authentification, etc.)
+- `src/context` : Contextes React pour la gestion globale (authentification, véhicules, notifications…)
 - `src/hooks` : Hooks personnalisés (API, navigation, etc.)
-- `src/Data` : Données statiques ou de test
-- `src/utils` : Fonctions utilitaires
+- `src/constants` : Constantes globales (icônes, couleurs…)
+- `src/utils` : Fonctions utilitaires (API, helpers, sockets, etc.)
+- `src/providers` : Providers globaux (React Query, etc.)
+- `src/queries` : Fonctions de requêtes pour les données distantes
+
+> **Remarque :** Toutes les données sont désormais récupérées dynamiquement via l’API, il n’y a plus de données statiques dans `/Data`.
 
 ---
 
@@ -79,8 +117,10 @@ Jolt Mobile est une application mobile développée en React Native dans le cadr
 - **expo-location** (géolocalisation)
 - **expo-notifications** (notifications push)
 - **Context API** (gestion globale de l’état)
+- **React Query** (gestion du cache et des requêtes API)
 - **Lottie** (animations)
-- **Axios ou fetch** (requêtes API)
+- **fetch** (requêtes API Gateway)
+- **Socket.io** (communication temps réel pour certains modules)
 
 ---
 
@@ -91,6 +131,8 @@ Jolt Mobile est une application mobile développée en React Native dans le cadr
 3. Commitez vos modifications.
 4. Poussez sur votre fork.
 5. Ouvrez une pull request.
+
+Merci de respecter la structure du projet et les conventions de nommage.
 
 ---
 
