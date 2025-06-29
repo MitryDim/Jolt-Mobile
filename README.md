@@ -7,7 +7,7 @@
 <p align="center">
   <strong>La mobilité douce, connectée et communautaire.</strong><br>
   L’application mobile pour suivre, partager et explorer vos trajets en trottinette, vélo, et plus encore.<br>
-  <a href="https://github.com/MitryDim/Jolt-Web">Voir aussi la version Web</a>
+  <a href="https://github.com/Valt1-0/Jolt-Web">Voir aussi la version Web</a>
 </p>
 
 <p align="center">
