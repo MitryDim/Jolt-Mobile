@@ -37,6 +37,8 @@ Jolt Mobile est une application mobile développée en React Native (Expo) dans 
 - **Cartographie interactive** :
   - Visualisation des trajets sur une carte.
   - Navigation étape par étape avec instructions.
+  - Instruction vocal
+  
 - **Notifications** :
   - Réception de notifications push pour les événements importants.
 - **Expérience utilisateur fluide** :
