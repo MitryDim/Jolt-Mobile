@@ -17,7 +17,6 @@ import FlashMessage, {
 } from "react-native-flash-message";
 import { NetworkProvider, useNetwork } from "./src/context/networkContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { MaintainProvider } from "./src/context/MaintainContext";
 import { VehicleDataProvider } from "./src/context/VehicleDataContext";
 import { NavigationModeProvider } from "./src/context/NavigationModeContext";
 import { navigationRef } from "./src/components/Navigation/NavigationService";

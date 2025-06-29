@@ -32,7 +32,6 @@ const FavoriteListScreen = () => {
   };
 
   const updateFavoritePosition = async (id, newPosition) => {
-    console.log("Updating position for favorite:", id, newPosition);
     try {
       await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/favorite-addresses/${id}/position`,

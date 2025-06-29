@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RouteTraveledScreen from "../../../containers/RouteTraveledScreen";
-import TrackingDetailsScreen from "../../RouteTraveled/testmap";
+import TrackingDetailsScreen from "../../RouteTraveled/TrackingDetailsScreen";
 import { HeaderBackButton } from "@react-navigation/elements";
 import MyTripsScreen from "../../../containers/MyTripsScreen";
 const Stack = createNativeStackNavigator();

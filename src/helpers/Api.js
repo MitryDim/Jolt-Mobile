@@ -1,46 +1,10 @@
 import { formatDistance, formatElapsedTime } from "../utils/Utils";
-const apiKey = "5b3ce3597851110001cf624862b0fa8bd3c04b8bbf8de461d61c4193";
-const openRouteServiceURL = "https://api.openrouteservice.org";
+import { EXPO_API_KEY_OPENROUTESERVICE, EXPO_OPENROUTESERVICE_URL } from "@env";
 
-// export const calculateRoute = async (startCoords, endCoords) => {
-//   try {
-//     const response = await axios.get(
-//       `${openRouteServiceURL}/v2/directions/cycling-regular`,
-//       {
-//         params: {
-//           api_key: apiKey,
-//           start: `${startCoords[0]},${startCoords[1]}`,
-//           end: `${endCoords[0]},${endCoords[1]}`,
-//           profile_params: "class:bicycle,greenway",
-//         },
-//       }
-//     );
 
-//     const routeData = response.data;
-//     return routeData;
-//     // Traitez les données de l'itinéraire ici
-//   } catch (error) {
-//     console.error("Erreur lors de la récupération de l'itinéraire :", error);
-//   }
-// };
-
-export const fetchSuggestions = async (input) => {
-  const apiUrl = `https://api.openrouteservice.org/geocode/autocomplete?text=${input}&boundary.country=FR&api_key=${apiKey}`;
-
-  try {
-    const response = await fetch(apiUrl);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.features;
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 export const geocodeAddress = async (address) => {
-  const apiUrl = `${openRouteServiceURL}/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(
+  const apiUrl = `${EXPO_OPENROUTESERVICE_URL}/geocode/search?api_key=${EXPO_API_KEY_OPENROUTESERVICE}&text=${encodeURIComponent(
     address
   )}`;
 
@@ -115,12 +79,12 @@ export const directions = async (
     console.log("Calculating route with body:", body);
 
     const response = await fetch(
-      `${openRouteServiceURL}/v2/directions/cycling-regular/geojson`,
+      `${EXPO_OPENROUTESERVICE_URL}/v2/directions/cycling-regular/geojson`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${EXPO_API_KEY_OPENROUTESERVICE}`,
         },
         body: JSON.stringify(body),
       }

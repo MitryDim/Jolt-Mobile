@@ -3,7 +3,6 @@ import { Dimensions, Platform, useAnimatedValue } from "react-native";
 import { AnimatedRegion } from "react-native-maps";
 import {
   getDistance,
-  findNearest,
   getGreatCircleBearing,
   computeDestinationPoint,
 } from "geolib";
@@ -40,7 +39,6 @@ export const useNavigationLogic = ({
   const hasCameraBeenInitialized = useRef(false);
   const [distance, setDistance] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [startTime, setStartTime] = useState(Date.now());
   const [arrivalTimeStr, setArrivalTimeStr] = useState("00:00");
   const [remainingTimeInSeconds, setRemainingTimeInSeconds] = useState(0);
   const [speedValue, setSpeedValue] = useState(0);
@@ -61,7 +59,6 @@ export const useNavigationLogic = ({
 
   useEffect(() => {
     //reinitialiser les valeurs si le mode change
-    console.log("Resetting navigation logic for mode:", mode, isNavigating);
     lastCoords.current = null;
     lastHeading.current = null;
     lastSpeed.current = null;
@@ -103,7 +100,6 @@ export const useNavigationLogic = ({
 
     // Exemple : récupère la première instruction ou la plus proche
     const firstInstruction = route[0].instructions?.[0];
-    console.log("updateInstructionsFromRoute", firstInstruction);
     if (firstInstruction) {
       setCurrentInstruction(firstInstruction);
       // Optionnel : vocaliser immédiatement
@@ -230,36 +226,6 @@ export const useNavigationLogic = ({
     return { latitudeDelta, longitudeDelta };
   };
 
-  // useEffect(() => {
-  //   console.log(
-  //     "Route options updated:",
-  //     isLoading,
-  //     "test1",
-  //     isLoading && routeOptions?.coordinates?.length > 0,
-  //     "test3",
-  //     routeOptions
-  //   );
-  //   if (isLoading && routeOptions?.coordinates?.length > 0) {
-  //     if (routeOptions && routeOptions?.coordinates?.length > 0) {
-  //       const { closestIndex, closestPoint, minDistance } =
-  //         findClosestPointOnPolyline(
-  //           routeOptions.coordinates,
-  //           lastCoords.current
-  //         );
-  //       console.log(
-  //         "Closest point on route:",
-  //         closestPoint,
-  //         "at index:",
-  //         closestIndex,
-  //         "with distance:",
-  //         minDistance
-  //       );
-  //       // updateInstructionsFromRoute(routeOptions);
-  //     }
-  //     setIsLoading(false);
-  //   }
-  // }, [routeOptions]);
-
   const getOffset = (zoom, heading, screenRatio, mode, currentLatitude) => {
     // Ajustement plus agressif si en navigation
     const factor = 0.005;
@@ -312,7 +278,6 @@ export const useNavigationLogic = ({
         alert("Aucun itinéraire trouvé pour ce trajet.");
         return;
       }
-      //    console.log("Recalcul de l'itinéraire réussi :", response[0]);
       const newRoute = response;
       routeOptions.current = newRoute[0];
       const steps = response[0].segments.flatMap((segment) =>
@@ -351,11 +316,10 @@ export const useNavigationLogic = ({
     (map, coords, isCameraLockedRef, headingValue, elapsed = 0) => {
       if (isCameraLockedRef.current) return;
       if (!coords || !map) return;
-       let location = coords;
+      let location = coords;
 
       if (location.latitude === 0 && location.longitude === 0) return;
 
- 
       const zoomLevel = Platform.OS === "ios" ? 1 : 19;
       const { latitudeDelta, longitudeDelta } = mercatorDegreeDeltas(
         location.latitude,
@@ -379,11 +343,9 @@ export const useNavigationLogic = ({
         hasCameraBeenInitialized.current = true;
         return; // On ne fait pas l'animation avec pitch/heading tout de suite
       }
-      // Ou, pour forcer une valeur par défaut :
+
       const hasValidHeading =
         typeof coords.heading === "number" && coords.heading > 0;
-
-      console.log(hasValidHeading, coords.heading);
 
       const { offsetLatitude, offsetLongitude } = getOffset(
         Platform.OS === "ios" ? 2 : 2,
@@ -693,7 +655,6 @@ export const useNavigationLogic = ({
           useNativeDriver: false,
         })
         .start();
-console.log("isNavigating", isNavigating);
       if (isNavigating) {
         updateCamera(map, newLocation, isCameraLockedRef, heading, elapsed);
         updateSpeed(speedRef.current);

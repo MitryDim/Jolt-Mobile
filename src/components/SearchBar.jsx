@@ -11,7 +11,6 @@ const SearchBar = ({
   TextInputComponent = TextInput,
 }) => {
   const clearSearch = () => {
-    console.log("Clear search");
     onChange("");
   };
 

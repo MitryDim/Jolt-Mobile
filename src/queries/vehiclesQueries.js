@@ -4,7 +4,6 @@ import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 
 let lastVehicleEtag = null;
 
-
 export const useVehicles = () => {
   const fetchWithAuth = useFetchWithAuth();
 
@@ -23,8 +22,6 @@ export const useVehicles = () => {
         { method: "GET", headers },
         { protected: true }
       );
-
-      console?.log("fetched status:", status);
 
       // Récupère le nouvel ETag de la réponse brute si dispo
       if (rawResponse) {
