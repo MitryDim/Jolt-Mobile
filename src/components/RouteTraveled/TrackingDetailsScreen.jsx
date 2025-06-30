@@ -7,6 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Share,
 } from "react-native";
 import MapView, { Polyline, Marker } from "react-native-maps";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
@@ -30,29 +31,112 @@ import {
   formatElapsedTime,
 } from "../../utils/Utils";
 import { Rating } from "react-native-ratings";
+import * as Linking from "expo-linking";
 
 const TrackingDetailsScreen = ({ route, navigation }) => {
+  // Sécurise route.params dès le début
+  const params = route?.params || {};
+  const { data: trackingData, tripId: routeTripId } = params;
+  // Gère aussi les query parameters pour la compatibilité
+  const tripId = routeTripId || params.id;
   const { user } = useContext(UserContext);
-  const { data: trackingData } = route.params;
   const fetchWithAuth = useFetchWithAuth();
+
+  // États initialisés avec des valeurs par défaut sûres
+  const [sharedTrackingData, setSharedTrackingData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isRatingMode, setIsRatingMode] = useState(false);
+  const [userNote, setUserNote] = useState(null);
+  const [isPublic, setIsPublic] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
+
+  // Références et valeurs partagées
   const mapRef = useRef(null);
   const isOpen = useSharedValue(false);
-  const [isRatingMode, setIsRatingMode] = useState(false);
-  const [userNote, setUserNote] = useState(
-    user && user.id
-      ? trackingData.notes?.find((n) => n.user?.toString() === user.id)
-      : undefined
-  );
 
-  const notes = trackingData.notes || [];
+  // Routes pour TabView
+  const [routes] = useState([
+    { key: "infos", title: "Infos" },
+    { key: "charts", title: "Graphiques" },
+  ]);
+
+  // Données de tracking actuelles (shared ou normale)
+  const currentTrackingData = sharedTrackingData || trackingData;
+
+  // Calculs dérivés sécurisés
+  const notes = currentTrackingData?.notes || [];
   const globalRating =
     notes.length > 0
       ? notes.reduce((sum, n) => sum + (n.rating || 0), 0) / notes.length
       : 0;
 
-  const estimatedDuration = trackingData.totalDistance
-    ? (trackingData.totalDistance / 1000 / 15) * 3600 // en secondes
+  const estimatedDuration = currentTrackingData?.totalDistance
+    ? (currentTrackingData.totalDistance / 1000 / 15) * 3600
     : 0;
+
+  const points = (currentTrackingData?.gpxPoints || []).map((pt) => ({
+    latitude: pt.lat ?? pt.latitude,
+    longitude: pt.lon ?? pt.longitude,
+    speed: pt.speed ?? pt.vitesse ?? 0,
+    altitude: pt.altitude ?? 0,
+  }));
+
+  const elapsedTime =
+    currentTrackingData?.startTime && currentTrackingData?.endTime
+      ? (new Date(currentTrackingData.endTime) -
+          new Date(currentTrackingData.startTime)) /
+        1000
+      : 0;
+
+  const speedArr = points.map((p) => p.speed);
+  const altitudeArr = points.map((p) => p.altitude);
+
+  // Effect pour charger un trajet partagé
+  useEffect(() => {
+    if (tripId && !trackingData) {
+      loadSharedTrip(tripId);
+    }
+  }, [tripId, trackingData]);
+
+  // Effect pour mettre à jour isPublic
+  useEffect(() => {
+    if (currentTrackingData?.isPublic !== undefined) {
+      setIsPublic(currentTrackingData.isPublic);
+    }
+  }, [currentTrackingData]);
+
+  // Effect pour mettre à jour userNote
+  useEffect(() => {
+    if (user?.id && currentTrackingData?.notes) {
+      const foundNote = currentTrackingData.notes.find(
+        (n) => n.user?.toString() === user.id
+      );
+      setUserNote(foundNote);
+    }
+  }, [user, currentTrackingData]);
+
+  const loadSharedTrip = async (id) => {
+    setLoading(true);
+    try {
+      const { data, error } = await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate/${id}`,
+        { method: "GET" }
+      );
+
+      if (!error && data?.data) {
+        setSharedTrackingData(data.data);
+      } else {
+        alert("Trajet non trouvé ou privé");
+        navigation.goBack();
+      }
+    } catch (err) {
+      console.error("Erreur lors du chargement du trajet:", err);
+      alert("Erreur lors du chargement du trajet");
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleSheet = () => {
     isOpen.value = !isOpen.value;
@@ -61,7 +145,6 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
   const handleChoice = (choice, step) => {
     handleCalculateRoute(choice, step);
   };
-  const [isPublic, setIsPublic] = useState(trackingData.isPublic);
 
   function filtrerInstructions(instructions) {
     if (instructions.length <= 2) return instructions;
@@ -77,20 +160,23 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
   }
 
   const handleCalculateRoute = async (choice, step) => {
-    if (!trackingData.gpxPoints || trackingData.gpxPoints.length === 0) {
+    if (
+      !currentTrackingData?.gpxPoints ||
+      currentTrackingData.gpxPoints.length === 0
+    ) {
       alert("Aucun point GPS disponible pour calculer l'itinéraire.");
       return;
     }
 
-    // obtenir ma position actuelle
     let currentPosition = null;
     let currentBearing = null;
+
     try {
       const { coords } = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
 
-      currentBearing = coords.heading ?? 0; // Utiliser la direction si disponible
+      currentBearing = coords.heading ?? 0;
       currentPosition = {
         latitude: coords.latitude,
         longitude: coords.longitude,
@@ -103,14 +189,13 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
       alert("Impossible d'obtenir votre position actuelle.");
       return;
     }
+
     try {
-      // Prépare les points du trajet
-      let gpxPoints = trackingData.gpxPoints.map((pt) => [
+      let gpxPoints = currentTrackingData.gpxPoints.map((pt) => [
         pt.lon ?? pt.longitude,
         pt.lat ?? pt.latitude,
       ]);
 
-      // Trouve le point du trajet le plus proche de la position actuelle
       let minDist = Infinity;
       let minIndex = 0;
       for (let i = 0; i < gpxPoints.length; i++) {
@@ -126,11 +211,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         }
       }
 
-      // Seuil de proximité (en mètres)
       const threshold = 100;
-
-      // Si la position est loin du trajet, on l’ajoute au début
-      // Sinon, on coupe le trajet pour démarrer au point le plus proche
       let pointsWithCurrentPosition;
       if (minDist > threshold) {
         pointsWithCurrentPosition = [
@@ -142,49 +223,39 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
       }
 
       let departure, destination, bearings, filteredInstructions;
+
       if (choice === "destination") {
-        // Si l'utilisateur a choisi "destination", on ne garde que le dernier point
         departure = [
           pointsWithCurrentPosition[0][0],
           pointsWithCurrentPosition[0][1],
         ];
-
         destination = [
           pointsWithCurrentPosition[pointsWithCurrentPosition.length - 1][0],
           pointsWithCurrentPosition[pointsWithCurrentPosition.length - 1][1],
         ];
-
         bearings = [[currentBearing, 20]];
-        gpxPoints = null; // On ne garde pas les points GPX si on ne fait que la destination
+        gpxPoints = null;
       } else if (choice === "complete") {
-        const points = trackingData.gpxPoints.map((pt) => ({
+        const points = currentTrackingData.gpxPoints.map((pt) => ({
           x: pt.lon ?? pt.longitude,
           y: pt.lat ?? pt.latitude,
         }));
 
-        const tolerance = 0.00001; // ajustez selon vos besoins
+        const tolerance = 0.00001;
         const simplified = simplify(points, tolerance, true);
-
         const cleanedGpxPoints = simplified.map((p) => [p.x, p.y]);
 
-        // Si l'utilisateur a choisi "complet", on garde tous les points
         departure = [cleanedGpxPoints[0][0], cleanedGpxPoints[0][1]];
         destination = [
           cleanedGpxPoints[cleanedGpxPoints.length - 1][0],
           cleanedGpxPoints[cleanedGpxPoints.length - 1][1],
         ];
-
-        // On crée les bearings pour chaque point du trajet
         bearings = [];
-        gpxPoints = cleanedGpxPoints; // On garde les points GPX pour l'itinéraire complet
+        gpxPoints = cleanedGpxPoints;
       } else {
         alert("Choix d'itinéraire invalide.");
         return;
       }
-
-      //bearings = [[currentBearing, 20], ...Array(gpxPoints.length - 1).fill([])];
-
-      // const cleanedGpxPoints = simplifyGpxPoints(gpxPoints, 5); // 5 mètres de tolérance
 
       const response = await calculateRoute(
         departure,
@@ -193,7 +264,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         1,
         bearings,
         gpxPoints,
-        true // continue_straight
+        true
       );
 
       if (!response || response.length === 0) {
@@ -201,7 +272,6 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         return;
       }
 
-      // Aplatir les steps de tous les segments
       const steps = response[0].segments.flatMap((segment) =>
         segment.steps.map((step) => ({
           distance: step.distance,
@@ -219,7 +289,6 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
       if (choice === "complete" && !step) {
         filteredInstructions = filtrerInstructions(steps);
       } else {
-        // Si l'utilisateur a choisi "destination" ou "complet" avec étape, on garde toutes les instructions
         filteredInstructions = steps;
       }
 
@@ -243,8 +312,8 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
                       isNavigating: true,
                       selectedRouteIndex: 0,
                       showManeuver: true,
-                      socketId: trackingData?.isGroup
-                        ? trackingData.id || trackingData._id
+                      socketId: currentTrackingData?.isGroup
+                        ? currentTrackingData?.id || currentTrackingData?._id
                         : null,
                     },
                   },
@@ -261,10 +330,11 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
       );
     }
   };
+
   const handleToggleVisibility = async () => {
     const newStatus = !isPublic;
     const { error } = await fetchWithAuth(
-      `${EXPO_GATEWAY_SERVICE_URL}/navigate/${trackingData._id}/visibility`,
+      `${EXPO_GATEWAY_SERVICE_URL}/navigate/${currentTrackingData?._id}/visibility`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -279,44 +349,24 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
     }
   };
 
-  const points = (trackingData.gpxPoints || []).map((pt) => ({
-    latitude: pt.lat ?? pt.latitude,
-    longitude: pt.lon ?? pt.longitude,
-    speed: pt.speed ?? pt.vitesse ?? 0,
-    altitude: pt.altitude ?? 0,
-  }));
-
-  const elapsedTime =
-    trackingData.startTime && trackingData.endTime
-      ? (new Date(trackingData.endTime) - new Date(trackingData.startTime)) /
-        1000
-      : 0;
-
-  const speedArr = points.map((p) => p.speed);
-  const altitudeArr = points.map((p) => p.altitude);
-
-  const [tabIndex, setTabIndex] = useState(0);
-  const [routes] = useState([
-    { key: "infos", title: "Infos" },
-    { key: "charts", title: "Graphiques" },
-  ]);
-
   const handleDelete = async () => {
     const { error } = await fetchWithAuth(
-      `${EXPO_GATEWAY_SERVICE_URL}/navigate/${trackingData._id}`,
+      `${EXPO_GATEWAY_SERVICE_URL}/navigate/${currentTrackingData._id}`,
       { method: "DELETE" },
       { protected: true }
     );
     if (!error) {
       alert("Trajet supprimé");
+      navigation.goBack();
     } else {
       alert("Erreur lors de la suppression");
     }
   };
+
   const handleRatingSubmit = async (rating) => {
     try {
       const { data, error } = await fetchWithAuth(
-        `${EXPO_GATEWAY_SERVICE_URL}/navigate/${trackingData._id}/rate`,
+        `${EXPO_GATEWAY_SERVICE_URL}/navigate/${currentTrackingData._id}/rate`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -326,10 +376,11 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
       );
 
       if (!error) {
-        // Mise à jour des notes
         const updatedUserNote = { user: user.id, rating };
         setUserNote(updatedUserNote);
-        trackingData.notes.push(updatedUserNote);
+        if (currentTrackingData.notes) {
+          currentTrackingData.notes.push(updatedUserNote);
+        }
         setIsRatingMode(false);
       } else {
         alert("Erreur lors de l'envoi de votre note.");
@@ -340,16 +391,63 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const tripId = currentTrackingData._id;
+      const deepLink = Linking.createURL(`navigate/trip/${tripId}`);
+
+      const webLink = `${process.env.EXPO_URL_JOLT_WEBSITE_SCHEME}://${process.env.EXPO_URL_JOLT_WEBSITE_HOST}:${process.env.EXPO_URL_JOLT_WEBSITE_PORT}/navigate/trip?id=${tripId}`;
+
+      console.log("Deep Link:", deepLink);
+      console.log("Web Link (query):", webLink);
+
+      const shareMessage = `🚴‍♂️ Découvrez ce trajet !
+  
+  🔗 Ouvrir dans l'app : ${deepLink}
+  
+  🌐 Voir sur le web : ${webLink}
+  
+ 
+  
+  Distance : ${formatDistance(currentTrackingData.totalDistance || 0)}
+  Note : ${globalRating.toFixed(1)}/5 ⭐️`;
+
+      const result = await Share.share({
+        message: shareMessage,
+        title: "Partager ce trajet",
+        url: webLink,
+      });
+
+      if (result.action === Share.sharedAction) {
+        console.log("Trajet partagé avec succès");
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Partage annulé");
+      }
+    } catch (error) {
+      console.error("Erreur lors du partage:", error);
+      alert(`Lien de partage:
+      
+  🔗 Deep Link: ${Linking.createURL(`navigate/trip/${currentTrackingData._id}`)}
+  
+  🌐 Web: ${process.env.EXPO_URL_JOLT_WEBSITE_SCHEME}://${
+        process.env.EXPO_URL_JOLT_WEBSITE_HOST
+      }:${process.env.EXPO_URL_JOLT_WEBSITE_PORT}/navigate/trip?id=${
+        currentTrackingData._id
+      }
+ `);
+    }
+  };
+
   const renderInfos = () => (
     <ScrollView style={{ padding: 16 }}>
-      {trackingData.totalDistance && (
+      {currentTrackingData?.totalDistance && (
         <InfoRow
           icon="map-marker-distance"
-          text={formatDistance(trackingData.totalDistance)}
+          text={formatDistance(currentTrackingData.totalDistance)}
         />
       )}
-      {/* Durée */}
-      {trackingData.owner === user?.id ? (
+
+      {currentTrackingData?.owner === user?.id ? (
         elapsedTime > 0 && (
           <InfoRow icon="timer-outline" text={formatElapsedTime(elapsedTime)} />
         )
@@ -363,31 +461,36 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
           }
         />
       )}
-      {/* Vitesse max, startTime, endTime : seulement si c'est le sien */}
-      {trackingData.owner === user?.id && trackingData.speedMax && (
-        <InfoRow
-          icon="speedometer"
-          text={`${Math.round(trackingData.speedMax)} km/h`}
-        />
-      )}
-      {trackingData.owner === user?.id && trackingData.startTime && (
-        <InfoRow
-          icon="calendar"
-          text={new Date(trackingData.startTime).toLocaleString()}
-        />
-      )}
-      {trackingData.owner === user?.id && trackingData.endTime && (
-        <InfoRow
-          icon="calendar"
-          text={new Date(trackingData.endTime).toLocaleString()}
-        />
-      )}
+
+      {currentTrackingData?.owner === user?.id &&
+        currentTrackingData?.speedMax && (
+          <InfoRow
+            icon="speedometer"
+            text={`${Math.round(currentTrackingData.speedMax)} km/h`}
+          />
+        )}
+
+      {currentTrackingData?.owner === user?.id &&
+        currentTrackingData?.startTime && (
+          <InfoRow
+            icon="calendar"
+            text={new Date(currentTrackingData.startTime).toLocaleString()}
+          />
+        )}
+
+      {currentTrackingData?.owner === user?.id &&
+        currentTrackingData?.endTime && (
+          <InfoRow
+            icon="calendar"
+            text={new Date(currentTrackingData.endTime).toLocaleString()}
+          />
+        )}
+
       <View style={{ alignItems: "center", marginVertical: 10 }}>
         <Text style={{ fontSize: 18, fontWeight: "bold" }}>
           Note du trajet :
         </Text>
 
-        {/* Affichage de la note globale pour tout le monde */}
         <View style={{ flex: 1, flexDirection: "row", alignItems: "center" }}>
           <Text style={{ fontSize: 24, marginRight: 8 }}>
             {globalRating.toFixed(1)} / 5 ⭐️
@@ -399,10 +502,8 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
           </Text>
         </View>
 
-        {/* Si connecté, ce n'est pas son trajet, et il n'a pas déjà noté */}
-        {user &&
-          user.id &&
-          trackingData.owner !== user?.id &&
+        {user?.id &&
+          currentTrackingData?.owner !== user?.id &&
           !userNote &&
           (isRatingMode ? (
             <Rating
@@ -419,8 +520,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           ))}
 
-        {/* Si connecté, ce n'est pas son trajet, et il a déjà noté */}
-        {user && user.id && trackingData.owner !== user?.id && userNote && (
+        {user?.id && currentTrackingData?.owner !== user?.id && userNote && (
           <Text style={{ fontSize: 14, color: "gray", marginTop: 8 }}>
             Vous avez noté ce trajet : {userNote.rating} / 5
           </Text>
@@ -431,7 +531,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
 
   const renderCharts = () => (
     <ScrollView style={{ flex: 1, marginBottom: 10 }}>
-      {user && user.id && trackingData.owner === user?.id && (
+      {user?.id && currentTrackingData?.owner === user?.id && (
         <ChartWithSlider
           label="Graphique de vitesse"
           data={speedArr}
@@ -454,6 +554,27 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
     charts: renderCharts,
   });
 
+  // États de chargement et d'erreur
+  if (loading) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text>Chargement du trajet...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentTrackingData) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text>Trajet non trouvé</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8fafc" }}>
       <View style={{ flex: 1 }}>
@@ -462,7 +583,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
           style={styles.map}
           onLayout={() =>
             points.length > 0 &&
-            mapRef.current.fitToCoordinates(points, {
+            mapRef.current?.fitToCoordinates(points, {
               edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
               animated: true,
             })
@@ -470,10 +591,10 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
           initialRegion={CenterRegion(points)}
           moveOnMarkerPress={false}
           zoomControlEnabled={false}
-          scrollEnabled={false} // Empêche le déplacement
-          zoomEnabled={false} // Empêche le zoom/dézoom
-          pitchEnabled={false} // Empêche l'inclinaison
-          rotateEnabled={false} // Empêche la rotation
+          scrollEnabled={false}
+          zoomEnabled={false}
+          pitchEnabled={false}
+          rotateEnabled={false}
         >
           {points.length > 0 && (
             <>
@@ -507,6 +628,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
             />
           )}
         />
+
         {tabIndex === 0 && (
           <View
             style={{
@@ -514,7 +636,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
               right: 24,
               bottom: 24,
               flexDirection: "column",
-              alignItems: "flex-end", // pour bien coller à droite
+              alignItems: "flex-end",
             }}
           >
             <TouchableOpacity
@@ -522,25 +644,31 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
                 styles.fab,
                 {
                   backgroundColor:
-                    trackingData.owner === user?.id ? "#f87171" : "#2563eb",
+                    currentTrackingData?.owner === user?.id
+                      ? "#f87171"
+                      : "#2563eb",
                   marginBottom: 16,
                 },
               ]}
               onPress={
-                trackingData.owner === user?.id
+                currentTrackingData?.owner === user?.id
                   ? handleDelete
-                  : () => alert("Partager trajet")
+                  : handleShare
               }
             >
               <IconComponent
                 library="Feather"
-                icon={trackingData.owner === user?.id ? "trash-2" : "share-2"}
+                icon={
+                  currentTrackingData?.owner === user?.id
+                    ? "trash-2"
+                    : "share-2"
+                }
                 size={24}
-                color={trackingData.owner === user?.id ? "red" : "#fff"}
+                color={currentTrackingData?.owner === user?.id ? "red" : "#fff"}
               />
             </TouchableOpacity>
 
-            {trackingData.owner === user?.id && (
+            {currentTrackingData?.owner === user?.id && (
               <TouchableOpacity
                 style={[
                   styles.fab,
@@ -559,6 +687,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
                 />
               </TouchableOpacity>
             )}
+
             <TouchableOpacity
               style={[styles.fab, { backgroundColor: "#3b82f6" }]}
               onPress={toggleSheet}
@@ -572,6 +701,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
         )}
+
         <RouteChoiceBottomSheet
           isOpen={isOpen}
           toggleSheet={toggleSheet}

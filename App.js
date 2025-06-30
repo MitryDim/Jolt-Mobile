@@ -23,6 +23,7 @@ import { navigationRef } from "./src/components/Navigation/NavigationService";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import SplashScreen from "./src/containers/SplashScreen";
 import AppQueryProvider from "./src/providers/QueryClientProvider";
+import * as Linking from "expo-linking";
 
 function NetworkBanner() {
   const { isConnected } = useNetwork();
@@ -123,6 +124,65 @@ export default function App() {
     // You can specify options here if needed.
   });
 
+  const linking = {
+    prefixes: [
+      "jolt://",
+      `${process.env.EXPO_URL_JOLT_WEBSITE_SCHEME}://${process.env.EXPO_URL_JOLT_WEBSITE_HOST}:${process.env.EXPO_URL_JOLT_WEBSITE_PORT}`,
+      Linking.createURL("/"),
+    ],
+    config: {
+      screens: {
+        MainApp: {
+          screens: {
+            RouteTraveledNavigator: {
+              screens: {
+                TravelScreen: "travel",
+                TrackingDetailsScreen: {
+                  path: "navigate/trip/:tripId", // Format avec paramètre
+                  parse: {
+                    tripId: (tripId) => tripId,
+                  },
+                },
+              },
+            },
+          },
+        },
+        // Gère aussi les URLs avec query parameters
+        "*": "maps", // Fallback pour toutes les autres URLs
+      },
+    },
+    // Gère les URLs avec query parameters
+    subscribe(listener) {
+      const onReceiveURL = ({ url }) => {
+        console.log("Deep link received:", url);
+
+        // Gère les URLs avec query parameters comme ?id=...
+        if (url.includes("navigate/trip?id=")) {
+          const urlObj = new URL(url);
+          const tripId = urlObj.searchParams.get("id");
+          if (tripId) {
+            // Convertit en format standard
+            const newUrl = url.replace(
+              /navigate\/trip\?id=(.+)/,
+              "navigate/trip/$1"
+            );
+            listener(newUrl);
+            return;
+          }
+        }
+
+        listener(url);
+      };
+
+      // Écoute les liens entrants
+      const subscription = Linking.addEventListener("url", onReceiveURL);
+
+      return () => {
+        subscription?.remove();
+      };
+    },
+  };
+
   return (
     <SafeAreaProvider>
       <NotificationProvider>
@@ -132,7 +192,7 @@ export default function App() {
             <UserProvider>
               <VehicleDataProvider>
                 <NavigationModeProvider>
-                  <NavigationContainer ref={navigationRef}>
+                  <NavigationContainer ref={navigationRef} linking={linking}>
                     <GestureHandlerRootView style={{ flex: 1 }}>
                       <StatusBar />
                       <RootNavigator />

@@ -3,6 +3,7 @@ export default ({ config }) => ({
   expo: {
     ...config?.expo,
     newArchEnabled: true,
+    scheme: "jolt",
     name: "jolt-mobile",
     slug: "jolt",
     version: "1.0.0",
@@ -22,6 +23,9 @@ export default ({ config }) => ({
       entitlements: {
         "aps-environment": "production",
       },
+      associatedDomains: [
+        `applinks:${process.env.EXPO_URL_JOLT_WEBSITE_HOST || "localhost"}`,
+      ],
     },
     androidNavigationBar: {
       backgroundColor: "white",
@@ -37,6 +41,23 @@ export default ({ config }) => ({
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
+      ],
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: process.env.EXPO_URL_JOLT_WEBSITE_SCHEME || "http",
+              host: process.env.EXPO_URL_JOLT_WEBSITE_HOST || "localhost",
+              port: process.env.EXPO_URL_JOLT_WEBSITE_PORT || "8000",
+            },
+            {
+              scheme: "jolt",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
       ],
       // Utilisation de la variable d'environnement EAS pour le fichier google-services.json
       googleServicesFile:
@@ -71,8 +92,9 @@ export default ({ config }) => ({
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
-        }
+          photosPermission:
+            "The app accesses your photos to let you share them with your friends.",
+        },
       ],
       "expo-font",
       "expo-secure-store",
