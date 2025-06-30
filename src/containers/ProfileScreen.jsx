@@ -4,18 +4,21 @@ import { SafeAreaView } from "react-native";
 import Separator from "../components/Separator";
 import avatar from "../../assets/avatar.jpg";
 import { UserContext } from "../context/AuthContext";
-import { useNavigation } from "@react-navigation/native";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
-import { EXPO_GATEWAY_SERVICE_URL } from "@env"; 
-const ProfileScreen = () => {
-  const navigation = useNavigation();
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+const ProfileScreen = ({ navigation }) => {
   const fetchWithAuth = useFetchWithAuth();
 
   const { user, logout } = useContext(UserContext);
   // Étape 2: Création d'un tableau de boutons
   const buttons = [
-    { id: 1, title: "Modifier le profil" },
-    { id: 2, title: "Paramètres" },
+    {
+      id: 1,
+      title: "Modifier le profil",
+      onPress: () => {
+        navigation.navigate("EditProfileScreen");
+      },
+    }, 
     { id: 3, title: "Déconnexion", onPress: () => logout() },
     {
       id: 4,
@@ -23,7 +26,6 @@ const ProfileScreen = () => {
       PressClassName: "mt-4",
       textClassName: "text-red-500 underline",
       onPress: async () => {
- 
         try {
           const response = await fetchWithAuth(
             `${EXPO_GATEWAY_SERVICE_URL}/users/delete`,
@@ -53,12 +55,11 @@ const ProfileScreen = () => {
           await logout();
           // Redirige l'utilisateur vers l'écran de connexion
           navigation.navigate("Home");
-        }catch (error) {
+        } catch (error) {
           console.error("Erreur lors de la suppression du compte:", error);
           alert("Erreur lors de la suppression du compte.");
           return;
         }
-        
       },
     },
   ];

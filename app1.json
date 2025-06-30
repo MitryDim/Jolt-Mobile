@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "newArchEnabled": true,
+    "name": "jolt-mobile",
+    "slug": "jolt",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#70E575",
+      "display": "fade"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sup.joltmobile",
+      "infoPlist": {
+        "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience.",
+        "UIBackgroundModes": ["remote-notification", "remote-notification"]
+      },
+      "entitlements": {
+        "aps-environment": "production"
+      }
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#70E575"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#70E575"
+      },
+      "package": "com.anonymous.joltmobile",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "googleServicesFile": "${GOOGLE_SERVICES_JSON}"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permettez à Jolt d'utiliser votre localisation pour améliorer votre expérience."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff"
+        }
+      ],
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "60033ee7-9be5-4b4e-99b7-e53910ad40f4"
+      }
+    },
+    "owner": "mitrydim",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/60033ee7-9be5-4b4e-99b7-e53910ad40f4"
+    }
+  }
+}

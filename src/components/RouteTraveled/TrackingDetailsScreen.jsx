@@ -37,7 +37,6 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
   const fetchWithAuth = useFetchWithAuth();
   const mapRef = useRef(null);
   const isOpen = useSharedValue(false);
-
   const [isRatingMode, setIsRatingMode] = useState(false);
   const [userNote, setUserNote] = useState(
     user && user.id
@@ -60,7 +59,6 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
   };
 
   const handleChoice = (choice, step) => {
-    console.log("Choix de l'itinéraire :", choice, step);
     handleCalculateRoute(choice, step);
   };
   const [isPublic, setIsPublic] = useState(trackingData.isPublic);
@@ -245,6 +243,9 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
                       isNavigating: true,
                       selectedRouteIndex: 0,
                       showManeuver: true,
+                      socketId: trackingData?.isGroup
+                        ? trackingData.id || trackingData._id
+                        : null,
                     },
                   },
                 ],
@@ -598,7 +599,7 @@ export default TrackingDetailsScreen;
 const styles = StyleSheet.create({
   map: {
     height: 300,
-    borderRadius: 16,  
+    borderRadius: 16,
   },
   row: {
     flexDirection: "row",

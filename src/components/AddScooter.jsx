@@ -149,6 +149,7 @@ const AddScooterForm = ({ onAdd, navigation: navigationProp }) => {
           placeholder="Modèle"
           value={model}
           onChangeText={setModel}
+          place
         />
         <TouchableOpacity
           style={styles.input}

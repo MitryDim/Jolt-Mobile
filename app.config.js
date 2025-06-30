@@ -24,7 +24,7 @@ export default ({ config }) => ({
       },
     },
     androidNavigationBar: {
-      backgroundColor: "#70E575",
+      backgroundColor: "white",
     },
     android: {
       adaptiveIcon: {
@@ -57,7 +57,7 @@ export default ({ config }) => ({
       [
         "expo-notifications",
         {
-          icon: "./assets/icon.png",
+          icon: "./assets/avatar.png",
           color: "#ffffff",
         },
       ],

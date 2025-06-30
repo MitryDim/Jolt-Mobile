@@ -214,6 +214,7 @@ const VehicleDetailScreen = ({ route, navigation }) => {
       </TouchableOpacity>
 
       <DateTimePickerModal
+        themeVariant="light"
         isVisible={isDatePickerVisible}
         mode="date"
         locale="fr-FR"

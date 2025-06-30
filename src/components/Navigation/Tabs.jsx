@@ -11,7 +11,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import NavigateNavigator from "./Stack/NavigateNavigator";
 import HomeNavigator from "./Stack/HomeNavigator";
-import ProfileNavigator from "./Stack/ProfileScreen";
+import ProfileNavigator from "./Stack/ProfileNavigator";
 import MaintainsNavigator from "./Stack/MaintainsNavigator";
 import RouteTraveledNavigator from "./Stack/RouteTraveledNavigator";
 import React, { useEffect, useState } from "react";

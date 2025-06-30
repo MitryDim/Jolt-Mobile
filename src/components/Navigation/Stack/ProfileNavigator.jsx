@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ProfileScreen from "../../../containers/ProfileScreen";
+import EditProfileScreen from "../../../containers/EditProfileScreen";
 const Stack = createNativeStackNavigator();
 
 function ProfileNavigator() {
@@ -10,6 +11,18 @@ function ProfileNavigator() {
         component={ProfileScreen}
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+        options={{ 
+          title: "Modifier le profil",
+          headerTitleAlign: "center",
+          headerTintColor: "#000",
+          headerStyle: {
+            backgroundColor: "#fff",
+          },
         }}
       />
     </Stack.Navigator>

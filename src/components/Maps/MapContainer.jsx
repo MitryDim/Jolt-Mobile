@@ -69,7 +69,7 @@ const MapContainer = ({
   const navigation = useNavigation();
   const [isCameraLocked, setIsCameraLocked] = useState(false);
   const isCameraLockedRef = useRef(false);
-  const cameraTimeoutRef = useRef(null); 
+  const cameraTimeoutRef = useRef(null);
   const isTravel = mode === "travel";
   const [routesToShow, setRoutesToShow] = useState(
     isTravel ? [initialRouteOptions[selectedRouteIndex]] : initialRouteOptions
@@ -77,37 +77,37 @@ const MapContainer = ({
   const locationRef = useRef();
 
   let sendPosition = () => {};
-  if (true) {
-    mode === "travel" &&
-      isConnected &&
-      ({ sendPosition } = useTripSocket(
-        socketId,
-        user.id,
-        async (userId, position) => {
+  if (mode === "travel" && isConnected && socketId) {
+    ({ sendPosition } = useTripSocket(
+      socketId,
+      user.id,
+      user.profilePicture,
+      (userId, position, profilePicture, isRemove) => {
+        if (isRemove) {
+          setOtherUsersPosition((prev) => {
+            const copy = { ...prev };
+            delete copy[userId];
+            return copy;
+          });
+          setUserProfiles((prev) => {
+            const copy = { ...prev };
+            delete copy[userId];
+            return copy;
+          });
+          setOtherUsersAnimated((prev) => {
+            const copy = { ...prev };
+            delete copy[userId];
+            return copy;
+          });
+        } else {
           setOtherUsersPosition((prev) => ({ ...prev, [userId]: position }));
-
-          // Si on n'a pas encore le profil de cet utilisateur, on le fetch
-          if (!userProfiles[userId]) {
-            try {
-              const { data, error } = await fetchWithAuth(
-                `${EXPO_GATEWAY_SERVICE_URL}/users/get?query=${userId}`,
-                {
-                  method: "GET",
-                }
-              );
-              if (data) {
-                const { profilePicture } = data.data;
-                setUserProfiles((prev) => ({
-                  ...prev,
-                  [userId]: profilePicture, // ou { profilePicture: data.profilePicture }
-                }));
-              }
-            } catch (e) {
-              console.warn("Erreur lors de la récupération du profile :", e);
-            }
-          }
+          setUserProfiles((prev) => ({
+            ...prev,
+            [userId]: profilePicture,
+          }));
         }
-      ));
+      }
+    ));
   }
 
   useEffect(() => {
@@ -174,7 +174,7 @@ const MapContainer = ({
         mapRef.current,
         locationRef.current?.coords,
         isCameraLockedRef,
-        locationRef.current?.coords?.heading,
+        locationRef.current?.coords?.heading
       );
     }
 
@@ -378,7 +378,6 @@ const MapContainer = ({
   );
 
   useEffect(() => {
-
     if (
       mode === "itinerary" &&
       initialRouteOptions &&
