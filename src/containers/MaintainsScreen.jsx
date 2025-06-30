@@ -34,7 +34,6 @@ const MaintainsScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (vehicles.length > 0 && vehicleSelected) {
-      console.log("Vehicle selected:", vehicleSelected);
       // setPendingCount(vehicleSelected?.maintains || 0);
     }
   }, [vehicleSelected]);
@@ -43,11 +42,8 @@ const MaintainsScreen = ({ navigation }) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / CARD_WIDTH);
     const item = vehicles[index];
-    console.log("handleScrollEnd", index, item);
     if (item && !item.add) {
       setVehicleSelected(item);
-      console.log("Vehicle selected:", item);
-      //  setPendingCount(item.maintains || 0);
     }
   };
 

@@ -1,4 +1,10 @@
-import { Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  RefreshControl,
+} from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
@@ -19,8 +25,10 @@ const HomeScreen = ({ navigation }) => {
   const tabBarHeight = useBottomTabBarHeight();
   const { vehicles, changeVehicle, fetchAndUpdateVehicles } = useVehicleData();
   const { user } = useContext(UserContext);
+  const [startTime, setStartTime] = useState(new Date().toISOString());
 
   const [location, setLocation] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -49,21 +57,33 @@ const HomeScreen = ({ navigation }) => {
   );
 
   // Queries
-  const { data: tripsShared = [], isLoading: loadingTripsShared } =
-    useNavigateQuery("?limit=5&excludeSelf=true&isGroup=false");
+  const {
+    data: tripsShared = [],
+    isLoading: loadingTripsShared,
+    refetch: refetchTripsShared,
+  } = useNavigateQuery("?limit=5&excludeSelf=true&isGroup=false");
 
-  const { data: lastTrips = [], isLoading: loadingLastTrips } =
-    useNavigateQuery(user?.id ? `?limit=5&owner=${user.id}` : null);
+  const {
+    data: lastTrips = [],
+    isLoading: loadingLastTrips,
+    refetch: refetchLastTrips,
+  } = useNavigateQuery(user?.id ? `?limit=5&owner=${user.id}` : null, {
+    enabled: user?.id ? true : false,
+  });
 
-  const { data: nearbyRides = [], isLoading: loadingNearbyRides } =
-    useNavigateQuery(
-      location
-        ? `?lat=${location.coords.latitude}&lon=${
-            location.coords.longitude
-          }&radius=10&limit=5&excludeSelf=true&isGroup=true&startTime=${new Date().toISOString()}`
-        : `limit=5&excludeSelf=true&isGroup=true&startTime=${new Date().toISOString()}`
-    );
-  console.log("Nearby rides:", nearbyRides);
+  const {
+    data: nearbyRides = [],
+    isLoading: loadingNearbyRides,
+    refetch: refetchNearbyRides,
+  } = useNavigateQuery(
+    location
+      ? `?lat=${location.coords.latitude}&lon=${location.coords.longitude}&radius=10&limit=5&excludeSelf=true&isGroup=true&startTime=${startTime}`
+      : `?limit=5&excludeSelf=true&isGroup=true&startTime=${startTime}`,
+    {
+      enabled: !!location,
+    }
+  );
+
   const handleScrollEnd = useCallback(
     (event) => {
       const offsetX = event.nativeEvent.contentOffset.x;
@@ -73,6 +93,21 @@ const HomeScreen = ({ navigation }) => {
     },
     [vehicles]
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setStartTime(new Date().toISOString());
+    try {
+      await Promise.all([
+        refetchTripsShared(),
+        refetchLastTrips(),
+        refetchNearbyRides(),
+        fetchAndUpdateVehicles(), // si tu veux aussi rafraîchir les véhicules
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const renderSection = (title, isLoading, data, emptyMessage) => (
     <>
@@ -90,7 +125,12 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView className={`flex mb-[${tabBarHeight}px]`}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 65 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 65 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {user && (
           <>
             <Text className="mt-4 text-xl text-center font-bold">

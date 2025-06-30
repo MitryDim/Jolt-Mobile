@@ -22,7 +22,6 @@ export const createSocket = (jwt,userId, onError) => {
   socket.on("connect", () => {
     console.log("Socket connectée");
     if (userId) {
-      console.log("Emitting join pour", userId);
       socket.emit("join", userId);
     }
   });

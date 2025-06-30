@@ -66,7 +66,6 @@ export default class ManeuverView extends Component {
     if (!step) return null;
 
     const maneuver = step;
-    console.log("ManeuverView step", maneuver);
     return (
       <>
         {maneuver?.closestInstruction ? (

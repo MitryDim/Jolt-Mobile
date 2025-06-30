@@ -47,11 +47,10 @@ const MapScreen = () => {
   };
 
   useEffect(() => {
-    console.log("MapScreen mode changed to:", mode);
     setMode(mode);
   }, [mode]);
+  
   useEffect(() => {
-    console.log("MapScreen rendered with mode:", mode);
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();

@@ -63,7 +63,6 @@ const SplashScreen = ({ navigation, onAnimationFinish }) => {
 
   const startScrollAnimation = (event) => {
     const { width } = event.nativeEvent.layout;
-    console.log("screenWidth", screenWidth, width, translateX);
     // Animation de déplacement
     Animated.timing(translateX, {
       toValue: 1,
@@ -99,7 +98,7 @@ const SplashScreen = ({ navigation, onAnimationFinish }) => {
             deviceId =
               Device.osInternalBuildId || Device.deviceName || "unknown";
           }
-          console.log("Device ID:", deviceId);
+
           let userId = null;
 
           if (user && user.id) {

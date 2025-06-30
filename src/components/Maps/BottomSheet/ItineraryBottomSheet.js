@@ -197,7 +197,6 @@ const ItineraryBottomSheet = ({
       }
       onChange={onChange}
       onAnimate={(fromIndex, toIndex) => {
-        console.log("BottomSheet animated from", fromIndex, "to", toIndex);
         if (toIndex == 2) {
           setStopAnimation(true);
         }

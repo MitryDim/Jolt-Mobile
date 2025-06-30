@@ -36,7 +36,6 @@ export const directions = async (
   continue_straight = null
 ) => {
   let alternative_routes = { target_count: 3 };
-  console.log("Calculating route with maxNBRoute:", maxNBRoute);
 
   try {
     const coordinates = allCoords || [startCoords, endCoords]; // <-- utilise tous les points si fournis
@@ -72,11 +71,9 @@ export const directions = async (
     }
 
     if (bearing && bearing.length > 0) {
-      console.log("Bearing provided:", bearing);
       body.bearings = bearing;
     }
 
-    console.log("Calculating route with body:", body);
 
     const response = await fetch(
       `${EXPO_OPENROUTESERVICE_URL}/v2/directions/cycling-regular/geojson`,

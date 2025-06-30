@@ -24,7 +24,6 @@ const MaintainHistoryScreen = ({ route }) => {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      console.log("Fetching history for vehicle:", vehicle.id);
       setLoading(true);
       const { data,status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/maintainHistory?vehicleId=${vehicle.id}`,

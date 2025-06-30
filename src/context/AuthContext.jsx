@@ -21,7 +21,6 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = async (userData) => {
-    console.log("Login pressed", userData);
     await SecureStore.setItemAsync("user", JSON.stringify(userData));
 
     setUser(userData);
@@ -37,7 +36,7 @@ export const UserProvider = ({ children }) => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId, userId: user.id }),
+          body: JSON.stringify({ deviceId, userId: user?.id }),
         },
         { protected: true }
       );

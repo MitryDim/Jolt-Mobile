@@ -19,7 +19,6 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = async (userData) => {
-    console.log("Login pressed", userData);
     await SecureStore.setItemAsync("user", JSON.stringify(userData));
     setUser(userData);
   };

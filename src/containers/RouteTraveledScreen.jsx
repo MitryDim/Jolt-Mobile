@@ -82,7 +82,7 @@ const RouteTraveledScreen = ({ navigation }) => {
     }
     let location = await Location.getCurrentPositionAsync({});
     let [place] = await Location.reverseGeocodeAsync(location.coords);
-    console.log("Current location:", place);
+
     if (place && place.city) {
       setCurrentCity({
         city: place.city,
@@ -204,7 +204,6 @@ const RouteTraveledScreen = ({ navigation }) => {
 
       if (status === 200 && data?.data?.navigations) {
         const newNavigations = data.data.navigations;
-        console.log("Trajets partagés récupérés:", newNavigations);
         if (pageNumber === 1) {
           setTripsShared(newNavigations);
         } else {
@@ -228,7 +227,6 @@ const RouteTraveledScreen = ({ navigation }) => {
       setIsLoadingMore(true);
       // Pas de excludeSelf ici !
       let query = `limit=${limit}&page=${pageNumber}`;
-      console.log("Current city for my trips:", filter);
       if (filter.selectedFilter) {
         const { latitude, longitude } = filter.selectedFilter;
         const radius = filter.radius;
@@ -292,7 +290,6 @@ const RouteTraveledScreen = ({ navigation }) => {
 
       if (status === 200 && data?.data?.navigations) {
         const newNavigations = data.data.navigations;
-        console.log("Trajets partagés récupérés:", newNavigations);
         if (pageNumber === 1) {
           setRides(newNavigations);
         } else {

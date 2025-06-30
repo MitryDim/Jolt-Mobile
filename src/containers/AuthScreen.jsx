@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Text, View, TextInput, Pressable } from "react-native";
-import { SafeAreaView } from "react-native";
 import LogoGreen from "../../assets/logo/logo";
 import IconComponent from "../components/Icons";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -8,6 +7,7 @@ import { UserContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import { SafeAreaView } from "react-native-safe-area-context";
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
@@ -33,7 +33,6 @@ const AuthScreen = () => {
 
   const handleLogin = async () => {
     try {
-      console.log("Login pressed", email, password);
       if (!email || !password) {
         alert("Veuillez remplir tous les champs.");
         return;
@@ -52,7 +51,6 @@ const AuthScreen = () => {
           }),
         }
       );
-      console.log("data", data, error, status);
       if (!error) {
         const userData = data?.data?.user;
         const accessToken = data?.data?.accessToken;
@@ -150,8 +148,8 @@ const AuthScreen = () => {
   };
 
   return (
-    <KeyboardAwareScrollView>
-      <SafeAreaView className="flex mb-[60px] ">
+    <SafeAreaView className="flex mb-[60px] ">
+      <KeyboardAwareScrollView>
         <View className="flex justify-center items-center   m-auto">
           <View className="items-center mb-8">
             <LogoGreen />
@@ -270,8 +268,8 @@ const AuthScreen = () => {
             </Text>
           </Pressable>
         </View>
-      </SafeAreaView>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };
 

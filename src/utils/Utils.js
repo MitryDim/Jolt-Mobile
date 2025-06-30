@@ -11,8 +11,8 @@ export const formattedDate = (date) => {
   if (date) {
     // Create a Date object from the current timestamp (in milliseconds)
     const currentDate = new Date(date);
-    console.log("DATE : ", date);
-    // Options for formatting the date and time
+
+
     const options = {
       year: "numeric",
       month: "2-digit",

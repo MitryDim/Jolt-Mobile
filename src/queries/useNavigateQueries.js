@@ -2,15 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 
-export const useNavigateQuery = (params = "") => {
+export const useNavigateQuery = (params = "", options = {}) => {
   const fetchWithAuth = useFetchWithAuth();
-
   return useQuery({
     queryKey: ["navigate", params],
     queryFn: async ({ signal }) => {
+      // Vérifie si les paramètres sont valides
+      if (params && typeof params !== "string") {
+        throw new Error("Les paramètres doivent être une chaîne de caractères");
+      }
+
       const { data, error, status } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/navigate${params}`,
-        { protected: true }
+        { method: "GET" }
       );
 
       if (error || status !== 200) {
@@ -19,8 +23,9 @@ export const useNavigateQuery = (params = "") => {
 
       return data?.data?.navigations || [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes de cache local par appareil
+    staleTime: 0,
     initialData: [],
     keepPreviousData: true,
+    ...options,
   });
 };

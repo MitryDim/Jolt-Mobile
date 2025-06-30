@@ -36,13 +36,11 @@ const ProfileScreen = ({ navigation }) => {
               protected: true,
             }
           );
-          console.log("response ", response);
           if (!response.ok) {
             alert("Erreur lors de la suppression du compte.");
             return;
           }
           const data = await response.json();
-          console.log("data ", data);
           if (!data?.success) {
             alert("Erreur lors de la suppression du compte.");
             return;

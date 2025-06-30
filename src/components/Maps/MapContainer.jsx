@@ -77,11 +77,11 @@ const MapContainer = ({
   const locationRef = useRef();
 
   let sendPosition = () => {};
-  if (mode === "travel" && isConnected && socketId) {
+  if (mode === "travel" && isConnected && socketId && user?.id) {
     ({ sendPosition } = useTripSocket(
-      socketId,
-      user.id,
-      user.profilePicture,
+      socketId,S
+      user?.id,
+      user?.profilePicture,
       (userId, position, profilePicture, isRemove) => {
         if (isRemove) {
           setOtherUsersPosition((prev) => {

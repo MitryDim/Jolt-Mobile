@@ -24,11 +24,8 @@ const EditProfileScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [loading, setLoading] = useState(false);
 
-  console.log("EditProfileScreen user:", username);
   useEffect(() => {
-    console.log("EditProfileScreen is focused:", isFocused, user);
     if (user) {
-      console.log("EditProfileScreen user:1", user);
       setEmail(user.email || "");
       setUsername(user.username || "");
       setProfilePicture(user.profilePicture || "");
@@ -121,7 +118,6 @@ const EditProfileScreen = ({ navigation }) => {
     }
     // Mets à jour le contexte utilisateur si besoin
     if (data) {
-      console.log("Mise à jour du profil réussie:", data);
       const newDataUser = data.data;
       setUser((prevUser) => ({
         ...prevUser,

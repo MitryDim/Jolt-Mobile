@@ -349,7 +349,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         />
       )}
       {/* Durée */}
-      {trackingData.owner === user.id ? (
+      {trackingData.owner === user?.id ? (
         elapsedTime > 0 && (
           <InfoRow icon="timer-outline" text={formatElapsedTime(elapsedTime)} />
         )
@@ -364,19 +364,19 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         />
       )}
       {/* Vitesse max, startTime, endTime : seulement si c'est le sien */}
-      {trackingData.owner === user.id && trackingData.speedMax && (
+      {trackingData.owner === user?.id && trackingData.speedMax && (
         <InfoRow
           icon="speedometer"
           text={`${Math.round(trackingData.speedMax)} km/h`}
         />
       )}
-      {trackingData.owner === user.id && trackingData.startTime && (
+      {trackingData.owner === user?.id && trackingData.startTime && (
         <InfoRow
           icon="calendar"
           text={new Date(trackingData.startTime).toLocaleString()}
         />
       )}
-      {trackingData.owner === user.id && trackingData.endTime && (
+      {trackingData.owner === user?.id && trackingData.endTime && (
         <InfoRow
           icon="calendar"
           text={new Date(trackingData.endTime).toLocaleString()}
@@ -402,7 +402,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
         {/* Si connecté, ce n'est pas son trajet, et il n'a pas déjà noté */}
         {user &&
           user.id &&
-          trackingData.owner !== user.id &&
+          trackingData.owner !== user?.id &&
           !userNote &&
           (isRatingMode ? (
             <Rating
@@ -420,7 +420,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
           ))}
 
         {/* Si connecté, ce n'est pas son trajet, et il a déjà noté */}
-        {user && user.id && trackingData.owner !== user.id && userNote && (
+        {user && user.id && trackingData.owner !== user?.id && userNote && (
           <Text style={{ fontSize: 14, color: "gray", marginTop: 8 }}>
             Vous avez noté ce trajet : {userNote.rating} / 5
           </Text>
@@ -431,7 +431,7 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
 
   const renderCharts = () => (
     <ScrollView style={{ flex: 1, marginBottom: 10 }}>
-      {user && user.id && trackingData.owner === user.id && (
+      {user && user.id && trackingData.owner === user?.id && (
         <ChartWithSlider
           label="Graphique de vitesse"
           data={speedArr}
@@ -522,25 +522,25 @@ const TrackingDetailsScreen = ({ route, navigation }) => {
                 styles.fab,
                 {
                   backgroundColor:
-                    trackingData.owner === user.id ? "#f87171" : "#2563eb",
+                    trackingData.owner === user?.id ? "#f87171" : "#2563eb",
                   marginBottom: 16,
                 },
               ]}
               onPress={
-                trackingData.owner === user.id
+                trackingData.owner === user?.id
                   ? handleDelete
                   : () => alert("Partager trajet")
               }
             >
               <IconComponent
                 library="Feather"
-                icon={trackingData.owner === user.id ? "trash-2" : "share-2"}
+                icon={trackingData.owner === user?.id ? "trash-2" : "share-2"}
                 size={24}
-                color={trackingData.owner === user.id ? "red" : "#fff"}
+                color={trackingData.owner === user?.id ? "red" : "#fff"}
               />
             </TouchableOpacity>
 
-            {trackingData.owner === user.id && (
+            {trackingData.owner === user?.id && (
               <TouchableOpacity
                 style={[
                   styles.fab,

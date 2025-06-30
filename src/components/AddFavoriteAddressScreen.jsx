@@ -51,7 +51,6 @@ const AddFavoriteAddressScreen = ({ navigation }) => {
       )}&autocomplete=1&limit=5`;
       const res = await fetch(url);
       const json = await res.json();
-      console.log("Suggestions fetched:", json?.features);
       if (!json.features || json.features.length === 0) {
         setSuggestions([]);
         return;
@@ -67,8 +66,6 @@ const AddFavoriteAddressScreen = ({ navigation }) => {
 
   const handleInputChange = (text) => {
     setAddressInput(text);
-    console.log("Input changed:", text);
-    console.log("Current timeout ID:", timeoutId);
     if (timeoutId) clearTimeout(timeoutId);
     const newId = setTimeout(() => fetchSuggestions(text), 500);
     setTimeoutId(newId);

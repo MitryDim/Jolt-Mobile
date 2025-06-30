@@ -37,6 +37,7 @@ export function useFetchWithAuth() {
 
       // Première requête
       let response = await fetch(url, { ...options, headers });
+      console.warn("Requête envoyée à:", url);
 
       // Si token invalide et route protégée, tente refresh
       if (
@@ -71,9 +72,7 @@ export function useFetchWithAuth() {
           setUser(newUser); // Met à jour le contexte utilisateur
           // Relance la requête initiale avec le nouveau token
           headers.Authorization = `Bearer ${newAccessToken}`;
-          console.log("Token rafraîchi, relance de la requête initiale");
-          console.log("newAccessToken:", newAccessToken);
-          console.log("headers:", headers);
+
           response = await fetch(url, { ...options, headers });
         } else {
           console.warn("Échec du rafraîchissement du token, déconnexion");
