@@ -12,8 +12,13 @@ import LottieView from "lottie-react-native";
 import IconComponent from "../components/Icons";
 import * as Location from "expo-location";
 import * as ExpoSplashScreen from "expo-splash-screen";
-
+import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import * as Application from "expo-application";
+import * as Device from "expo-device";
+import { UserContext } from "../context/AuthContext";
 import PermissionScreen from "./PermissionLocationScreen";
+import { useNotification } from "../context/NotificationContext";
 ExpoSplashScreen.preventAutoHideAsync();
 const messages = require("../../assets/SplashScreen/messages.json");
 const AnimatedLottieView = Animated.createAnimatedComponent(LottieView);
@@ -21,6 +26,10 @@ const AnimatedLottieViewSplash2 = Animated.createAnimatedComponent(LottieView);
 const AnimatedLottieViewText = Animated.createAnimatedComponent(LottieView);
 
 const SplashScreen = ({ navigation, onAnimationFinish }) => {
+  const { user } = React.useContext(UserContext);
+  const { expoPushToken } = useNotification();
+  const fetchWithAuth = useFetchWithAuth();
+
   const opacityAnimationLoading = useAnimatedValue(0);
   const opacityAnimationSplash1 = useAnimatedValue(1);
   const opacityAnimationSplash2 = useAnimatedValue(0);
@@ -72,6 +81,46 @@ const SplashScreen = ({ navigation, onAnimationFinish }) => {
     //  navigation.replace("ChoiceAddress");
     // }
   };
+
+  useEffect(() => {
+    const sendPushToken = async () => {
+      if (expoPushToken) {
+        let deviceId = "unknown";
+        try {
+          if (Platform.OS === "android" && Application.getAndroidId) {
+            deviceId = await Application.getAndroidId();
+          } else if (
+            Platform.OS === "ios" &&
+            Application.getIosIdForVendorAsync
+          ) {
+            deviceId = await Application.getIosIdForVendorAsync();
+          }
+          if (!deviceId) {
+            deviceId =
+              Device.osInternalBuildId || Device.deviceName || "unknown";
+          }
+          console.log("Device ID:", deviceId);
+          let userId = null;
+
+          if (user && user.id) {
+            userId = user.id;
+          }
+
+          await fetchWithAuth(
+            `${EXPO_GATEWAY_SERVICE_URL}/pushToken/push-token`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ expoPushToken, deviceId, userId }),
+            }
+          );
+        } catch (e) {
+          console.log("Erreur envoi push token backend", e);
+        }
+      }
+    };
+    sendPushToken();
+  }, [expoPushToken]);
 
   async function prepare() {
     try {

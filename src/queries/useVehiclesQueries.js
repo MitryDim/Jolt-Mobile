@@ -2,37 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 
-let lastVehicleEtag = null;
-
-export const useVehicles = () => {
+export const useVehiclesQuery = () => {
   const fetchWithAuth = useFetchWithAuth();
 
   return useQuery({
     queryKey: ["vehicles"],
-    queryFn: async ({ queryKey, meta, signal }) => {
-      // Ajoute l'ETag dans les headers si présent
-      const headers = {};
-      if (lastVehicleEtag) {
-        headers["If-None-Match"] = lastVehicleEtag;
-      }
+    queryFn: async ({signal }) => {
 
       // 1. Récupère les véhicules
       const { data, error, status, rawResponse } = await fetchWithAuth(
         `${EXPO_GATEWAY_SERVICE_URL}/vehicle`,
-        { method: "GET", headers },
+        { method: "GET" },
         { protected: true }
       );
-
-      // Récupère le nouvel ETag de la réponse brute si dispo
-      if (rawResponse) {
-        const etag = rawResponse.headers.get("etag");
-        if (etag) lastVehicleEtag = etag;
-      }
-
-      if (status === 304) {
-        // Pas de changement, React Query garde le cache
-        return meta.state.data;
-      }
 
       if (error || status !== 200) {
         throw new Error(error || "Erreur lors du chargement des véhicules");
@@ -82,6 +64,7 @@ export const useVehicles = () => {
 
       return vehiclesWithMaint;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    keepPreviousData: true, 
   });
 };

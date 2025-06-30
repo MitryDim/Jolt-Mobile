@@ -10,7 +10,7 @@ import { useFetchWithAuth } from "../hooks/useFetchWithAuth";
 import { EXPO_GATEWAY_SERVICE_URL } from "@env";
 import * as SecureStore from "expo-secure-store";
 import { UserContext } from "./AuthContext";
-import { useVehicles } from "../queries/vehiclesQueries";
+import { useVehiclesQuery } from "../queries/useVehiclesQueries";
 
 export const VehicleDataContext = createContext();
 
@@ -18,7 +18,7 @@ export const VehicleDataProvider = ({ children }) => {
   const fetchWithAuth = useFetchWithAuth();
   const [maintenances, setMaintenances] = useState({});
   const [history, setHistory] = useState({});
-  const { data: vehicles = [], isLoading, error, refetch } = useVehicles();
+  const { data: vehicles = [], isLoading, error, refetch } = useVehiclesQuery();
   const [vehicleSelected, setVehicleSelected] = useState(null);
   const [pendingCount, setPendingCount] = useState();
 

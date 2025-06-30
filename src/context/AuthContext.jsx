@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { EXPO_GATEWAY_SERVICE_URL } from "@env"; // Assurez-vous que cette variable d'environnement est définie dans votre fichier .env
+import { EXPO_GATEWAY_SERVICE_URL } from "@env";
+import * as Application from "expo-application";
+import * as Device from "expo-device";
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
@@ -21,7 +23,25 @@ export const UserProvider = ({ children }) => {
   const login = async (userData) => {
     console.log("Login pressed", userData);
     await SecureStore.setItemAsync("user", JSON.stringify(userData));
+
     setUser(userData);
+
+    if (userData && userData.id) {
+      const deviceId =
+        Application.getAndroidId ||
+        (await Application.getIosIdForVendorAsync()) ||
+        Device.osInternalBuildId ||
+        "unknown";
+      await fetchWithAuth(
+        `${EXPO_GATEWAY_SERVICE_URL}/pushToken/attach-user`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId, userId: user.id }),
+        },
+        { protected: true }
+      );
+    }
   };
   const logout = async () => {
     fetch(`${EXPO_GATEWAY_SERVICE_URL}/auth/logout`, {

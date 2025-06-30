@@ -142,7 +142,7 @@ const VehicleCarousel = ({
         </Text>
         <View
           style={[styles?.row]}
-          className="top-4 w-[90%] flex justify-between space-x-4"
+          className="top-4 w-[90%] flex flex-row justify-between space-x-4"
         >
           <View>
             <Text
