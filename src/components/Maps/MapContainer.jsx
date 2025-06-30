@@ -79,7 +79,7 @@ const MapContainer = ({
   let sendPosition = () => {};
   if (mode === "travel" && isConnected && socketId && user?.id) {
     ({ sendPosition } = useTripSocket(
-      socketId,S
+      socketId,
       user?.id,
       user?.profilePicture,
       (userId, position, profilePicture, isRemove) => {
