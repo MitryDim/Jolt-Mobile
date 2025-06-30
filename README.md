@@ -57,6 +57,9 @@ Profitez d'une application moderne, intuitive et pensée pour simplifier vos dé
   <a href="https://youtu.be/m4R4yN3Y35E" target="_blank">
     <img src="https://img.youtube.com/vi/m4R4yN3Y35E/0.jpg" width="320" alt="Test vidéo 2"/>
   </a>
+  <a href="https://www.youtube.com/watch?v=nLIsHw0FG3s" target="_blank">
+    <img src="https://www.youtube.com/watch?v=nLIsHw0FG3s/0.jpg" width="320" alt="Full Démo application"/>
+  </a>
 </div>
 
 ---
@@ -195,16 +198,19 @@ Les variables `EXPO_URL_JOLT_WEBSITE_*` permettent de configurer les liens de pa
 - **`EXPO_URL_JOLT_WEBSITE_PORT`** : Port du serveur web
 
 Ces liens permettent :
+
 - 🌐 **Partage web** : Les utilisateurs peuvent partager des URLs web accessibles depuis un navigateur
 - 📱 **Redirection automatique** : Si l'app est installée, les liens web ouvrent automatiquement l'application
 - 🔗 **Deep linking** : Navigation fluide entre web et mobile
 - 📊 **Compatibilité universelle** : Fonctionne sur tous les appareils et plateformes
 
 **Exemple d'utilisation :**
+
 - URL partagée : `http://192.168.1.88:5000/navigate/trip?id=abc123`
 - Deep link généré : `jolt://navigate/trip/abc123`
 
-> ⚠️ **Important :** 
+> ⚠️ **Important :**
+>
 > - Assurez-vous que l'API Gateway et OpenRouteService soient accessibles depuis votre appareil ou émulateur
 > - Pour le partage de trajets, votre serveur web doit être accessible par les destinataires des liens
 > - En production, utilisez HTTPS pour la sécurité
