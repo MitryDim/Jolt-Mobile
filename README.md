@@ -58,7 +58,7 @@ Profitez d'une application moderne, intuitive et pensée pour simplifier vos dé
     <img src="https://img.youtube.com/vi/m4R4yN3Y35E/0.jpg" width="320" alt="Test vidéo 2"/>
   </a>
   <a href="https://www.youtube.com/watch?v=nLIsHw0FG3s" target="_blank">
-    <img src="https://www.youtube.com/watch?v=nLIsHw0FG3s/0.jpg" width="320" alt="Full Démo application"/>
+    <img src="https://img.youtube.com/vi/nLIsHw0FG3s/0.jpg" width="320" alt="Full Démo application"/>
   </a>
 </div>
 
